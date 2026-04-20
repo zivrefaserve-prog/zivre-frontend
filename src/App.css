@@ -2255,3 +2255,73 @@ const theme = createTheme({
     },
     // ... rest of your theme
 });
+
+/* ============================================ */
+/* ========== FORCE MOBILE FOR ALL DEVICES ========== */
+/* ============================================ */
+
+/* Force all MUI components to respect mobile width */
+@media (max-width: 768px) {
+    /* Force container width */
+    .MuiContainer-root {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+        max-width: 100% !important;
+    }
+    
+    /* Force all grids to single column */
+    .MuiGrid-container {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .MuiGrid-item {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex-basis: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Force dashboard main to full width */
+    .dashboard-main,
+    .MuiBox-root[class*="dashboard"] {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding: 8px !important;
+    }
+    
+    /* Force sidebar to overlay */
+    .MuiDrawer-paper {
+        width: 280px !important;
+        position: fixed !important;
+    }
+    
+    /* Force cards to full width */
+    .MuiCard-root {
+        width: 100% !important;
+        margin: 0 0 12px 0 !important;
+    }
+    
+    /* Force tables to scroll */
+    .MuiTableContainer-root {
+        overflow-x: auto !important;
+        display: block !important;
+    }
+    
+    .MuiTable-root {
+        min-width: 500px !important;
+        width: 100% !important;
+    }
+}
+
+/* Ensure body doesn't overflow */
+body {
+    overflow-x: hidden !important;
+    width: 100% !important;
+}
+
+#root {
+    overflow-x: hidden !important;
+    width: 100% !important;
+}
