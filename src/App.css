@@ -2243,18 +2243,6 @@ button,
 .MuiDialogContent-root {
     -webkit-overflow-scrolling: touch;
 }
-const theme = createTheme({
-    breakpoints: {
-        values: {
-            xs: 0,
-            sm: 600,
-            md: 900,
-            lg: 1200,
-            xl: 1536,
-        },
-    },
-    // ... rest of your theme
-});
 
 /* ============================================ */
 /* ========== FORCE MOBILE FOR ALL DEVICES ========== */
@@ -2324,4 +2312,71 @@ body {
 #root {
     overflow-x: hidden !important;
     width: 100% !important;
+}
+
+/* ============================================ */
+/* ========== ULTIMATE MOBILE FORCE ========== */
+/* ============================================ */
+
+/* This targets everything and forces mobile layout with highest priority */
+@media (max-width: 768px) {
+    /* Force all grid containers to column */
+    div[class*="MuiGrid-container"] {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    div[class*="MuiGrid-item"] {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex-basis: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        padding-left: 0 !important;
+        padding-right: 0 !important;
+    }
+    
+    /* Force dashboard containers */
+    div[class*="dashboard-main"],
+    div[class*="MuiBox-root"] > main,
+    main > div:first-child {
+        margin-left: 0 !important;
+        padding: 8px !important;
+        width: 100% !important;
+    }
+    
+    /* Force all cards to full width */
+    div[class*="MuiCard-root"] {
+        width: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Force all containers */
+    div[class*="MuiContainer-root"] {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+        max-width: 100% !important;
+    }
+    
+    /* Force all drawers to overlay */
+    div[class*="MuiDrawer-paper"] {
+        width: 280px !important;
+        position: fixed !important;
+    }
+}
+
+/* Mobile device body class - applied by JavaScript */
+body.mobile-device {
+    overflow-x: hidden !important;
+    width: 100% !important;
+}
+
+body.mobile-device .MuiGrid-container {
+    flex-direction: column !important;
+}
+
+body.mobile-device .MuiGrid-item {
+    width: 100% !important;
+    max-width: 100% !important;
 }
