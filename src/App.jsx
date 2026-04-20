@@ -25,7 +25,17 @@ import { TourButton, customerTourSteps } from './common/DemoTour'
 import { keepAlive } from './api/client'
 import './App.css'
 
+// Force mobile breakpoints in theme
 const theme = createTheme({
+  breakpoints: {
+    values: {
+      xs: 0,
+      sm: 600,
+      md: 900,
+      lg: 1200,
+      xl: 1536,
+    },
+  },
   palette: {
     primary: { main: '#10b981', light: '#34d399', dark: '#059669' },
     secondary: { main: '#8b5cf6', light: '#a78bfa', dark: '#7c3aed' },
@@ -66,6 +76,11 @@ const theme = createTheme({
             transform: 'translateY(-2px)' 
           } 
         } 
+      },
+    },
+    MuiUseMediaQuery: {
+      defaultProps: {
+        noSsr: true,
       },
     },
   },
@@ -133,6 +148,19 @@ const AppRoutes = () => {
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showTour, setShowTour] = useState(false)
 
+  // Force viewport on mobile
+  useEffect(() => {
+    const setViewport = () => {
+      const viewport = document.querySelector('meta[name="viewport"]')
+      if (viewport && window.innerWidth <= 768) {
+        viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover')
+      }
+    }
+    setViewport()
+    window.addEventListener('resize', setViewport)
+    return () => window.removeEventListener('resize', setViewport)
+  }, [])
+
   useEffect(() => {
     const tourSeen = sessionStorage.getItem('zivre_tour_seen')
     const isHomepage = location.pathname === '/'
@@ -161,25 +189,22 @@ const AppRoutes = () => {
     
     const interval = setInterval(() => {
       keepAlive().catch((err) => {
-        // Silently fail - don't show errors to user
         console.log('Session ping failed:', err.response?.status)
       })
-    }, 5 * 60 * 1000) // 5 minutes
+    }, 5 * 60 * 1000)
     
     return () => clearInterval(interval)
   }, [user])
 
   // ========== KEEP BACKEND AWAKE - FIXES WEBSOCKET TIMEOUT ==========
   useEffect(() => {
-    // Immediate ping to wake backend from sleep
     fetch('https://zivre-backend.onrender.com/api/services')
       .catch(() => console.log('Backend waking up...'))
     
-    // Ping every 2 minutes to keep backend awake
     const keepAliveInterval = setInterval(() => {
       fetch('https://zivre-backend.onrender.com/api/services')
         .catch(() => {})
-    }, 2 * 60 * 1000) // 2 minutes
+    }, 2 * 60 * 1000)
     
     return () => clearInterval(keepAliveInterval)
   }, [])
@@ -191,10 +216,8 @@ const AppRoutes = () => {
   return (
     <>
       <Routes>
-        {/* Public Routes */}
         <Route path="/reset-password" element={<ResetPassword />} />
         
-        {/* Protected Routes */}
         <Route path="/profile" element={
           user ? <ProfileSettings /> : <Navigate to="/" />
         } />
@@ -211,13 +234,9 @@ const AppRoutes = () => {
           user && user.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />
         } />
         
-        {/* Redirect for /my-requests to fix route error */}
         <Route path="/my-requests" element={<Navigate to="/customer/dashboard" replace />} />
-        
-        {/* Catch all unknown routes - redirect to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
         
-        {/* Homepage */}
         <Route path="/" element={
           <>
             <Header onGetQuote={scrollToContact} />
@@ -238,7 +257,6 @@ const AppRoutes = () => {
         } />
       </Routes>
       
-      {/* Forgot Password Modal */}
       {showForgotPasswordModal && (
         <ForgotPasswordModal onClose={() => setShowForgotPasswordModal(false)} />
       )}
