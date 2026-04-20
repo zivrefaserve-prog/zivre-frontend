@@ -83,16 +83,18 @@ export const WebSocketProvider = ({ children, userId }) => {
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
 const SOCKET_URL = API_URL.replace('/api', '').replace('http://', 'https://')
     
-    const newSocket = io(SOCKET_URL, {
-      transports: ['websocket', 'polling'],
-      query: { userId: userId.toString() },
-      reconnection: false,
-      timeout: 20000,
-      withCredentials: true,
-      autoConnect: true,
-      // FIX: Add forceNew to prevent stale connections
-      forceNew: true
-    })
+console.log('🔌 Attempting WebSocket connection to:', SOCKET_URL)    
+const newSocket = io(SOCKET_URL, {
+  transports: ['polling', 'websocket'],  // polling FIRST, then websocket
+  query: { userId: userId.toString() },
+  reconnection: true,        // CHANGE to true
+  reconnectionAttempts: 5,   // ADD this
+  reconnectionDelay: 1000,   // ADD this
+  timeout: 60000,            // CHANGE to 60000
+  withCredentials: true,
+  autoConnect: true,
+  forceNew: true
+})
 
     socketRef.current = newSocket
 
