@@ -79,8 +79,9 @@ export const WebSocketProvider = ({ children, userId }) => {
       setConnectionError(null)
     }
 
-    const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-const SOCKET_URL = API_BASE.replace('/api', '')
+    // Use VITE_API_URL for WebSocket, fallback to localhost
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+const SOCKET_URL = API_URL.replace('/api', '').replace('http://', 'https://')
     
     const newSocket = io(SOCKET_URL, {
       transports: ['websocket', 'polling'],
