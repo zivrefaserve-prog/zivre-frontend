@@ -7,11 +7,23 @@
     <title>Zivre Facility Services</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        /* Force mobile layout on all devices */
+        /* Force mobile layout from the very beginning */
         html, body, #root {
             width: 100% !important;
             max-width: 100% !important;
             overflow-x: hidden !important;
+        }
+        
+        /* Mobile-first styles that never get overridden */
+        @media (max-width: 768px) {
+            body.mobile-device .MuiGrid-container,
+            .MuiGrid-container {
+                flex-direction: column !important;
+            }
+            .MuiGrid-item {
+                width: 100% !important;
+                max-width: 100% !important;
+            }
         }
     </style>
 </head>
