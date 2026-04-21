@@ -18,7 +18,7 @@ import {
   Refresh as RefreshIcon, LocationOn as LocationIcon,
   Star as StarIcon, Pending as PendingIcon, Message as MessageIcon,
   Paid as PaidIcon, TrendingUp as TrendingUpIcon, Build as BuildIcon,
-  Search as SearchIcon, Phone as PhoneIcon
+  Search as SearchIcon, Phone as PhoneIcon, Close as CloseIcon
 } from '@mui/icons-material'
 import PaymentFlier from '../common/PaymentFlier'
 import Header from '../layout/Header'
@@ -110,6 +110,10 @@ const ProviderDashboard = () => {
     setActiveTab(tab)
     saveProviderState('activeTab', tab)
     setSearchTerm('')
+    // Close drawer on mobile when tab is selected
+    if (isMobile) {
+      setMobileOpen(false)
+    }
   }
 
   // Load percentages
@@ -356,25 +360,32 @@ const ProviderDashboard = () => {
 
   const drawer = (
     <Box sx={{ height: '100%', bgcolor: 'white' }}>
-      <Box sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 1.5, borderBottom: '1px solid #e2e8f0' }}>
-        <Avatar sx={{ bgcolor: '#10b981', width: 40, height: 40 }}>{user?.full_name?.charAt(0).toUpperCase()}</Avatar>
-        <Box>
-          <Typography variant="subtitle2" fontWeight="600">{user?.full_name}</Typography>
-          <Typography variant="caption" color="text.secondary">Provider</Typography>
-          {user?.is_verified ? (
-            <Chip label="✅ Verified" size="small" sx={{ mt: 0.5, bgcolor: '#10b98115', color: '#10b981', height: 18, fontSize: '0.6rem' }} />
-          ) : (
-            <Chip label="⏳ Pending Verification" size="small" sx={{ mt: 0.5, bgcolor: '#f59e0b15', color: '#f59e0b', height: 18, fontSize: '0.6rem' }} />
-          )}
-          {user?.service_specialization && (
-            <Chip 
-              icon={<BuildIcon sx={{ fontSize: 12 }} />}
-              label={user.service_specialization} 
-              size="small" 
-              sx={{ mt: 0.5, bgcolor: '#e6f7f0', color: '#10b981', height: 18, fontSize: '0.6rem', width: '100%', justifyContent: 'flex-start' }} 
-            />
-          )}
+      <Box sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+          <Avatar sx={{ bgcolor: '#10b981', width: 40, height: 40 }}>{user?.full_name?.charAt(0).toUpperCase()}</Avatar>
+          <Box>
+            <Typography variant="subtitle2" fontWeight="600">{user?.full_name}</Typography>
+            <Typography variant="caption" color="text.secondary">Provider</Typography>
+            {user?.is_verified ? (
+              <Chip label="✅ Verified" size="small" sx={{ mt: 0.5, bgcolor: '#10b98115', color: '#10b981', height: 18, fontSize: '0.6rem' }} />
+            ) : (
+              <Chip label="⏳ Pending Verification" size="small" sx={{ mt: 0.5, bgcolor: '#f59e0b15', color: '#f59e0b', height: 18, fontSize: '0.6rem' }} />
+            )}
+            {user?.service_specialization && (
+              <Chip 
+                icon={<BuildIcon sx={{ fontSize: 12 }} />}
+                label={user.service_specialization} 
+                size="small" 
+                sx={{ mt: 0.5, bgcolor: '#e6f7f0', color: '#10b981', height: 18, fontSize: '0.6rem', width: '100%', justifyContent: 'flex-start' }} 
+              />
+            )}
+          </Box>
         </Box>
+        {isMobile && (
+          <IconButton onClick={() => setMobileOpen(false)} sx={{ color: '#64748b' }}>
+            <CloseIcon />
+          </IconButton>
+        )}
       </Box>
       <Box sx={{ p: 2 }}>
         {menuItems.map((item) => (
@@ -440,7 +451,21 @@ const ProviderDashboard = () => {
 
         <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, width: { md: `calc(100% - ${drawerWidth}px)` } }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
-            <Typography variant="h4" fontWeight="800" sx={{ color: '#0f172a' }}>Provider Dashboard</Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              {isMobile && (
+                <IconButton 
+                  onClick={() => setMobileOpen(true)}
+                  sx={{ 
+                    bgcolor: '#10b981', 
+                    color: 'white',
+                    '&:hover': { bgcolor: '#059669' }
+                  }}
+                >
+                  <MenuIcon />
+                </IconButton>
+              )}
+              <Typography variant="h4" fontWeight="800" sx={{ color: '#0f172a' }}>Provider Dashboard</Typography>
+            </Box>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               {(activeTab === 0 || activeTab === 1) && (
                 <TextField
