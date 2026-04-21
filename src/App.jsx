@@ -25,7 +25,7 @@ import { TourButton, customerTourSteps } from './common/DemoTour'
 import { keepAlive } from './api/client'
 import './App.css'
 
-// Create theme with mobile breakpoints
+// Force mobile breakpoints in theme
 const theme = createTheme({
   breakpoints: {
     values: {
@@ -148,8 +148,9 @@ const AppRoutes = () => {
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showTour, setShowTour] = useState(false)
 
-  // Force viewport on mobile
+  // FORCE MOBILE LAYOUT - THIS IS THE KEY FIX
   useEffect(() => {
+    // Force viewport on mobile
     const setViewport = () => {
       const viewport = document.querySelector('meta[name="viewport"]')
       if (viewport && window.innerWidth <= 768) {
@@ -158,7 +159,34 @@ const AppRoutes = () => {
     }
     setViewport()
     window.addEventListener('resize', setViewport)
-    return () => window.removeEventListener('resize', setViewport)
+    
+    // FORCE MOBILE CLASS ON BODY
+    const forceMobileLayout = () => {
+      if (window.innerWidth <= 768) {
+        document.body.classList.add('mobile-device')
+        document.body.classList.remove('desktop-device')
+        // Force all MUI grid containers to be column
+        const allGrids = document.querySelectorAll('.MuiGrid-container')
+        allGrids.forEach(grid => {
+          grid.style.flexDirection = 'column'
+        })
+      } else {
+        document.body.classList.add('desktop-device')
+        document.body.classList.remove('mobile-device')
+      }
+    }
+    
+    forceMobileLayout()
+    window.addEventListener('resize', forceMobileLayout)
+    
+    // Run again after all content loads
+    const timer = setTimeout(forceMobileLayout, 100)
+    
+    return () => {
+      window.removeEventListener('resize', setViewport)
+      window.removeEventListener('resize', forceMobileLayout)
+      clearTimeout(timer)
+    }
   }, [])
 
   useEffect(() => {
@@ -196,7 +224,7 @@ const AppRoutes = () => {
     return () => clearInterval(interval)
   }, [user])
 
-  // ========== KEEP BACKEND AWAKE ==========
+  // ========== KEEP BACKEND AWAKE - FIXES WEBSOCKET TIMEOUT ==========
   useEffect(() => {
     fetch('https://zivre-backend.onrender.com/api/services')
       .catch(() => console.log('Backend waking up...'))
