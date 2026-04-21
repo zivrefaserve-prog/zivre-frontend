@@ -1,12 +1,26 @@
 import React from 'react'
-import { Dialog, DialogTitle, DialogContent, Box, Button, Typography, Card, CardContent } from '@mui/material'
+import { Dialog, DialogTitle, DialogContent, Box, Button, Typography, Card, CardContent, IconButton } from '@mui/material'
+import CloseIcon from '@mui/icons-material/Close'
 import PersonIcon from '@mui/icons-material/Person'
 import BuildIcon from '@mui/icons-material/Build'
 
 const RoleModal = ({ onSelect, onClose }) => {
   return (
     <Dialog open onClose={onClose} maxWidth="md" fullWidth disableEnforceFocus>
-      <DialogTitle sx={{ textAlign: 'center', pt: 4 }}>
+      <DialogTitle sx={{ textAlign: 'center', pt: 4, position: 'relative' }}>
+        {/* Top-right X close button */}
+        <IconButton
+          onClick={onClose}
+          sx={{
+            position: 'absolute',
+            right: 16,
+            top: 16,
+            color: '#64748b',
+            '&:hover': { bgcolor: '#f1f5f9' }
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
         <Typography variant="h4" component="span" fontWeight="800">Join Zivre Platform</Typography>
         <Typography variant="body1" color="text.secondary" sx={{ mt: 1, display: 'block' }}>Choose how you want to use our services</Typography>
       </DialogTitle>
@@ -58,20 +72,21 @@ const RoleModal = ({ onSelect, onClose }) => {
           </Card>
         </Box>
         
-        {/* ===== CLOSE BUTTON ADDED HERE ===== */}
+        {/* ===== BOTTOM CLOSE BUTTON - NOW MORE VISIBLE ===== */}
         <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
           <Button 
             onClick={onClose}
-            variant="outlined"
+            variant="contained"
             sx={{ 
-              borderColor: '#e2e8f0', 
-              color: '#64748b',
-              px: 4,
-              py: 1,
+              bgcolor: '#ef4444',
+              color: 'white',
+              px: 5,
+              py: 1.2,
               '&:hover': { 
-                borderColor: '#cbd5e1', 
-                bgcolor: '#f8fafc' 
-              }
+                bgcolor: '#dc2626'
+              },
+              fontWeight: 600,
+              borderRadius: 2
             }}
           >
             Close
