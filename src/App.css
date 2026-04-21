@@ -2515,4 +2515,24 @@ body.mobile-device .MuiGrid-item {
         width: 100% !important;
         margin-bottom: 12px !important;
     }
+    
+    /* ===== FIX MESSAGES PAGE HEADER ===== */
+    .MuiPaper-root > .MuiBox-root:first-child {
+        width: 100% !important;
+        display: block !important;
+    }
+    
+    /* ===== FIX CHAT HEADER ===== */
+    .MuiBox-root[class*="bgcolor"] {
+        display: flex !important;
+        flex-wrap: wrap !important;
+    }
+    
+    /* ===== FORCE ALL HEADERS TO BE VISIBLE ===== */
+    header,
+    .MuiAppBar-root,
+    .MuiToolbar-root {
+        display: flex !important;
+        visibility: visible !important;
+    }
 }
