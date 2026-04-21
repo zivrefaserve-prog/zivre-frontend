@@ -1,20 +1,26 @@
 import React from 'react'
-import { useAuth } from '../contexts/AuthContext'
 
 const Hero = ({ onGetQuote }) => {
-    const { user } = useAuth()
-
     const handleGetStarted = () => {
-        // If user is already logged in, go to dashboard
-        if (user) {
-            if (user.role === 'customer') {
-                window.location.href = '/customer/dashboard'
-            } else if (user.role === 'provider') {
-                window.location.href = '/provider/dashboard'
-            } else if (user.role === 'admin') {
-                window.location.href = '/admin/dashboard'
+        // Check if user is logged in via sessionStorage
+        const userData = sessionStorage.getItem('zivre_user')
+        
+        if (userData) {
+            try {
+                const user = JSON.parse(userData)
+                if (user.role === 'customer') {
+                    window.location.href = '/customer/dashboard'
+                    return
+                } else if (user.role === 'provider') {
+                    window.location.href = '/provider/dashboard'
+                    return
+                } else if (user.role === 'admin') {
+                    window.location.href = '/admin/dashboard'
+                    return
+                }
+            } catch (e) {
+                console.error('Error parsing user data', e)
             }
-            return
         }
 
         // Method 1: Try to find by class (most reliable)
