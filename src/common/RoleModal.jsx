@@ -57,6 +57,28 @@ const RoleModal = ({ onSelect, onClose }) => {
             </CardContent>
           </Card>
         </Box>
+        
+        {/* ===== CLOSE BUTTON ADDED HERE ===== */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+          <Button 
+            onClick={onClose}
+            variant="outlined"
+            sx={{ 
+              borderColor: '#e2e8f0', 
+              color: '#64748b',
+              px: 4,
+              py: 1,
+              '&:hover': { 
+                borderColor: '#cbd5e1', 
+                bgcolor: '#f8fafc' 
+              }
+            }}
+          >
+            Close
+          </Button>
+        </Box>
+        {/* ===== END OF CLOSE BUTTON ===== */}
+        
       </DialogContent>
     </Dialog>
   )
