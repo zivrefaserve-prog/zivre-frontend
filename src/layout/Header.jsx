@@ -28,7 +28,6 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
   const [mobileOpen, setMobileOpen] = useState(false)
   const isMobile = useMediaQuery('(max-width:768px)')
 
-  // FIX: Blur any focused element before opening modals to prevent aria-hidden warning
   const blurActiveElement = () => {
     if (document.activeElement && document.activeElement.blur) {
       document.activeElement.blur()
@@ -74,7 +73,6 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     blurActiveElement()
     setShowSignUpModal(false)
     setShowSignInModal(false)
-    // Use correct dashboard URL based on role
     if (loggedInUser.role === 'customer') {
       window.location.href = '/customer/dashboard'
     } else if (loggedInUser.role === 'provider') {
@@ -99,7 +97,6 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     setShowSignUpModal(true)
   }
 
-  // Get correct dashboard URL based on user role
   const getDashboardUrl = () => {
     if (!user) return '/'
     if (user.role === 'customer') return '/customer/dashboard'
