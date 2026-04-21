@@ -23,30 +23,7 @@ const Hero = ({ onGetQuote }) => {
             }
         }
 
-        // DIRECT APPROACH: Find ALL possible Get Started buttons
-        const allButtons = document.querySelectorAll('button')
-        
-        for (let btn of allButtons) {
-            const btnText = btn.textContent || btn.innerText
-            if (btnText === 'Get Started' || btnText.includes('Get Started')) {
-                // Add a small delay to ensure click registers on mobile
-                setTimeout(() => {
-                    btn.click()
-                }, 50)
-                return
-            }
-        }
-        
-        // If button not found, try to find by class
-        const headerBtn = document.querySelector('.btn-primary')
-        if (headerBtn && headerBtn.textContent.includes('Get Started')) {
-            setTimeout(() => {
-                headerBtn.click()
-            }, 50)
-            return
-        }
-        
-        // Last resort: Show role modal directly
+        // DIRECTLY dispatch event to open role modal (no button clicking)
         window.dispatchEvent(new CustomEvent('open_get_started_modal'))
     }
 
