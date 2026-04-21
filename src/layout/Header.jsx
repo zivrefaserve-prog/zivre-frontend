@@ -111,8 +111,7 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     { label: 'Get Quote', icon: <QuoteIcon />, action: onGetQuote },
   ]
 
-  // ========== ADD THIS useEffect HERE ==========
-  // Listen for custom event from Hero button
+  // Listen for custom event from Hero button (Get Started)
   useEffect(() => {
     const handleOpenGetStarted = () => {
       setTimeout(() => {
@@ -126,7 +125,21 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
       window.removeEventListener('open_get_started_modal', handleOpenGetStarted)
     }
   }, [])
-  // ========== END OF ADDED useEffect ==========
+
+  // Listen for custom event from Hero button (Sign In)
+  useEffect(() => {
+    const handleOpenSignIn = () => {
+      setTimeout(() => {
+        handleSignIn()
+      }, 50)
+    }
+    
+    window.addEventListener('open_signin_modal', handleOpenSignIn)
+    
+    return () => {
+      window.removeEventListener('open_signin_modal', handleOpenSignIn)
+    }
+  }, [])
 
   const drawer = (
     <Box sx={{ width: 250, p: 2 }} role="presentation">
