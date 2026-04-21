@@ -41,7 +41,6 @@ a {
 /* ========== HOMEPAGE STYLES ========== */
 /* ============================================ */
 
-/* Header */
 .header {
     background: white;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
@@ -108,7 +107,6 @@ a {
     gap: 0.75rem;
 }
 
-/* Hero */
 .hero {
     background: linear-gradient(135deg, #f8fafc 0%, #eef2ff 100%);
     padding: 4rem 0;
@@ -183,7 +181,6 @@ a {
     color: white;
 }
 
-/* Services Grid */
 .services {
     padding: 4rem 0;
     background: white;
@@ -278,7 +275,6 @@ a {
     opacity: 0.7;
 }
 
-/* Why Choose */
 .why-choose {
     padding: 4rem 0;
     background: #f8fafc;
@@ -360,7 +356,6 @@ a {
     margin-bottom: 0.5rem;
 }
 
-/* About */
 .about {
     padding: 4rem 0;
     background: white;
@@ -411,7 +406,6 @@ a {
     margin-top: 1.5rem;
 }
 
-/* Contact */
 .contact {
     padding: 4rem 0;
     background: #f8fafc;
@@ -477,7 +471,6 @@ a {
     border-color: #0f3b2c;
 }
 
-/* Testimonials */
 .testimonials {
     padding: 4rem 0;
     background: white;
@@ -538,7 +531,6 @@ a {
     font-size: 0.75rem;
 }
 
-/* Footer */
 .footer {
     background: #0f172a;
     color: #cbd5e1;
@@ -606,28 +598,6 @@ a {
     overflow-y: auto;
 }
 
-.modal-content h2 {
-    margin-bottom: 1rem;
-    font-size: 1.5rem;
-}
-
-.modal-content h3 {
-    margin-bottom: 1rem;
-    font-size: 1.2rem;
-}
-
-.modal-close {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: none;
-    border: none;
-    font-size: 1.25rem;
-    cursor: pointer;
-    color: #64748b;
-}
-
-/* Role Modal */
 .role-modal-content {
     background: white;
     border-radius: 1.5rem;
@@ -635,12 +605,6 @@ a {
     max-width: 800px;
     width: 90%;
     position: relative;
-}
-
-.role-subtitle {
-    text-align: center;
-    color: #64748b;
-    margin-bottom: 2rem;
 }
 
 .role-cards {
@@ -662,36 +626,8 @@ a {
 .role-card:hover {
     border-color: #0f3b2c;
     transform: translateY(-4px);
-    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
 }
 
-.role-icon {
-    font-size: 3rem;
-    margin-bottom: 1rem;
-}
-
-.role-card h3 {
-    margin-bottom: 0.5rem;
-    color: #0f172a;
-}
-
-.role-card p {
-    font-size: 0.85rem;
-    color: #64748b;
-    margin-bottom: 1.5rem;
-}
-
-.role-select-btn {
-    background: #0f3b2c;
-    color: white;
-    border: none;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    font-size: 0.85rem;
-}
-
-/* Auth Modal */
 .auth-modal-content {
     background: white;
     border-radius: 1.5rem;
@@ -701,96 +637,6 @@ a {
     position: relative;
 }
 
-.auth-subtitle {
-    color: #64748b;
-    margin-bottom: 1.5rem;
-    text-align: center;
-}
-
-.input-group {
-    margin-bottom: 1rem;
-    position: relative;
-}
-
-.input-group input {
-    width: 100%;
-    padding: 0.75rem 1rem;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.5rem;
-    font-size: 0.9rem;
-}
-
-.input-group input:focus {
-    outline: none;
-    border-color: #0f3b2c;
-}
-
-.password-group {
-    position: relative;
-}
-
-.password-toggle {
-    position: absolute;
-    right: 1rem;
-    top: 50%;
-    transform: translateY(-50%);
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 1rem;
-    color: #64748b;
-}
-
-.forgot-password-link {
-    text-align: right;
-    margin-bottom: 1rem;
-}
-
-.forgot-password-link button {
-    background: none;
-    border: none;
-    color: #0f3b2c;
-    font-size: 0.8rem;
-    cursor: pointer;
-    text-decoration: underline;
-}
-
-.auth-submit-btn {
-    width: 100%;
-    padding: 0.75rem;
-    background: #0f3b2c;
-    color: white;
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: 600;
-    cursor: pointer;
-}
-
-.auth-submit-btn:hover:not(:disabled) {
-    background: #1a5a44;
-}
-
-.auth-submit-btn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-.auth-switch {
-    text-align: center;
-    margin-top: 1rem;
-    font-size: 0.9rem;
-    color: #64748b;
-}
-
-.auth-switch button {
-    background: none;
-    border: none;
-    color: #0f3b2c;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-/* Confirm Modal */
 .confirm-modal-content {
     background: white;
     border-radius: 1rem;
@@ -799,22 +645,12 @@ a {
     width: 90%;
 }
 
-.confirm-modal-content h3 {
-    margin-bottom: 0.5rem;
-}
-
-.confirm-modal-content p {
-    margin-bottom: 1.5rem;
-    color: #64748b;
-}
-
 .confirm-buttons {
     display: flex;
     gap: 1rem;
     justify-content: flex-end;
 }
 
-/* Toast */
 .toast {
     position: fixed;
     top: 20px;
@@ -832,49 +668,15 @@ a {
     animation: slideInRight 0.3s ease;
 }
 
-.toast-success {
-    border-left: 4px solid #10b981;
-}
-
-.toast-error {
-    border-left: 4px solid #ef4444;
-}
-
-.toast-info {
-    border-left: 4px solid #3b82f6;
-}
-
-.toast-content {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.toast-icon {
-    font-size: 1.1rem;
-    font-weight: bold;
-}
-
-.toast-close {
-    background: none;
-    border: none;
-    font-size: 1.2rem;
-    cursor: pointer;
-    color: #94a3b8;
-}
+.toast-success { border-left: 4px solid #10b981; }
+.toast-error { border-left: 4px solid #ef4444; }
+.toast-info { border-left: 4px solid #3b82f6; }
 
 @keyframes slideInRight {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
 }
 
-/* Spinner */
 .spinner-small {
     display: inline-block;
     width: 16px;
@@ -961,7 +763,6 @@ a {
     gap: 1rem;
 }
 
-/* Stats Grid */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -977,19 +778,6 @@ a {
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.stat-card h3 {
-    font-size: 0.875rem;
-    color: #64748b;
-    margin-bottom: 0.5rem;
-}
-
-.stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #0f3b2c;
-}
-
-/* Tables */
 .services-table, .users-table {
     overflow-x: auto;
 }
@@ -1011,7 +799,6 @@ a {
     border-bottom: 1px solid #e2e8f0;
 }
 
-/* Status Badges */
 .status-badge {
     display: inline-block;
     padding: 4px 12px;
@@ -1020,22 +807,10 @@ a {
     font-weight: 600;
 }
 
-.status-badge.active {
-    background: #dcfce7;
-    color: #166534;
-}
+.status-badge.active { background: #dcfce7; color: #166534; }
+.status-badge.inactive { background: #fee2e2; color: #991b1b; }
+.status-badge.pending { background: #fef3c7; color: #92400e; }
 
-.status-badge.inactive {
-    background: #fee2e2;
-    color: #991b1b;
-}
-
-.status-badge.pending {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-/* Request Cards */
 .request-card {
     background: #f8fafc;
     border-radius: 0.75rem;
@@ -1053,7 +828,6 @@ a {
     gap: 0.5rem;
 }
 
-/* Quote Cards */
 .quotes-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
@@ -1067,7 +841,6 @@ a {
     border: 1px solid #e2e8f0;
 }
 
-/* Jobs Grid */
 .jobs-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
@@ -1081,7 +854,6 @@ a {
     padding: 1.25rem;
 }
 
-/* Buttons */
 .btn-small {
     padding: 4px 12px;
     font-size: 0.75rem;
@@ -1091,17 +863,9 @@ a {
     margin: 0 4px;
 }
 
-.btn-danger {
-    background: #ef4444;
-    color: white;
-}
+.btn-danger { background: #ef4444; color: white; }
+.btn-success { background: #10b981; color: white; }
 
-.btn-success {
-    background: #10b981;
-    color: white;
-}
-
-/* Alerts */
 .alert-info {
     background: #e0f2fe;
     padding: 1rem;
@@ -1188,21 +952,10 @@ a {
     margin-bottom: 1rem;
 }
 
-.btn-danger {
-    background: #ef4444;
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border: none;
-    border-radius: 0.5rem;
-    cursor: pointer;
-    font-weight: 600;
-}
-
 /* ============================================ */
-/* ========== RESPONSIVE - MOBILE ONLY ========== */
+/* ========== MOBILE RESPONSIVE ========== */
 /* ============================================ */
-/* NOTE: These styles ONLY apply on mobile and DO NOT hide any components */
-/* They simply make components fit better on small screens */
+/* NOTHING IS HIDDEN - everything is visible, just adjusted for screen size */
 
 @media (max-width: 768px) {
     /* Container padding */
@@ -1219,7 +972,7 @@ a {
         font-size: 1rem;
     }
     
-    /* Homepage grids - keep 2 columns for services */
+    /* Homepage grids - adjust but keep visible */
     .services-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 0.75rem;
@@ -1232,31 +985,26 @@ a {
         gap: 2rem;
     }
     
-    /* Testimonial cards */
     .testimonial-card {
         min-width: 260px;
         padding: 1rem;
     }
     
-    /* Role cards */
     .role-cards {
         grid-template-columns: 1fr;
     }
     
-    /* Footer grid */
     .footer-grid {
         grid-template-columns: repeat(2, 1fr);
         gap: 1.5rem;
     }
     
-    /* Toast on mobile */
     .toast {
         left: 20px;
         right: 20px;
         min-width: auto;
     }
     
-    /* Service cards on mobile */
     .service-card {
         padding: 0.75rem;
     }
@@ -1273,27 +1021,58 @@ a {
         font-size: 0.7rem;
     }
     
-    /* Dashboard adjustments */
+    /* DASHBOARD - SIDEBAR VISIBLE (not hidden) */
     .dashboard-container {
-        flex-direction: column;
+        flex-direction: row;  /* Keep row layout like laptop */
     }
     
     .dashboard-sidebar {
-        display: none;  /* Sidebar is hidden because Drawer handles mobile menu */
+        width: 240px;  /* Slightly smaller on mobile but VISIBLE */
+        position: fixed;
+        left: 0;
+        top: 64px;
+        height: calc(100vh - 64px);
+        z-index: 100;
+        transform: translateX(0);  /* VISIBLE, not hidden */
     }
     
     .dashboard-main {
-        margin-left: 0 !important;
-        padding: 12px !important;
+        margin-left: 240px;  /* Match sidebar width */
+        padding: 1rem;
+        width: calc(100% - 240px);
     }
     
-    /* Stats grid - single column on mobile */
+    /* Tabs - VISIBLE and scrollable horizontally */
+    .MuiTabs-root {
+        display: block !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+    }
+    
+    .MuiTabs-scroller {
+        overflow-x: auto !important;
+    }
+    
+    .MuiTabs-flexContainer {
+        display: flex !important;
+        flex-direction: row !important;
+        min-width: max-content !important;
+    }
+    
+    .MuiTab-root {
+        display: inline-flex !important;
+        min-width: auto !important;
+        padding: 8px 16px !important;
+        font-size: 13px !important;
+    }
+    
+    /* Stats grid - adjust columns but VISIBLE */
     .stats-grid {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: repeat(2, 1fr) !important;
         gap: 12px !important;
     }
     
-    /* Quotes grid - single column */
+    /* Quotes grid - single column for readability */
     .quotes-grid {
         grid-template-columns: 1fr !important;
     }
@@ -1303,14 +1082,13 @@ a {
         grid-template-columns: 1fr !important;
     }
     
-    /* Profile grid - single column */
+    /* Profile grid */
     .profile-grid {
         grid-template-columns: 1fr !important;
     }
     
     .profile-settings-container {
         padding: 0 1rem !important;
-        margin: 1rem auto !important;
     }
     
     .profile-header {
@@ -1319,29 +1097,11 @@ a {
     }
     
     /* Tables - horizontal scroll */
-    .services-table,
-    .users-table,
     .MuiTableContainer-root {
         overflow-x: auto !important;
-        -webkit-overflow-scrolling: touch !important;
     }
     
-    /* Request header wrap */
-    .request-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    
-    /* Cards - full width */
-    .MuiCard-root,
-    .dashboard-card,
-    .request-card,
-    .quote-card {
-        width: 100% !important;
-        margin-bottom: 12px !important;
-    }
-    
-    /* Typography adjustments */
+    /* Typography */
     .MuiTypography-h4 {
         font-size: 1.5rem !important;
     }
@@ -1362,14 +1122,14 @@ a {
         font-size: 12px !important;
     }
     
-    /* Buttons - touch friendly */
+    /* Touch-friendly buttons */
     .MuiButton-root,
     .MuiIconButton-root {
         min-width: 44px !important;
         min-height: 44px !important;
     }
     
-    /* Dialog - full width on mobile */
+    /* Dialogs full width on mobile */
     .MuiDialog-paper {
         width: calc(100% - 16px) !important;
         margin: 8px !important;
@@ -1377,47 +1137,39 @@ a {
         border-radius: 16px !important;
     }
     
-    /* Snackbar positioning */
-    .MuiSnackbar-root {
-        bottom: 16px !important;
-        left: 16px !important;
-        right: 16px !important;
-    }
-    
     /* Pagination wrap */
     .MuiPagination-ul {
         flex-wrap: wrap !important;
     }
     
-    /* Chips smaller */
     .MuiChip-root {
         height: 24px !important;
         font-size: 11px !important;
     }
+    
+    /* Messages page - keep sidebar visible */
+    .MuiPaper-root > .MuiBox-root:first-child {
+        width: 300px !important;
+    }
 }
 
 /* Extra small devices */
-@media (max-width: 480px) {
-    .services-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 8px;
+@media (max-width: 600px) {
+    .dashboard-sidebar {
+        width: 200px;
     }
     
-    .service-card {
-        padding: 8px;
+    .dashboard-main {
+        margin-left: 200px;
+        width: calc(100% - 200px);
     }
     
-    .hero-title {
-        font-size: 1.75rem;
-    }
-    
-    .MuiButton-root {
-        font-size: 12px !important;
-        padding: 6px 12px !important;
+    .stats-grid {
+        grid-template-columns: 1fr !important;
     }
 }
 
-/* Touch-friendly button minimum size */
+/* Touch-friendly minimum sizes */
 button, 
 .MuiButtonBase-root,
 .MuiIconButton-root {
@@ -1425,13 +1177,12 @@ button,
     min-height: 44px;
 }
 
-/* Better scrolling for tables and modals */
 .MuiTableContainer-root,
 .MuiDialogContent-root {
     -webkit-overflow-scrolling: touch;
 }
 
-/* Fix emoji picker */
+/* Emoji picker */
 .EmojiPickerReact {
     width: 320px !important;
     height: 400px !important;
