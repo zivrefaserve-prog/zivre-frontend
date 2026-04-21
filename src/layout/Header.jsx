@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import RoleModal from '../common/RoleModal'
 import AuthModal from '../common/AuthModal'
@@ -110,6 +110,23 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     { label: 'About', icon: <InfoIcon />, action: () => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' }) },
     { label: 'Get Quote', icon: <QuoteIcon />, action: onGetQuote },
   ]
+
+  // ========== ADD THIS useEffect HERE ==========
+  // Listen for custom event from Hero button
+  useEffect(() => {
+    const handleOpenGetStarted = () => {
+      setTimeout(() => {
+        handleBookService()
+      }, 50)
+    }
+    
+    window.addEventListener('open_get_started_modal', handleOpenGetStarted)
+    
+    return () => {
+      window.removeEventListener('open_get_started_modal', handleOpenGetStarted)
+    }
+  }, [])
+  // ========== END OF ADDED useEffect ==========
 
   const drawer = (
     <Box sx={{ width: 250, p: 2 }} role="presentation">
