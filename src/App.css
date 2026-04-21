@@ -2380,3 +2380,139 @@ body.mobile-device .MuiGrid-item {
     width: 100% !important;
     max-width: 100% !important;
 }
+
+/* ============================================ */
+/* ========== FIX MISSING MOBILE FEATURES ========== */
+/* ============================================ */
+
+@media (max-width: 768px) {
+    
+    /* ===== FIX DASHBOARD TABS (Customer, Provider, Admin) ===== */
+    .MuiTabs-root {
+        display: block !important;
+        overflow-x: auto !important;
+        white-space: nowrap !important;
+        min-height: 48px !important;
+        visibility: visible !important;
+    }
+    
+    .MuiTabs-scroller {
+        overflow-x: auto !important;
+    }
+    
+    .MuiTabs-flexContainer {
+        display: flex !important;
+        flex-direction: row !important;
+        min-width: max-content !important;
+    }
+    
+    .MuiTab-root {
+        display: inline-flex !important;
+        visibility: visible !important;
+        min-width: auto !important;
+        padding: 8px 16px !important;
+        font-size: 13px !important;
+        white-space: nowrap !important;
+    }
+    
+    /* ===== FIX SIDEBAR MENU ITEMS ===== */
+    .sidebar-nav {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: wrap !important;
+        justify-content: center !important;
+        gap: 8px !important;
+        padding: 8px !important;
+    }
+    
+    .sidebar-item {
+        display: inline-flex !important;
+        width: auto !important;
+        padding: 8px 12px !important;
+        font-size: 12px !important;
+        border-radius: 20px !important;
+    }
+    
+    /* ===== FIX NOTIFICATION BELL ICON ===== */
+    .MuiIconButton-root {
+        display: inline-flex !important;
+        visibility: visible !important;
+    }
+    
+    .MuiBadge-root {
+        display: inline-flex !important;
+    }
+    
+    /* ===== FIX PROFILE AVATAR ===== */
+    .MuiAvatar-root {
+        display: inline-flex !important;
+        width: 36px !important;
+        height: 36px !important;
+    }
+    
+    /* ===== FIX SEARCH BAR ===== */
+    .MuiInputBase-root,
+    .MuiTextField-root,
+    .MuiOutlinedInput-root {
+        display: flex !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+    
+    /* ===== FIX HEADER LAYOUT ===== */
+    .MuiToolbar-root {
+        display: flex !important;
+        justify-content: space-between !important;
+        min-height: 56px !important;
+        padding: 0 8px !important;
+    }
+    
+    /* ===== FIX HAMBURGER MENU BUTTON ===== */
+    button[aria-label="menu"],
+    .MuiIconButton-root {
+        display: inline-flex !important;
+        visibility: visible !important;
+    }
+    
+    /* ===== FIX ADMIN DASHBOARD TABLES ===== */
+    .MuiTableContainer-root {
+        overflow-x: auto !important;
+    }
+    
+    .MuiTable-root {
+        min-width: 600px !important;
+    }
+    
+    /* ===== FIX ALL GRIDS ===== */
+    .MuiGrid-container {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .MuiGrid-item {
+        width: 100% !important;
+        max-width: 100% !important;
+        flex-basis: 100% !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* ===== FIX DASHBOARD MAIN CONTENT ===== */
+    .dashboard-main {
+        padding: 8px !important;
+        overflow-x: hidden !important;
+        margin-left: 0 !important;
+    }
+    
+    /* ===== FIX STATS CARDS ===== */
+    .stats-grid {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+    
+    /* ===== FIX CARDS ===== */
+    .MuiCard-root {
+        width: 100% !important;
+        margin-bottom: 12px !important;
+    }
+}
