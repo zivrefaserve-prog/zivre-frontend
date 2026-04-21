@@ -46,6 +46,8 @@ const Hero = ({ onGetQuote }) => {
                 <div className="hero-buttons">
                     <button className="btn-primary" onClick={onGetQuote}>Get Free Quote →</button>
                     <button className="btn-secondary" onClick={handleGetStarted}>Get Started</button>
+                </div>
+                <div className="hero-buttons" style={{ marginTop: '12px' }}>
                     <button className="btn-outline" onClick={handleSignIn}>Sign In</button>
                 </div>
             </div>
