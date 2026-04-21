@@ -14,13 +14,6 @@ body {
     color: #1e293b;
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
-    overflow-x: hidden !important;
-    width: 100% !important;
-}
-
-#root {
-    overflow-x: hidden !important;
-    width: 100% !important;
 }
 
 .container {
@@ -45,7 +38,7 @@ a {
 }
 
 /* ============================================ */
-/* ========== ORIGINAL HOMEPAGE STYLES ========== */
+/* ========== HOMEPAGE STYLES ========== */
 /* ============================================ */
 
 /* Header */
@@ -110,7 +103,6 @@ a {
     color: white;
 }
 
-/* Auth Buttons */
 .auth-buttons {
     display: flex;
     gap: 0.75rem;
@@ -485,7 +477,7 @@ a {
     border-color: #0f3b2c;
 }
 
-/* Testimonials Carousel */
+/* Testimonials */
 .testimonials {
     padding: 4rem 0;
     background: white;
@@ -586,7 +578,10 @@ a {
     font-size: 0.75rem;
 }
 
-/* Modal Base */
+/* ============================================ */
+/* ========== MODAL STYLES ========== */
+/* ============================================ */
+
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -611,6 +606,27 @@ a {
     overflow-y: auto;
 }
 
+.modal-content h2 {
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+}
+
+.modal-content h3 {
+    margin-bottom: 1rem;
+    font-size: 1.2rem;
+}
+
+.modal-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: #64748b;
+}
+
 /* Role Modal */
 .role-modal-content {
     background: white;
@@ -619,6 +635,12 @@ a {
     max-width: 800px;
     width: 90%;
     position: relative;
+}
+
+.role-subtitle {
+    text-align: center;
+    color: #64748b;
+    margin-bottom: 2rem;
 }
 
 .role-cards {
@@ -640,6 +662,156 @@ a {
 .role-card:hover {
     border-color: #0f3b2c;
     transform: translateY(-4px);
+    box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+}
+
+.role-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.role-card h3 {
+    margin-bottom: 0.5rem;
+    color: #0f172a;
+}
+
+.role-card p {
+    font-size: 0.85rem;
+    color: #64748b;
+    margin-bottom: 1.5rem;
+}
+
+.role-select-btn {
+    background: #0f3b2c;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+/* Auth Modal */
+.auth-modal-content {
+    background: white;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    max-width: 450px;
+    width: 90%;
+    position: relative;
+}
+
+.auth-subtitle {
+    color: #64748b;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.input-group {
+    margin-bottom: 1rem;
+    position: relative;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #0f3b2c;
+}
+
+.password-group {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #64748b;
+}
+
+.forgot-password-link {
+    text-align: right;
+    margin-bottom: 1rem;
+}
+
+.forgot-password-link button {
+    background: none;
+    border: none;
+    color: #0f3b2c;
+    font-size: 0.8rem;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.auth-submit-btn {
+    width: 100%;
+    padding: 0.75rem;
+    background: #0f3b2c;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.auth-submit-btn:hover:not(:disabled) {
+    background: #1a5a44;
+}
+
+.auth-submit-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.auth-switch {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.auth-switch button {
+    background: none;
+    border: none;
+    color: #0f3b2c;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+/* Confirm Modal */
+.confirm-modal-content {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    max-width: 400px;
+    width: 90%;
+}
+
+.confirm-modal-content h3 {
+    margin-bottom: 0.5rem;
+}
+
+.confirm-modal-content p {
+    margin-bottom: 1.5rem;
+    color: #64748b;
+}
+
+.confirm-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
 }
 
 /* Toast */
@@ -660,132 +832,80 @@ a {
     animation: slideInRight 0.3s ease;
 }
 
-.toast-success { border-left: 4px solid #10b981; }
-.toast-error { border-left: 4px solid #ef4444; }
-.toast-info { border-left: 4px solid #3b82f6; }
+.toast-success {
+    border-left: 4px solid #10b981;
+}
+
+.toast-error {
+    border-left: 4px solid #ef4444;
+}
+
+.toast-info {
+    border-left: 4px solid #3b82f6;
+}
+
+.toast-content {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.toast-icon {
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+.toast-close {
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    color: #94a3b8;
+}
 
 @keyframes slideInRight {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-}
-
-/* ============================================ */
-/* ========== MOBILE RESPONSIVE (KEEPS ALL FEATURES VISIBLE) ========== */
-/* ============================================ */
-
-@media (max-width: 768px) {
-    /* Container padding */
-    .container {
-        padding: 0 1rem;
+    from {
+        transform: translateX(100%);
+        opacity: 0;
     }
-    
-    /* Hero section */
-    .hero-title {
-        font-size: 2rem;
-    }
-    
-    .hero-subtitle {
-        font-size: 1rem;
-    }
-    
-    /* Grid layouts - keep columns on mobile (don't force single column for everything) */
-    .services-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.75rem;
-    }
-    
-    .why-grid,
-    .about-grid,
-    .contact-grid {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-    
-    /* Testimonial cards */
-    .testimonial-card {
-        min-width: 260px;
-        padding: 1rem;
-    }
-    
-    /* Role cards */
-    .role-cards {
-        grid-template-columns: 1fr;
-    }
-    
-    /* Footer grid */
-    .footer-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 1.5rem;
-    }
-    
-    /* Toast on mobile */
-    .toast {
-        left: 20px;
-        right: 20px;
-        min-width: auto;
-    }
-    
-    /* Hide nav links on mobile (handled by hamburger menu) */
-    .nav-links {
-        display: none;
-    }
-    
-    /* Service cards on mobile */
-    .service-card {
-        padding: 0.75rem;
-    }
-    
-    .service-icon {
-        font-size: 1.5rem;
-    }
-    
-    .service-card h3 {
-        font-size: 0.85rem;
-    }
-    
-    .service-card p {
-        font-size: 0.7rem;
+    to {
+        transform: translateX(0);
+        opacity: 1;
     }
 }
 
-@media (max-width: 480px) {
-    .services-grid {
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.5rem;
-    }
-    
-    .service-card {
-        padding: 0.5rem;
-    }
-    
-    .hero-title {
-        font-size: 1.75rem;
-    }
-    
-    .footer-grid {
-        grid-template-columns: 1fr;
-        text-align: center;
-    }
+/* Spinner */
+.spinner-small {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid white;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
 }
 
 /* ============================================ */
-/* ========== DASHBOARD STYLES (KEEP ALL VISIBLE ON MOBILE) ========== */
+/* ========== DASHBOARD STYLES ========== */
 /* ============================================ */
 
-/* Dashboard container - flexible layout */
 .dashboard-container {
     display: flex;
-    min-height: calc(100vh - 64px);
+    min-height: 100vh;
     background: #f8fafc;
 }
 
-/* Sidebar - hidden by default on mobile, shown via drawer */
 .dashboard-sidebar {
     width: 280px;
     background: #0f172a;
     color: white;
     padding: 1.5rem;
-    height: 100%;
+    position: fixed;
+    height: 100vh;
     overflow-y: auto;
 }
 
@@ -814,7 +934,6 @@ a {
     cursor: pointer;
     font-size: 0.95rem;
     transition: all 0.2s;
-    width: 100%;
 }
 
 .sidebar-item:hover {
@@ -827,17 +946,25 @@ a {
     color: white;
 }
 
-/* Dashboard main content */
 .dashboard-main {
     flex: 1;
-    padding: 1.5rem;
-    overflow-x: auto;
+    margin-left: 280px;
+    padding: 2rem;
 }
 
-/* Stats grid */
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+/* Stats Grid */
 .stats-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
@@ -850,34 +977,41 @@ a {
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-/* Tables - scroll horizontally */
-.services-table,
-.users-table {
+.stat-card h3 {
+    font-size: 0.875rem;
+    color: #64748b;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #0f3b2c;
+}
+
+/* Tables */
+.services-table, .users-table {
     overflow-x: auto;
 }
 
-.services-table table,
-.users-table table {
+.services-table table, .users-table table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 600px;
 }
 
-.services-table th,
-.users-table th {
+.services-table th, .users-table th {
     text-align: left;
     padding: 1rem;
     background: #f8fafc;
     font-weight: 600;
 }
 
-.services-table td,
-.users-table td {
+.services-table td, .users-table td {
     padding: 1rem;
     border-bottom: 1px solid #e2e8f0;
 }
 
-/* Status badges */
+/* Status Badges */
 .status-badge {
     display: inline-block;
     padding: 4px 12px;
@@ -886,11 +1020,22 @@ a {
     font-weight: 600;
 }
 
-.status-badge.active { background: #dcfce7; color: #166534; }
-.status-badge.inactive { background: #fee2e2; color: #991b1b; }
-.status-badge.pending { background: #fef3c7; color: #92400e; }
+.status-badge.active {
+    background: #dcfce7;
+    color: #166534;
+}
 
-/* Request cards */
+.status-badge.inactive {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.status-badge.pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+/* Request Cards */
 .request-card {
     background: #f8fafc;
     border-radius: 0.75rem;
@@ -908,10 +1053,10 @@ a {
     gap: 0.5rem;
 }
 
-/* Quotes grid */
+/* Quote Cards */
 .quotes-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
     gap: 1.5rem;
 }
 
@@ -922,14 +1067,13 @@ a {
     border: 1px solid #e2e8f0;
 }
 
-/* Jobs grid */
+/* Jobs Grid */
 .jobs-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 1.5rem;
 }
 
-/* Dashboard card */
 .dashboard-card {
     background: white;
     border: 1px solid #e2e8f0;
@@ -947,8 +1091,15 @@ a {
     margin: 0 4px;
 }
 
-.btn-danger { background: #ef4444; color: white; }
-.btn-success { background: #10b981; color: white; }
+.btn-danger {
+    background: #ef4444;
+    color: white;
+}
+
+.btn-success {
+    background: #10b981;
+    color: white;
+}
 
 /* Alerts */
 .alert-info {
@@ -973,7 +1124,7 @@ a {
     color: #64748b;
 }
 
-/* Profile settings */
+/* Profile Settings */
 .profile-settings-container {
     max-width: 1200px;
     margin: 2rem auto;
@@ -1037,29 +1188,106 @@ a {
     margin-bottom: 1rem;
 }
 
+.btn-danger {
+    background: #ef4444;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-weight: 600;
+}
+
 /* ============================================ */
-/* ========== MOBILE DASHBOARD FIXES ========== */
+/* ========== RESPONSIVE - MOBILE ONLY ========== */
 /* ============================================ */
+/* NOTE: These styles ONLY apply on mobile and DO NOT hide any components */
+/* They simply make components fit better on small screens */
 
 @media (max-width: 768px) {
-    /* Dashboard container - no fixed sidebar */
+    /* Container padding */
+    .container {
+        padding: 0 1rem;
+    }
+    
+    /* Hero section */
+    .hero-title {
+        font-size: 2rem;
+    }
+    
+    .hero-subtitle {
+        font-size: 1rem;
+    }
+    
+    /* Homepage grids - keep 2 columns for services */
+    .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+    
+    .why-grid,
+    .about-grid,
+    .contact-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    /* Testimonial cards */
+    .testimonial-card {
+        min-width: 260px;
+        padding: 1rem;
+    }
+    
+    /* Role cards */
+    .role-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Footer grid */
+    .footer-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+    }
+    
+    /* Toast on mobile */
+    .toast {
+        left: 20px;
+        right: 20px;
+        min-width: auto;
+    }
+    
+    /* Service cards on mobile */
+    .service-card {
+        padding: 0.75rem;
+    }
+    
+    .service-icon {
+        font-size: 1.5rem;
+    }
+    
+    .service-card h3 {
+        font-size: 0.85rem;
+    }
+    
+    .service-card p {
+        font-size: 0.7rem;
+    }
+    
+    /* Dashboard adjustments */
     .dashboard-container {
         flex-direction: column;
     }
     
-    /* Sidebar - hidden, use drawer instead */
     .dashboard-sidebar {
-        display: none;
+        display: none;  /* Sidebar is hidden because Drawer handles mobile menu */
     }
     
-    /* Main content - full width */
     .dashboard-main {
         margin-left: 0 !important;
         padding: 12px !important;
-        width: 100% !important;
     }
     
-    /* Stats grid - single column */
+    /* Stats grid - single column on mobile */
     .stats-grid {
         grid-template-columns: 1fr !important;
         gap: 12px !important;
@@ -1080,19 +1308,17 @@ a {
         grid-template-columns: 1fr !important;
     }
     
-    /* Profile settings container */
     .profile-settings-container {
         padding: 0 1rem !important;
         margin: 1rem auto !important;
     }
     
-    /* Profile header */
     .profile-header {
         flex-direction: column;
         align-items: flex-start;
     }
     
-    /* Tables - ensure horizontal scroll */
+    /* Tables - horizontal scroll */
     .services-table,
     .users-table,
     .MuiTableContainer-root {
@@ -1114,124 +1340,8 @@ a {
         width: 100% !important;
         margin-bottom: 12px !important;
     }
-}
-
-/* ============================================ */
-/* ========== MESSAGES PAGE FIXES ========== */
-/* ============================================ */
-
-@media (max-width: 768px) {
-    /* Messages container */
-    .MuiPaper-root {
-        flex-direction: column !important;
-    }
     
-    /* Sidebar in messages - full width when selected */
-    .MuiBox-root:first-child {
-        width: 100% !important;
-    }
-    
-    /* Chat area - full width */
-    .MuiBox-root:last-child {
-        width: 100% !important;
-    }
-    
-    /* Message bubbles - wider on mobile */
-    .MuiPaper-root {
-        max-width: 90% !important;
-    }
-}
-
-/* ============================================ */
-/* ========== MUI COMPONENT OVERRIDES ========== */
-/* ============================================ */
-
-/* Ensure MUI components are visible on mobile */
-@media (max-width: 768px) {
-    /* Tabs - ensure visible */
-    .MuiTabs-root {
-        display: block !important;
-        overflow-x: auto !important;
-        white-space: nowrap !important;
-    }
-    
-    .MuiTabs-scroller {
-        overflow-x: auto !important;
-    }
-    
-    .MuiTabs-flexContainer {
-        display: flex !important;
-        flex-direction: row !important;
-        min-width: max-content !important;
-    }
-    
-    .MuiTab-root {
-        display: inline-flex !important;
-        min-width: auto !important;
-        padding: 8px 16px !important;
-        font-size: 13px !important;
-    }
-    
-    /* Drawer - ensure it opens correctly */
-    .MuiDrawer-paper {
-        width: 280px !important;
-        position: fixed !important;
-    }
-    
-    /* Icon buttons - ensure visible */
-    .MuiIconButton-root {
-        display: inline-flex !important;
-    }
-    
-    /* Avatar - ensure visible */
-    .MuiAvatar-root {
-        display: inline-flex !important;
-    }
-    
-    /* Badge - ensure visible */
-    .MuiBadge-root {
-        display: inline-flex !important;
-    }
-    
-    /* Header toolbar */
-    .MuiToolbar-root {
-        display: flex !important;
-        justify-content: space-between !important;
-        min-height: 56px !important;
-        padding: 0 8px !important;
-    }
-    
-    /* Dialog - full width on mobile */
-    .MuiDialog-paper {
-        width: calc(100% - 16px) !important;
-        margin: 8px !important;
-        max-height: calc(100% - 16px) !important;
-        border-radius: 16px !important;
-    }
-    
-    /* Snackbar - better positioning */
-    .MuiSnackbar-root {
-        bottom: 16px !important;
-        left: 16px !important;
-        right: 16px !important;
-    }
-    
-    .MuiSnackbar-root .MuiPaper-root {
-        width: 100% !important;
-    }
-    
-    /* Pagination - wrap on mobile */
-    .MuiPagination-ul {
-        flex-wrap: wrap !important;
-    }
-    
-    /* Chip - smaller on mobile */
-    .MuiChip-root {
-        height: 24px !important;
-        font-size: 11px !important;
-    }
-    
-    /* Typography - adjust sizes */
+    /* Typography adjustments */
     .MuiTypography-h4 {
         font-size: 1.5rem !important;
     }
@@ -1259,10 +1369,51 @@ a {
         min-height: 44px !important;
     }
     
-    /* Inputs - full width */
-    .MuiTextField-root,
-    .MuiFormControl-root {
-        width: 100% !important;
+    /* Dialog - full width on mobile */
+    .MuiDialog-paper {
+        width: calc(100% - 16px) !important;
+        margin: 8px !important;
+        max-height: calc(100% - 16px) !important;
+        border-radius: 16px !important;
+    }
+    
+    /* Snackbar positioning */
+    .MuiSnackbar-root {
+        bottom: 16px !important;
+        left: 16px !important;
+        right: 16px !important;
+    }
+    
+    /* Pagination wrap */
+    .MuiPagination-ul {
+        flex-wrap: wrap !important;
+    }
+    
+    /* Chips smaller */
+    .MuiChip-root {
+        height: 24px !important;
+        font-size: 11px !important;
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+    .services-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+    }
+    
+    .service-card {
+        padding: 8px;
+    }
+    
+    .hero-title {
+        font-size: 1.75rem;
+    }
+    
+    .MuiButton-root {
+        font-size: 12px !important;
+        padding: 6px 12px !important;
     }
 }
 
@@ -1274,12 +1425,27 @@ button,
     min-height: 44px;
 }
 
-/* Better scrolling for tables */
-.MuiTableContainer-root {
+/* Better scrolling for tables and modals */
+.MuiTableContainer-root,
+.MuiDialogContent-root {
     -webkit-overflow-scrolling: touch;
 }
 
-/* Better scrolling for modals */
-.MuiDialogContent-root {
-    -webkit-overflow-scrolling: touch;
+/* Fix emoji picker */
+.EmojiPickerReact {
+    width: 320px !important;
+    height: 400px !important;
+}
+
+.epr-emoji-category-content {
+    display: grid !important;
+    grid-template-columns: repeat(8, 1fr) !important;
+}
+
+.EmojiPickerReact .epr-header {
+    display: flex !important;
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    overflow-x: visible !important;
+    gap: 4px !important;
 }
