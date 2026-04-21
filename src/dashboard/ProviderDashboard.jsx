@@ -133,27 +133,35 @@ const ProviderDashboard = () => {
   }
 
   // Main data loading function
-  const loadData = useCallback(async () => {
-    if (!user?.id) return
-    
-    setRefreshing(true)
-    try {
-      const [availableRes, jobsRes, notifRes] = await Promise.all([
-        getAvailableJobs(),
-        getProviderJobs(user.id),
-        getNotifications(user.id)
-      ])
-      setAvailableJobs(availableRes.data)
-      setMyJobs(jobsRes.data)
-      setNotifications(notifRes.data)
-    } catch (err) {
-      console.error(err)
+const loadData = useCallback(async () => {
+  // ONLY LOAD IF USER IS A VERIFIED PROVIDER
+  if (!user?.id || user?.role !== 'provider' || !user?.is_verified) {
+    console.log('Not a verified provider, skipping data load')
+    return
+  }
+  
+  setRefreshing(true)
+  try {
+    const [availableRes, jobsRes, notifRes] = await Promise.all([
+      getAvailableJobs(),
+      getProviderJobs(user.id),
+      getNotifications(user.id)
+    ])
+    setAvailableJobs(availableRes.data)
+    setMyJobs(jobsRes.data)
+    setNotifications(notifRes.data)
+  } catch (err) {
+    console.error(err)
+    // Only show toast for non-403 errors
+    if (err.response?.status !== 403) {
       showToast('Error loading data', 'error')
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
     }
-  }, [user?.id])
+  } finally {
+    setLoading(false)
+    setRefreshing(false)
+  }
+}, [user?.id, user?.role, user?.is_verified])
+  
 
   // Load unread counts
   const loadUnreadCounts = useCallback(async () => {
@@ -278,15 +286,16 @@ const ProviderDashboard = () => {
   }, [handleRealtimeRefresh, handleNewRequest, handleRequestStatusChanged, handleProviderAssigned, handleJobClaimed, handleJobStarted, handleJobCompleted, handleCustomerConfirmed, handleNewNotification, handleMessageReceived, handlePercentagesUpdated])
 
   // Fallback polling interval (15 seconds)
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (!document.hidden) {
-        loadData()
-        loadUnreadCounts()
-      }
-    }, 15000)
-    return () => clearInterval(interval)
-  }, [loadData, loadUnreadCounts])
+// Fallback polling interval (15 seconds)
+useEffect(() => {
+  const interval = setInterval(() => {
+    if (!document.hidden && user?.role === 'provider' && user?.is_verified === true) {
+      loadData()
+      loadUnreadCounts()
+    }
+  }, 15000)
+  return () => clearInterval(interval)
+}, [loadData, loadUnreadCounts, user?.role, user?.is_verified])
 
   // Initial load
   useEffect(() => {
