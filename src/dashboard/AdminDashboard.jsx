@@ -98,10 +98,6 @@ const AdminDashboard = () => {
   const [assigningRequest, setAssigningRequest] = useState(null)
   const [loadingProviders, setLoadingProviders] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
-  
-  // NEW: Separate state for each request's provider selection
-  const [selectedProviderForRequest, setSelectedProviderForRequest] = useState({})
-  const [providersForRequest, setProvidersForRequest] = useState({})
 
   const [paymentSettings, setPaymentSettings] = useState({
     payment_number: '024 000 0000',
@@ -122,7 +118,7 @@ const AdminDashboard = () => {
   const handleTabChange = (tab) => {
     setActiveTab(tab)
     saveAdminState('activeTab', tab)
-    setSearchTerm('')
+    setSearchTerm('') // Clear search when changing tabs
   }
 
   // Show toast notification
@@ -151,47 +147,17 @@ const AdminDashboard = () => {
     }
   }
 
-  // NEW: Load providers for a specific request
-  const loadProvidersForRequest = async (requestId, serviceId) => {
-    setProvidersForRequest(prev => ({ ...prev, [requestId]: [] }))
+  // Load providers filtered by service
+  const loadProvidersForService = async (serviceId) => {
     setLoadingProviders(true)
     try {
       const res = await getAvailableProviders(serviceId)
-      setProvidersForRequest(prev => ({ ...prev, [requestId]: res.data }))
+      setProviders(res.data)
     } catch (err) {
-      console.error('Error loading providers for request:', err)
-      setProvidersForRequest(prev => ({ ...prev, [requestId]: [] }))
+      console.error('Error loading providers for service:', err)
+      setProviders([])
     } finally {
       setLoadingProviders(false)
-    }
-  }
-
-  // NEW: Handle assign provider for a specific request
-  const handleAssignProvider = async (requestId, providerId) => {
-    if (!providerId) {
-      showToast('Please select a provider', 'error')
-      return
-    }
-    setAssigningRequest(requestId)
-    try {
-      await approveAndAssignRequest(requestId, providerId)
-      showToast('Provider assigned successfully! Both parties have been notified.', 'success')
-      // Clear the state for this request
-      setSelectedProviderForRequest(prev => {
-        const newState = { ...prev }
-        delete newState[requestId]
-        return newState
-      })
-      setProvidersForRequest(prev => {
-        const newState = { ...prev }
-        delete newState[requestId]
-        return newState
-      })
-      await loadData()
-    } catch (err) {
-      showToast(err.response?.data?.error || 'Error assigning provider', 'error')
-    } finally {
-      setAssigningRequest(null)
     }
   }
 
@@ -255,6 +221,15 @@ const AdminDashboard = () => {
       showToast('Error loading user details', 'error')
     } finally {
       setUserDetailsLoading(false)
+    }
+  }
+
+  // Handle selecting a request for assignment - load providers for that service
+  const handleSelectRequestForAssignment = async (request) => {
+    setSelectedRequest(request)
+    setSelectedProvider('')
+    if (request && request.service_id) {
+      await loadProvidersForService(request.service_id)
     }
   }
 
@@ -454,60 +429,98 @@ const AdminDashboard = () => {
 
   // Set up all realtime event listeners
   useEffect(() => {
+    // Service events
     window.addEventListener('service_created', handleServiceCreated)
     window.addEventListener('service_updated', handleServiceUpdated)
     window.addEventListener('service_toggled', handleServiceToggled)
+    
+    // Request events
     window.addEventListener('new_request', handleNewRequest)
     window.addEventListener('request_status_changed', handleRequestStatusChanged)
     window.addEventListener('provider_assigned', handleProviderAssigned)
+    
+    // Job events
     window.addEventListener('job_claimed', handleJobClaimed)
     window.addEventListener('job_started', handleJobStarted)
     window.addEventListener('job_completed', handleJobCompleted)
     window.addEventListener('customer_confirmed', handleCustomerConfirmed)
+    
+    // Quote events
     window.addEventListener('new_quote', handleNewQuote)
     window.addEventListener('quote_status_updated', handleQuoteStatusUpdated)
+    
+    // Comment events
     window.addEventListener('new_comment', handleNewComment)
     window.addEventListener('comment_toggled', handleCommentToggled)
     window.addEventListener('comment_deleted', handleCommentDeleted)
+    
+    // User events
     window.addEventListener('users_updated', handleUsersUpdated)
     window.addEventListener('user_verified', handleUserVerified)
     window.addEventListener('user_suspended', handleUserSuspended)
     window.addEventListener('user_deleted', handleUsersUpdated)
+    
+    // Percentage events
     window.addEventListener('percentages_updated', handlePercentagesUpdated)
+    
+    // Payment settings events
     window.addEventListener('payment_settings_updated', handlePaymentSettingsUpdated)
+    
+    // Notification events
     window.addEventListener('new_notification', handleNewNotification)
+    
+    // Message events
     window.addEventListener('new_message_received', handleMessageReceived)
     window.addEventListener('message_delivered', handleMessageReceived)
 
     return () => {
+      // Service events
       window.removeEventListener('service_created', handleServiceCreated)
       window.removeEventListener('service_updated', handleServiceUpdated)
       window.removeEventListener('service_toggled', handleServiceToggled)
+      
+      // Request events
       window.removeEventListener('new_request', handleNewRequest)
       window.removeEventListener('request_status_changed', handleRequestStatusChanged)
       window.removeEventListener('provider_assigned', handleProviderAssigned)
+      
+      // Job events
       window.removeEventListener('job_claimed', handleJobClaimed)
       window.removeEventListener('job_started', handleJobStarted)
       window.removeEventListener('job_completed', handleJobCompleted)
       window.removeEventListener('customer_confirmed', handleCustomerConfirmed)
+      
+      // Quote events
       window.removeEventListener('new_quote', handleNewQuote)
       window.removeEventListener('quote_status_updated', handleQuoteStatusUpdated)
+      
+      // Comment events
       window.removeEventListener('new_comment', handleNewComment)
       window.removeEventListener('comment_toggled', handleCommentToggled)
       window.removeEventListener('comment_deleted', handleCommentDeleted)
+      
+      // User events
       window.removeEventListener('users_updated', handleUsersUpdated)
       window.removeEventListener('user_verified', handleUserVerified)
       window.removeEventListener('user_suspended', handleUserSuspended)
       window.removeEventListener('user_deleted', handleUsersUpdated)
+      
+      // Percentage events
       window.removeEventListener('percentages_updated', handlePercentagesUpdated)
+      
+      // Payment settings events
       window.removeEventListener('payment_settings_updated', handlePaymentSettingsUpdated)
+      
+      // Notification events
       window.removeEventListener('new_notification', handleNewNotification)
+      
+      // Message events
       window.removeEventListener('new_message_received', handleMessageReceived)
       window.removeEventListener('message_delivered', handleMessageReceived)
     }
   }, [handleServiceCreated, handleServiceUpdated, handleServiceToggled, handleNewRequest, handleRequestStatusChanged, handleProviderAssigned, handleJobClaimed, handleJobStarted, handleJobCompleted, handleCustomerConfirmed, handleNewQuote, handleQuoteStatusUpdated, handleNewComment, handleCommentToggled, handleCommentDeleted, handleUsersUpdated, handleUserVerified, handleUserSuspended, handlePercentagesUpdated, handlePaymentSettingsUpdated, handleNewNotification, handleMessageReceived])
 
-  // Fallback polling interval (15 seconds)
+  // Fallback polling interval (15 seconds) - only as backup
   useEffect(() => {
     const interval = setInterval(() => {
       if (!document.hidden) {
@@ -570,7 +583,7 @@ const AdminDashboard = () => {
   }
 
   const handleToggleService = async (serviceId) => {
-    setActionLoading(serviceId)
+    setActionLoading(serviceId)  // ← Change from true to serviceId
     try {
       const res = await toggleServiceActive(serviceId)
       showToast(res.data.message)
@@ -578,7 +591,7 @@ const AdminDashboard = () => {
     } catch (err) {
       showToast(err.response?.data?.error || 'Error toggling service', 'error')
     } finally {
-      setActionLoading(null)
+      setActionLoading(null)  // ← Change from false to null
     }
   }
 
@@ -612,6 +625,26 @@ const AdminDashboard = () => {
       await loadData()
     } catch (err) {
       showToast('Error creating service', 'error')
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  const handleApproveAndAssign = async () => {
+    if (!selectedRequest || !selectedProvider) {
+      showToast('Please select a provider', 'error')
+      return
+    }
+    setActionLoading(true)
+    try {
+      await approveAndAssignRequest(selectedRequest.id, selectedProvider)
+      showToast('Provider assigned successfully! Both parties have been notified.', 'success')
+      setSelectedRequest(null)
+      setSelectedProvider('')
+      setAssigningRequest(null)
+      await loadData()
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Error assigning provider', 'error')
     } finally {
       setActionLoading(false)
     }
@@ -840,6 +873,7 @@ const AdminDashboard = () => {
               >
                 Back to Home
               </Button>
+              {/* Search input - only show for tabs that support search */}
               {(activeTab === 2 || activeTab === 3 || activeTab === 6) && (
                 <TextField
                   size="small"
@@ -885,6 +919,7 @@ const AdminDashboard = () => {
                 ))}
               </Grid>
 
+              {/* Current Percentages Card */}
               <Card sx={{ p: 3, mb: 3, bgcolor: '#f8fafc' }}>
                 <Typography variant="h6" fontWeight="600" sx={{ mb: 2, color: '#0f172a' }}>💰 Current Fee Distribution</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
@@ -1003,7 +1038,7 @@ const AdminDashboard = () => {
                             <Switch
                               checked={s.is_active}
                               onChange={() => handleToggleService(s.id)}
-                              disabled={actionLoading === true}
+                              disabled={actionLoading === true}  // ← This disables ALL switches
                               sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: '#10b981' }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#10b981' } }}
                             />
                           </Tooltip>
@@ -1141,7 +1176,7 @@ const AdminDashboard = () => {
             </Card>
           )}
 
-          {/* Quote Requests Tab */}
+          {/* Quote Requests Tab - Using filteredQuotes */}
           {activeTab === 3 && (
             <Card sx={{ p: 3 }}>
               <Typography variant="h6" fontWeight="600" sx={{ mb: 3, color: '#0f172a' }}>Quote Requests</Typography>
@@ -1205,14 +1240,14 @@ const AdminDashboard = () => {
             </Card>
           )}
 
-          {/* Assign Providers Tab - FIXED */}
+          {/* Assign Providers Tab */}
           {activeTab === 4 && (
             <Card sx={{ p: 3 }}>
               <Typography variant="h6" fontWeight="600" sx={{ mb: 3, color: '#0f172a' }}>
                 Assign Providers to Requests
               </Typography>
               <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
-                Only verified providers who specialize in the requested service will appear.
+                Providers are filtered by their service specialization. Only providers who specialize in the requested service will appear.
               </Alert>
               
               {assignableRequests.length === 0 ? (
@@ -1235,39 +1270,54 @@ const AdminDashboard = () => {
                           sx={{ mt: 1, bgcolor: '#3b82f615', color: '#3b82f6' }} 
                         />
                       </Box>
-                      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap', minWidth: 320 }}>
+                      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap', minWidth: 280 }}>
                         <FormControl fullWidth size="small" sx={{ minWidth: 250 }}>
                           <InputLabel>Select Provider</InputLabel>
                           <Select
-                            value={selectedProviderForRequest[r.id] || ''}
+                            value={selectedRequest?.id === r.id ? selectedProvider : ''}
                             onChange={(e) => {
-                              setSelectedProviderForRequest(prev => ({ ...prev, [r.id]: e.target.value }))
-                            }}
-                            onOpen={() => {
-                              if (!providersForRequest[r.id]) {
-                                loadProvidersForRequest(r.id, r.service_id)
-                              }
+                              handleSelectRequestForAssignment(r)
+                              setSelectedProvider(e.target.value)
                             }}
                             label="Select Provider"
+                            disabled={loadingProviders && selectedRequest?.id === r.id}
                           >
-                            <MenuItem value="">-- Select a provider --</MenuItem>
-                            {(providersForRequest[r.id] || []).map(p => (
+                            <MenuItem value="">Select Provider</MenuItem>
+                            {(selectedRequest?.id === r.id ? providers : []).map(p => (
                               <MenuItem key={p.id} value={p.id}>
                                 {p.full_name} (⭐ {p.rating || 'New'} | {p.total_jobs || 0} jobs) - {p.service_specialization || 'Specialization'}
                               </MenuItem>
                             ))}
-                            {(!providersForRequest[r.id] || providersForRequest[r.id].length === 0) && (
-                              <MenuItem disabled>No verified providers available for this service</MenuItem>
+                            {(!selectedRequest || selectedRequest.id !== r.id) && (
+                              <MenuItem disabled>Click "Select Provider" to load providers</MenuItem>
+                            )}
+                            {selectedRequest?.id === r.id && loadingProviders && (
+                              <MenuItem disabled>Loading providers...</MenuItem>
+                            )}
+                            {selectedRequest?.id === r.id && providers.length === 0 && !loadingProviders && (
+                              <MenuItem disabled>No providers specialize in this service</MenuItem>
                             )}
                           </Select>
                         </FormControl>
                         <Button
                           variant="contained"
-                          onClick={() => handleAssignProvider(r.id, selectedProviderForRequest[r.id])}
-                          disabled={!selectedProviderForRequest[r.id] || assigningRequest === r.id}
+                          onClick={() => {
+                            setSelectedRequest(r)
+                            setSelectedProvider('')
+                            handleSelectRequestForAssignment(r)
+                          }}
+                          disabled={selectedRequest?.id === r.id}
+                          sx={{ bgcolor: '#3b82f6', '&:hover': { bgcolor: '#2563eb' }, whiteSpace: 'nowrap' }}
+                        >
+                          Load Providers
+                        </Button>
+                        <Button
+                          variant="contained"
+                          onClick={handleApproveAndAssign}
+                          disabled={selectedRequest?.id !== r.id || !selectedProvider || actionLoading === true}
                           sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
                         >
-                          {assigningRequest === r.id ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Assign Provider'}
+                          {actionLoading === true && selectedRequest?.id === r.id ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'Assign Provider'}
                         </Button>
                       </Box>
                     </Box>
@@ -1284,7 +1334,7 @@ const AdminDashboard = () => {
                 Assigned Jobs (In Progress)
               </Typography>
               <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
-                Currently assigned jobs: {assignedRequests.length}
+                 Currently assigned jobs: {assignedRequests.length}
               </Alert>
               
               {assignedRequests.length === 0 ? (
@@ -1324,7 +1374,7 @@ const AdminDashboard = () => {
             </Card>
           )}
 
-          {/* Comments Tab */}
+          {/* Comments Tab - Using filteredComments */}
           {activeTab === 6 && (
             <Card sx={{ p: 3 }}>
               <Typography variant="h6" fontWeight="600" sx={{ mb: 3, color: '#0f172a' }}>User Comments & Reviews</Typography>
@@ -1559,7 +1609,7 @@ const AdminDashboard = () => {
                 All Service Requests (History)
               </Typography>
               <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
-                Complete history of all service requests - {requests.length} total requests
+                 Complete history of all service requests - {requests.length} total requests
               </Alert>
               <TableContainer component={Paper} sx={{ overflowX: 'auto', borderRadius: 2, boxShadow: 'none', border: '1px solid #e2e8f0' }}>
                 <Table sx={{ minWidth: 600 }}>
@@ -1664,6 +1714,7 @@ const AdminDashboard = () => {
                 </Box>
               ) : selectedUserDetails ? (
                 <Box sx={{ mt: 2 }}>
+                  {/* Basic Info */}
                   <Card sx={{ p: 2, mb: 2 }}>
                     <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 1 }}> Basic Information</Typography>
                     <Grid container spacing={2}>
@@ -1708,6 +1759,7 @@ const AdminDashboard = () => {
                     </Grid>
                   </Card>
 
+                  {/* Role Specific Info */}
                   {selectedUserDetails.role === 'provider' && (
                     <Card sx={{ p: 2, mb: 2 }}>
                       <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 1 }}>🔧 Provider Information</Typography>
@@ -1755,6 +1807,7 @@ const AdminDashboard = () => {
                     </Card>
                   )}
 
+                  {/* Activity Tabs */}
                   <Tabs value={userDetailsTab} onChange={(e, v) => setUserDetailsTab(v)} sx={{ mb: 2 }}>
                     <Tab label="Service Requests" />
                     <Tab label="Comments" />
