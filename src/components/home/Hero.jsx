@@ -23,8 +23,13 @@ const Hero = ({ onGetQuote }) => {
             }
         }
 
-        // DIRECTLY dispatch event to open role modal (no button clicking)
+        // DIRECTLY dispatch event to open role modal
         window.dispatchEvent(new CustomEvent('open_get_started_modal'))
+    }
+
+    const handleSignIn = () => {
+        // Directly dispatch event to open sign in modal
+        window.dispatchEvent(new CustomEvent('open_signin_modal'))
     }
 
     return (
@@ -41,6 +46,7 @@ const Hero = ({ onGetQuote }) => {
                 <div className="hero-buttons">
                     <button className="btn-primary" onClick={onGetQuote}>Get Free Quote →</button>
                     <button className="btn-secondary" onClick={handleGetStarted}>Get Started</button>
+                    <button className="btn-outline" onClick={handleSignIn}>Sign In</button>
                 </div>
             </div>
         </section>
