@@ -583,7 +583,7 @@ const AdminDashboard = () => {
   }
 
   const handleToggleService = async (serviceId) => {
-    setActionLoading(true)
+    setActionLoading(serviceId)  // ← Change from true to serviceId
     try {
       const res = await toggleServiceActive(serviceId)
       showToast(res.data.message)
@@ -591,7 +591,7 @@ const AdminDashboard = () => {
     } catch (err) {
       showToast(err.response?.data?.error || 'Error toggling service', 'error')
     } finally {
-      setActionLoading(false)
+      setActionLoading(null)  // ← Change from false to null
     }
   }
 
@@ -1038,7 +1038,7 @@ const AdminDashboard = () => {
                             <Switch
                               checked={s.is_active}
                               onChange={() => handleToggleService(s.id)}
-                              disabled={actionLoading === true}
+                              disabled={actionLoading === true}  // ← This disables ALL switches
                               sx={{ '& .MuiSwitch-switchBase.Mui-checked': { color: '#10b981' }, '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': { bgcolor: '#10b981' } }}
                             />
                           </Tooltip>
