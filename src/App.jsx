@@ -23,6 +23,7 @@ import ResetPassword from './pages/ResetPassword'
 import ForgotPasswordModal from './common/ForgotPasswordModal'
 import { TourButton, customerTourSteps } from './common/DemoTour'
 import { keepAlive } from './api/client'
+import LoadingOverlay from './common/LoadingOverlay'
 import './App.css'
 
 // Force mobile breakpoints in theme
@@ -143,10 +144,18 @@ const NavigationSpinner = () => {
 
 // Component that uses routing hooks
 const AppRoutes = () => {
-  const { user } = useAuth()
+  const { user, authLoading } = useAuth()
   const location = useLocation()
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showTour, setShowTour] = useState(false)
+  const [isPageLoading, setIsPageLoading] = useState(false)
+
+  // Show loading overlay on page navigation
+  useEffect(() => {
+    setIsPageLoading(true)
+    const timer = setTimeout(() => setIsPageLoading(false), 500)
+    return () => clearTimeout(timer)
+  }, [location.pathname])
 
   // FORCE MOBILE LAYOUT - THIS IS THE KEY FIX
   useEffect(() => {
@@ -211,7 +220,7 @@ const AppRoutes = () => {
     }
   }, [])
 
-  // SESSION KEEP ALIVE - prevents unexpected logout when idle
+  // SESSION KEEP ALIVE - prevents unexpected logout when idle (FASTER - 2 minutes)
   useEffect(() => {
     if (!user) return
     
@@ -219,23 +228,23 @@ const AppRoutes = () => {
       keepAlive().catch((err) => {
         console.log('Session ping failed:', err.response?.status)
       })
-    }, 5 * 60 * 1000)
+    }, 2 * 60 * 1000)  // Changed from 5 minutes to 2 minutes
     
     return () => clearInterval(interval)
   }, [user])
 
-  // ========== KEEP BACKEND AWAKE - PREVENTS RENDER SPIN-DOWN ==========
+  // ========== KEEP BACKEND AWAKE - PREVENTS RENDER SPIN-DOWN (FASTER - 2 minutes) ==========
   useEffect(() => {
     // Initial ping to wake up backend
     fetch('https://zivre-backend.onrender.com/api/services')
       .catch(() => console.log('Backend waking up...'))
     
-    // Keep backend awake (ping every 4 minutes - Render spins down after 15 min)
+    // Keep backend awake (ping every 2 minutes - Render spins down after 15 min)
     const keepAliveInterval = setInterval(() => {
       fetch('https://zivre-backend.onrender.com/api/services')
         .catch(() => {})
       console.log('🔄 Keep-alive ping sent to backend')
-    }, 4 * 60 * 1000)  // Every 4 minutes
+    }, 2 * 60 * 1000)  // Every 2 minutes (faster)
     
     return () => clearInterval(keepAliveInterval)
   }, [])
@@ -246,6 +255,9 @@ const AppRoutes = () => {
 
   return (
     <>
+      {/* Loading Overlay for page navigation */}
+      <LoadingOverlay open={isPageLoading || authLoading} message={authLoading ? "Processing..." : "Loading page..."} />
+      
       <Routes>
         <Route path="/reset-password" element={<ResetPassword />} />
         
