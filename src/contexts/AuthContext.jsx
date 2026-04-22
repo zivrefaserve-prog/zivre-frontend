@@ -40,7 +40,7 @@ const setStoredToken = (token) => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => getStoredUser())
   const [loading, setLoading] = useState(true)
-  const [authLoading, setAuthLoading] = useState(false) // ← ADDED for loading overlay
+  const [authLoading, setAuthLoading] = useState(false)
 
   const verifyUser = useCallback(async () => {
     const token = getStoredToken()
@@ -74,21 +74,23 @@ export const AuthProvider = ({ children }) => {
   }, [verifyUser])
 
   const login = async (email, password) => {
-    setAuthLoading(true) // ← Show loading overlay
+    setAuthLoading(true)
     try {
       const res = await apiLogin({ email, password })
       const { token, user: userData } = res.data
       setStoredToken(token)
       setUser(userData)
       setStoredUser(userData)
+      // Small delay to prevent white flash before dashboard renders
+      await new Promise(resolve => setTimeout(resolve, 300))
       return res.data
     } finally {
-      setAuthLoading(false) // ← Hide loading overlay
+      setAuthLoading(false)
     }
   }
 
   const signup = async (userData) => {
-    setAuthLoading(true) // ← Show loading overlay
+    setAuthLoading(true)
     try {
       const res = await apiSignup(userData)
       const { token, user: newUser } = res.data
@@ -97,14 +99,16 @@ export const AuthProvider = ({ children }) => {
       }
       setUser(newUser)
       setStoredUser(newUser)
+      // Small delay to prevent white flash before dashboard renders
+      await new Promise(resolve => setTimeout(resolve, 300))
       return res.data
     } finally {
-      setAuthLoading(false) // ← Hide loading overlay
+      setAuthLoading(false)
     }
   }
 
   const logout = async () => {
-    setAuthLoading(true) // ← Show loading overlay
+    // NO loading overlay for logout
     try {
       await apiLogout()
     } catch (err) {
