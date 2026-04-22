@@ -6,7 +6,7 @@ import NotificationDropdown from '../common/NotificationDropdown'
 import {
   AppBar, Toolbar, Box, Button, Avatar, Menu, MenuItem, Divider,
   Typography, IconButton, Tooltip, useMediaQuery, Drawer, List,
-  ListItem, ListItemIcon, ListItemText
+  ListItem, ListItemIcon, ListItemText, Badge
 } from '@mui/material'
 import MenuIcon from '@mui/icons-material/Menu'
 import DashboardIcon from '@mui/icons-material/Dashboard'
@@ -17,6 +17,7 @@ import HomeIcon from '@mui/icons-material/Home'
 import InfoIcon from '@mui/icons-material/Info'
 import QuoteIcon from '@mui/icons-material/FormatQuote'
 import PersonIcon from '@mui/icons-material/Person'
+import ShareIcon from '@mui/icons-material/Share'  // ← ADD THIS IMPORT
 
 const Header = ({ onGetQuote, hideNavLinks = false }) => {
   const { user, logout } = useAuth()
@@ -183,6 +184,18 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
               <ListItemIcon><DashboardIcon /></ListItemIcon>
               <ListItemText primary="Dashboard" />
             </ListItem>
+            {/* ✅ ADD REFERRALS LINK IN MOBILE DRAWER */}
+            <ListItem 
+              onClick={() => { 
+                blurActiveElement()
+                window.location.href = '/referrals'; 
+                setMobileOpen(false); 
+              }}
+              sx={{ cursor: 'pointer' }}
+            >
+              <ListItemIcon><ShareIcon /></ListItemIcon>
+              <ListItemText primary="Referrals" />
+            </ListItem>
             <ListItem 
               onClick={() => { 
                 blurActiveElement()
@@ -276,6 +289,14 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
               ))}
               {user ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  {/* ✅ ADD REFERRALS BUTTON IN HEADER */}
+                  <Button 
+                    onClick={() => window.location.href = '/referrals'}
+                    sx={{ color: '#10b981', fontWeight: 500 }}
+                    startIcon={<ShareIcon />}
+                  >
+                    Referrals
+                  </Button>
                   <NotificationDropdown />
                   <Tooltip title="Account">
                     <Avatar 
@@ -310,6 +331,13 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
                       window.location.href = getDashboardUrl(); 
                     }}>
                       <DashboardIcon sx={{ mr: 1.5, fontSize: 20 }} /> Dashboard
+                    </MenuItem>
+                    <MenuItem onClick={() => { 
+                      blurActiveElement()
+                      handleMenuClose(); 
+                      window.location.href = '/referrals'; 
+                    }}>
+                      <ShareIcon sx={{ mr: 1.5, fontSize: 20 }} /> Referrals
                     </MenuItem>
                     <MenuItem onClick={() => { 
                       blurActiveElement()
