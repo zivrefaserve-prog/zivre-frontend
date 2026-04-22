@@ -290,13 +290,14 @@ const CustomerDashboard = () => {
   }, [handleRealtimeRefresh, handleRequestStatusChange, handleProviderAssigned, handleJobStarted, handleJobCompleted, handleCustomerConfirmed, handleNewNotification, handleMessageReceived, handlePercentagesUpdated])
 
   // Fallback polling interval (15 seconds)
+// Fallback polling interval (5 seconds for faster updates)
   useEffect(() => {
     const interval = setInterval(() => {
       if (!document.hidden) {
         loadData()
         loadUnreadCounts()
       }
-    }, 15000)
+    }, 5000)  // Changed from 15000 to 5000
     return () => clearInterval(interval)
   }, [loadData, loadUnreadCounts])
 
