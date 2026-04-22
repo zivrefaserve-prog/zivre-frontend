@@ -4,11 +4,19 @@ const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || '/api',
     headers: {
         'Content-Type': 'application/json'
-    },
-    withCredentials: true
+    }
 })
 
-// FIXED: Handle 403 for admin endpoints properly
+// Add token to every request
+api.interceptors.request.use(config => {
+    const token = sessionStorage.getItem('zivre_token')
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`
+    }
+    return config
+})
+
+// Handle responses
 api.interceptors.response.use(
     response => response,
     error => {
@@ -16,14 +24,15 @@ api.interceptors.response.use(
         const isJobsEndpoint = url.includes('/jobs/available') || url.includes('/jobs/provider/')
         const isAdminEndpoint = url.includes('/admin/')
         
-        // For admin endpoints with 403 - return empty data (don't redirect, don't throw)
+        // For admin endpoints with 403 - return empty data
         if (isAdminEndpoint && error.response?.status === 403) {
             console.log('Admin access restricted - returning empty data')
             return Promise.resolve({ data: [] })
         }
         
-        // For 401 on non-jobs endpoints - redirect to login
-        if (error.response?.status === 401 && !isJobsEndpoint) {
+        // For 401 - clear session and redirect
+        if (error.response?.status === 401) {
+            sessionStorage.removeItem('zivre_token')
             sessionStorage.removeItem('zivre_user')
             window.location.href = '/'
             return Promise.reject(error)
@@ -40,8 +49,25 @@ api.interceptors.response.use(
 
 // ========== AUTH ==========
 export const signup = (data) => api.post('/auth/signup', data)
-export const login = (data) => api.post('/auth/login', data)
-export const logout = () => api.post('/auth/logout')
+export const login = async (data) => {
+    const response = await api.post('/auth/login', data)
+    const { token, user } = response.data
+    if (token) {
+        sessionStorage.setItem('zivre_token', token)
+        sessionStorage.setItem('zivre_user', JSON.stringify(user))
+    }
+    return response
+}
+export const logout = async () => {
+    try {
+        await api.post('/auth/logout')
+    } catch (err) {
+        console.error('Logout error:', err)
+    }
+    sessionStorage.removeItem('zivre_token')
+    sessionStorage.removeItem('zivre_user')
+}
+export const verifyToken = () => api.get('/auth/verify')
 export const getUser = (userId) => api.get(`/auth/user/${userId}`)
 export const updateProfile = (userId, data) => api.put(`/auth/update-profile/${userId}`, data)
 export const changePassword = (userId, data) => api.put(`/auth/change-password/${userId}`, data)
