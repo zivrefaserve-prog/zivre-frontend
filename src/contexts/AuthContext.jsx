@@ -81,11 +81,11 @@ export const AuthProvider = ({ children }) => {
       setStoredToken(token)
       setUser(userData)
       setStoredUser(userData)
-      // Small delay to prevent white flash before dashboard renders
-      await new Promise(resolve => setTimeout(resolve, 300))
+      // DO NOT hide overlay here - let App.jsx handle it
       return res.data
-    } finally {
-      setAuthLoading(false)
+    } catch (err) {
+      setAuthLoading(false) // Only hide on error
+      throw err
     }
   }
 
@@ -99,16 +99,16 @@ export const AuthProvider = ({ children }) => {
       }
       setUser(newUser)
       setStoredUser(newUser)
-      // Small delay to prevent white flash before dashboard renders
-      await new Promise(resolve => setTimeout(resolve, 300))
+      // DO NOT hide overlay here - let App.jsx handle it
       return res.data
-    } finally {
-      setAuthLoading(false)
+    } catch (err) {
+      setAuthLoading(false) // Only hide on error
+      throw err
     }
   }
 
   const logout = async () => {
-    // NO loading overlay for logout
+    // No overlay for logout
     try {
       await apiLogout()
     } catch (err) {
@@ -119,13 +119,17 @@ export const AuthProvider = ({ children }) => {
     window.location.href = '/'
   }
 
+  const hideAuthLoading = () => {
+    setAuthLoading(false)
+  }
+
   const updateUser = (updatedUser) => {
     setUser(updatedUser)
     setStoredUser(updatedUser)
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, authLoading, login, signup, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, authLoading, hideAuthLoading, login, signup, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   )
