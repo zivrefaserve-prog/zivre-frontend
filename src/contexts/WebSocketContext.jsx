@@ -24,8 +24,15 @@ export const WebSocketProvider = ({ children, userId }) => {
   const maxReconnectAttempts = 10
   const baseReconnectDelay = 1000
   const isMountedRef = useRef(true)
+  const heartbeatIntervalRef = useRef(null)
 
   const disconnect = useCallback(() => {
+    // Clear heartbeat interval
+    if (heartbeatIntervalRef.current) {
+      clearInterval(heartbeatIntervalRef.current)
+      heartbeatIntervalRef.current = null
+    }
+    
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current)
       reconnectTimeoutRef.current = null
@@ -44,7 +51,6 @@ export const WebSocketProvider = ({ children, userId }) => {
     reconnectAttemptsRef.current = 0
   }, [])
 
-  // FIX: Updated connect function with better error handling
   const connect = useCallback(() => {
     if (!userId) {
       console.log('No userId provided, skipping WebSocket connection')
@@ -79,22 +85,21 @@ export const WebSocketProvider = ({ children, userId }) => {
       setConnectionError(null)
     }
 
-    // Use VITE_API_URL for WebSocket, fallback to localhost
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
-const SOCKET_URL = API_URL.replace('/api', '').replace('http://', 'https://')
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api'
+    const SOCKET_URL = API_URL.replace('/api', '').replace('http://', 'https://')
     
-console.log('🔌 Attempting WebSocket connection to:', SOCKET_URL)    
-const newSocket = io(SOCKET_URL, {
-  transports: ['polling', 'websocket'],
-  query: { userId: userId.toString() },
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-  timeout: 60000,
-  withCredentials: true,
-  autoConnect: true,
-  forceNew: true
-})
+    console.log('🔌 Attempting WebSocket connection to:', SOCKET_URL)    
+    const newSocket = io(SOCKET_URL, {
+      transports: ['polling', 'websocket'],
+      query: { userId: userId.toString() },
+      reconnection: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 1000,
+      timeout: 60000,
+      withCredentials: true,
+      autoConnect: true,
+      forceNew: true
+    })
 
     socketRef.current = newSocket
 
@@ -110,6 +115,17 @@ const newSocket = io(SOCKET_URL, {
       reconnectAttemptsRef.current = 0
       
       newSocket.emit('ping', { timestamp: Date.now() })
+      
+      // HEARTBEAT: Send ping every 25 seconds to keep connection alive
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current)
+      }
+      heartbeatIntervalRef.current = setInterval(() => {
+        if (newSocket && newSocket.connected) {
+          newSocket.emit('ping', { timestamp: Date.now() })
+          console.log('💓 WebSocket heartbeat sent')
+        }
+      }, 25000)
     })
 
     newSocket.on('disconnect', (reason) => {
@@ -117,6 +133,12 @@ const newSocket = io(SOCKET_URL, {
       if (isMountedRef.current) {
         setIsConnected(false)
         setSocket(null)
+      }
+      
+      // Clear heartbeat on disconnect
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current)
+        heartbeatIntervalRef.current = null
       }
       
       if (reason !== 'io client disconnect' && isMountedRef.current && reconnectAttemptsRef.current < maxReconnectAttempts) {
@@ -363,6 +385,10 @@ const newSocket = io(SOCKET_URL, {
     
     return () => {
       isMountedRef.current = false
+      if (heartbeatIntervalRef.current) {
+        clearInterval(heartbeatIntervalRef.current)
+        heartbeatIntervalRef.current = null
+      }
       if (reconnectTimeoutRef.current) {
         clearTimeout(reconnectTimeoutRef.current)
         reconnectTimeoutRef.current = null
