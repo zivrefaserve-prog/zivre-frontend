@@ -40,6 +40,7 @@ const setStoredToken = (token) => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => getStoredUser())
   const [loading, setLoading] = useState(true)
+  const [authLoading, setAuthLoading] = useState(false) // ← ADDED for loading overlay
 
   const verifyUser = useCallback(async () => {
     const token = getStoredToken()
@@ -73,26 +74,37 @@ export const AuthProvider = ({ children }) => {
   }, [verifyUser])
 
   const login = async (email, password) => {
-    const res = await apiLogin({ email, password })
-    const { token, user: userData } = res.data
-    setStoredToken(token)
-    setUser(userData)
-    setStoredUser(userData)
-    return res.data
+    setAuthLoading(true) // ← Show loading overlay
+    try {
+      const res = await apiLogin({ email, password })
+      const { token, user: userData } = res.data
+      setStoredToken(token)
+      setUser(userData)
+      setStoredUser(userData)
+      return res.data
+    } finally {
+      setAuthLoading(false) // ← Hide loading overlay
+    }
   }
 
   const signup = async (userData) => {
+    setAuthLoading(true) // ← Show loading overlay
+    try {
       const res = await apiSignup(userData)
-      const { token, user: newUser } = res.data  // ← Get token from response
+      const { token, user: newUser } = res.data
       if (token) {
-          setStoredToken(token)  // ← Store token
+        setStoredToken(token)
       }
       setUser(newUser)
       setStoredUser(newUser)
       return res.data
+    } finally {
+      setAuthLoading(false) // ← Hide loading overlay
+    }
   }
 
   const logout = async () => {
+    setAuthLoading(true) // ← Show loading overlay
     try {
       await apiLogout()
     } catch (err) {
@@ -109,7 +121,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, signup, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, authLoading, login, signup, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   )
