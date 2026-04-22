@@ -4,7 +4,7 @@ import {
   getAvailableJobs, claimJob, getProviderJobs, updateJobStatus,
   getNotifications, providerCompleteRequest,
   getUnreadMessagesCount, getUnreadCount,
-  getPercentages
+  getPercentages, declineJob
 } from '../api/client'
 import {
   Box, Drawer, Typography, IconButton, Grid, Card, CardContent,
@@ -319,6 +319,24 @@ useEffect(() => {
     loadPercentages()
   }, [user?.id, loadData, loadUnreadCounts, loadPercentages])
 
+
+  const handleDeclineJob = async (jobId) => {
+    const reason = prompt('Enter reason for declining this job:')
+    if (!reason) return
+    
+    setActionLoading(jobId)
+    try {
+      await declineJob(jobId, reason)
+      showToast('Job declined successfully', 'success')
+      await loadData()
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Error declining job', 'error')
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  
   const handleClaim = async (requestId) => {
     setActionLoading(requestId)
     try {
@@ -624,26 +642,46 @@ useEffect(() => {
                           💵 Your earnings: GH₵{(job.amount * percentages.provider_percent / 100).toFixed(2)} ({percentages.provider_percent}%)
                         </Typography>
                         
-                        <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+                        <Box sx={{ display: 'flex', gap: 1, mt: 2, flexWrap: 'wrap' }}>
                           {job.status === 'assigned' && (
-                            <Button
-                              variant="contained"
-                              onClick={() => handleUpdateStatus(job.id, 'in_progress')}
-                              disabled={actionLoading === job.id}
-                              sx={{ bgcolor: '#8b5cf6', '&:hover': { bgcolor: '#7c3aed' } }}
-                            >
-                              {actionLoading === job.id ? <CircularProgress size={20} sx={{ color: 'white' }} /> : ' Start Job'}
-                            </Button>
+                            <>
+                              <Button
+                                variant="contained"
+                                onClick={() => handleUpdateStatus(job.id, 'in_progress')}
+                                disabled={actionLoading === job.id}
+                                sx={{ bgcolor: '#8b5cf6', '&:hover': { bgcolor: '#7c3aed' } }}
+                              >
+                                {actionLoading === job.id ? <CircularProgress size={20} sx={{ color: 'white' }} /> : ' Start Job'}
+                              </Button>
+                              <Button
+                                variant="outlined"
+                                color="warning"
+                                onClick={() => handleDeclineJob(job.id)}
+                                disabled={actionLoading === job.id}
+                              >
+                                {actionLoading === job.id ? <CircularProgress size={20} /> : ' Decline Job'}
+                              </Button>
+                            </>
                           )}
                           {job.status === 'in_progress' && (
-                            <Button
-                              variant="contained"
-                              onClick={() => handleMarkComplete(job.id)}
-                              disabled={actionLoading === job.id}
-                              sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
-                            >
-                              {actionLoading === job.id ? <CircularProgress size={20} sx={{ color: 'white' }} /> : ' Mark Complete'}
-                            </Button>
+                            <>
+                              <Button
+                                variant="contained"
+                                onClick={() => handleMarkComplete(job.id)}
+                                disabled={actionLoading === job.id}
+                                sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
+                              >
+                                {actionLoading === job.id ? <CircularProgress size={20} sx={{ color: 'white' }} /> : ' Mark Complete'}
+                              </Button>
+                              <Button
+                                variant="outlined"
+                                color="warning"
+                                onClick={() => handleDeclineJob(job.id)}
+                                disabled={actionLoading === job.id}
+                              >
+                                {actionLoading === job.id ? <CircularProgress size={20} /> : ' Decline Job'}
+                              </Button>
+                            </>
                           )}
                           {job.status === 'completed' && !job.customer_confirmed && (
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -658,6 +696,8 @@ useEffect(() => {
                             </Box>
                           )}
                         </Box>
+
+                        
                       </Card>
                     </Grid>
                   ))}
