@@ -28,7 +28,8 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     phone: '',
     password: '',
     confirm_password: '',
-    service_specialization: ''
+    service_specialization: '',
+    referral_code: ''  // ← ADDED THIS LINE
   })
 
   // Load services for provider signup
@@ -131,7 +132,8 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
           phone: formData.phone,
           password: formData.password,
           role: role || 'customer',
-          service_specialization: role === 'provider' ? parseInt(formData.service_specialization) : null
+          service_specialization: role === 'provider' ? parseInt(formData.service_specialization) : null,
+          referral_code: formData.referral_code  // ← ADDED THIS LINE
         }
         const res = await signup(userData)
         onSuccess(res.user)
@@ -259,6 +261,18 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
                   error={!!(formData.phone && !validatePhone(formData.phone))}
                   helperText={formData.phone && !validatePhone(formData.phone) ? 'Enter valid phone number (e.g., 024XXXXXXX)' : ''}
                   required
+                  sx={{ mb: 1.5 }}
+                />
+
+                {/* REFERRAL CODE FIELD - ADDED */}
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Referral Code (Optional)"
+                  value={formData.referral_code}
+                  onChange={(e) => setFormData({ ...formData, referral_code: e.target.value })}
+                  margin="dense"
+                  helperText="If someone referred you, enter their code here"
                   sx={{ mb: 1.5 }}
                 />
 
