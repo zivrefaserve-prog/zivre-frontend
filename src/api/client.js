@@ -8,18 +8,28 @@ const api = axios.create({
     withCredentials: true
 })
 
-// GLOBAL 401 ERROR HANDLER
+// FIXED: Handle 403 for admin endpoints properly
 api.interceptors.response.use(
     response => response,
     error => {
         const url = error.config?.url || ''
         const isJobsEndpoint = url.includes('/jobs/available') || url.includes('/jobs/provider/')
+        const isAdminEndpoint = url.includes('/admin/')
         
+        // For admin endpoints with 403 - return empty data (don't redirect, don't throw)
+        if (isAdminEndpoint && error.response?.status === 403) {
+            console.log('Admin access restricted - returning empty data')
+            return Promise.resolve({ data: [] })
+        }
+        
+        // For 401 on non-jobs endpoints - redirect to login
         if (error.response?.status === 401 && !isJobsEndpoint) {
             sessionStorage.removeItem('zivre_user')
             window.location.href = '/'
+            return Promise.reject(error)
         }
         
+        // For jobs endpoints with 403 or 401 - return empty array
         if (isJobsEndpoint && (error.response?.status === 403 || error.response?.status === 401)) {
             return Promise.resolve({ data: [] })
         }
@@ -37,7 +47,7 @@ export const updateProfile = (userId, data) => api.put(`/auth/update-profile/${u
 export const changePassword = (userId, data) => api.put(`/auth/change-password/${userId}`, data)
 export const toggleOnlineStatus = (userId, isOnline) => api.put(`/auth/toggle-online/${userId}`, { is_online: isOnline })
 
-// ========== SESSION KEEP ALIVE (prevents idle logout) ==========
+// ========== SESSION KEEP ALIVE ==========
 export const keepAlive = () => api.get('/auth/ping')
 
 // ========== PERCENTAGES ==========
