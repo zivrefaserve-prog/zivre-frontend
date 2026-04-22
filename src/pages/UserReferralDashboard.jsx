@@ -123,15 +123,15 @@ const UserReferralDashboard = () => {
             p: 1.5,
             display: 'inline-block',
             minWidth: 200,
-            bgcolor: node.is_active ? '#e8f5e9' : '#fff3e0',
-            borderColor: node.is_active ? '#4caf50' : '#ff9800'
+            bgcolor: node.is_referral_active ? '#e8f5e9' : '#fff3e0',
+            borderColor: node.is_referral_active ? '#4caf50' : '#ff9800'
           }}
         >
           <Typography variant="body2" fontWeight="600">
             {node.full_name}
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            {node.is_active ? 'Active' : 'Inactive'} • Balance: GHS{node.commission_balance}
+            {node.is_referral_active ? 'Active' : 'Inactive'} • Balance: GHS{node.commission_balance}
           </Typography>
           {node.position && (
             <Chip
@@ -210,7 +210,7 @@ const UserReferralDashboard = () => {
                     </Button>
                   )}
                   <Typography variant="caption" sx={{ display: 'block', mt: 1, opacity: 0.8 }}>
-                    {myInfo?.is_active ? '✅ Account Active' : '⏳ Complete your first service to activate'}
+                    {myInfo?.is_referral_active ? '✅ Account Active' : '⏳ Complete your first service to activate'}
                   </Typography>
                 </Box>
               </Grid>
