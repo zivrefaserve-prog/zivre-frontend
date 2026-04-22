@@ -204,6 +204,10 @@ const AdminDashboard = () => {
     
     setRefreshing(true)
     try {
+      // Show dashboard shell immediately
+      setLoading(false)
+      
+      // Load data in background (doesn't block UI)
       const [statsRes, servicesRes, quotesRes, requestsRes, usersRes, commentsRes] = await Promise.all([
         getAdminStats(),
         getServices(false),
@@ -222,7 +226,6 @@ const AdminDashboard = () => {
       console.error(err)
       showToast('Error loading data', 'error')
     } finally {
-      setLoading(false)
       setRefreshing(false)
     }
   }, [user])
