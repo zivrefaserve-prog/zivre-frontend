@@ -133,42 +133,45 @@ const ProviderDashboard = () => {
   }
 
   // Main data loading function
-const loadData = useCallback(async () => {
-  if (!user?.id || user?.role !== 'provider') {
-    return
-  }
-  
-  // Unverified providers - set empty arrays, NO API calls
-  if (!user?.is_verified) {
-    setAvailableJobs([])
-    setMyJobs([])
-    setNotifications([])
-    setLoading(false)
-    return
-  }
-  
-  setRefreshing(true)
-  try {
-    const [availableRes, jobsRes, notifRes] = await Promise.all([
-      getAvailableJobs(),
-      getProviderJobs(user.id),
-      getNotifications(user.id)
-    ])
-    setAvailableJobs(availableRes.data)
-    setMyJobs(jobsRes.data)
-    setNotifications(notifRes.data)
-  } catch (err) {
-    console.error(err)
-    if (err.response?.status !== 403 && err.response?.status !== 401) {
-      showToast('Error loading data', 'error')
+  const loadData = useCallback(async () => {
+    if (!user?.id || user?.role !== 'provider') {
+      return
     }
-    setAvailableJobs([])
-    setMyJobs([])
-  } finally {
-    setLoading(false)
-    setRefreshing(false)
-  }
-}, [user?.id, user?.role, user?.is_verified])
+    
+    // Unverified providers - set empty arrays, NO API calls
+    if (!user?.is_verified) {
+      setAvailableJobs([])
+      setMyJobs([])
+      setNotifications([])
+      setLoading(false)
+      return
+    }
+    
+    setRefreshing(true)
+    try {
+      // Show dashboard shell immediately
+      setLoading(false)
+      
+      // Load data in background (doesn't block UI)
+      const [availableRes, jobsRes, notifRes] = await Promise.all([
+        getAvailableJobs(),
+        getProviderJobs(user.id),
+        getNotifications(user.id)
+      ])
+      setAvailableJobs(availableRes.data)
+      setMyJobs(jobsRes.data)
+      setNotifications(notifRes.data)
+    } catch (err) {
+      console.error(err)
+      if (err.response?.status !== 403 && err.response?.status !== 401) {
+        showToast('Error loading data', 'error')
+      }
+      setAvailableJobs([])
+      setMyJobs([])
+    } finally {
+      setRefreshing(false)
+    }
+  }, [user?.id, user?.role, user?.is_verified])
 
   
   
