@@ -7,7 +7,7 @@ import {
   getAvailableProviders, getUnreadMessagesCount, getUnreadCount,
   getAdminComments, toggleCommentApproval, adminDeleteComment,
   getPaymentSettings, updatePaymentSettings,
-  getPercentages, updatePercentages, getUserFullDetails
+  getPercentages, getUserFullDetails, rejectRequest, deleteRequestPermanently
 } from '../api/client'
 import {
   Box, Drawer, Typography, IconButton, Grid, Card, CardContent,
@@ -400,6 +400,42 @@ const AdminDashboard = () => {
     showToast(`New quote request from ${event.detail.full_name} for ${event.detail.service_type}`, 'info')
   }, [loadData])
 
+
+const handleRejectRequest = async (requestId) => {
+  const reason = prompt('Enter reason for rejection:')
+  if (!reason) return
+  
+  setActionLoading(requestId)
+  try {
+    await rejectRequest(requestId, reason)
+    showToast('Request rejected successfully', 'success')
+    await loadData()
+  } catch (err) {
+    showToast(err.response?.data?.error || 'Error rejecting request', 'error')
+  } finally {
+    setActionLoading(null)
+  }
+}
+
+const handleDeleteRequestPermanently = async (requestId) => {
+  if (!window.confirm('PERMANENT DELETE: This action cannot be undone. Are you sure?')) return
+  
+  setActionLoading(requestId)
+  try {
+    await deleteRequestPermanently(requestId)
+    showToast('Request permanently deleted', 'success')
+    await loadData()
+  } catch (err) {
+    showToast(err.response?.data?.error || 'Error deleting request', 'error')
+  } finally {
+    setActionLoading(null)
+  }
+}
+
+  
+
+  
+      
   const handleQuoteStatusUpdated = useCallback((event) => {
     console.log('📝 Quote status updated:', event.detail)
     loadData()
@@ -1573,6 +1609,7 @@ const AdminDashboard = () => {
                       <TableCell>Status</TableCell>
                       <TableCell>Provider</TableCell>
                       <TableCell>Date</TableCell>
+                      <TableCell>Actions</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -1586,6 +1623,29 @@ const AdminDashboard = () => {
                         <TableCell><Chip label={r.status} size="small" /></TableCell>
                         <TableCell>{r.provider_name || 'Not assigned'}</TableCell>
                         <TableCell>{new Date(r.created_at).toLocaleDateString()}</TableCell>
+                        <TableCell>
+                          {r.status === 'pending_approval' && (
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              color="warning"
+                              onClick={() => handleRejectRequest(r.id)}
+                              disabled={actionLoading === r.id}
+                              sx={{ mr: 1, mb: { xs: 1, sm: 0 } }}
+                            >
+                              Reject
+                            </Button>
+                          )}
+                          <Button
+                            size="small"
+                            variant="outlined"
+                            color="error"
+                            onClick={() => handleDeleteRequestPermanently(r.id)}
+                            disabled={actionLoading === r.id}
+                          >
+                            Delete
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -1597,6 +1657,9 @@ const AdminDashboard = () => {
             </Card>
           )}
 
+
+
+          
           {/* Service Modal */}
           <Dialog open={openServiceModal} onClose={() => { setOpenServiceModal(false); setEditingService(null) }} maxWidth="sm" fullWidth>
             <DialogTitle>{editingService ? 'Edit Service' : 'Add New Service'}</DialogTitle>
