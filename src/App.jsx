@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
-import { Backdrop, CircularProgress } from '@mui/material'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { WebSocketProvider } from './contexts/WebSocketContext'
 import Header from './layout/Header'
@@ -87,75 +86,12 @@ const theme = createTheme({
   },
 })
 
-// Navigation Spinner Component
-const NavigationSpinner = () => {
-  const [isNavigating, setIsNavigating] = useState(false)
-
-  useEffect(() => {
-    let timeoutId = null
-
-    const handleClick = (e) => {
-      const target = e.target.closest('a')
-      if (target && target.href && !target.href.startsWith('javascript:') && !target.target && !target.hasAttribute('download')) {
-        const currentPath = window.location.pathname
-        let newPath = ''
-        try {
-          newPath = new URL(target.href).pathname
-        } catch {
-          newPath = target.href
-        }
-        
-        if (currentPath !== newPath && !target.href.includes('mailto:') && !target.href.includes('tel:')) {
-          setIsNavigating(true)
-          if (timeoutId) clearTimeout(timeoutId)
-          timeoutId = setTimeout(() => setIsNavigating(false), 3000)
-        }
-      }
-    }
-
-    const handlePopState = () => {
-      setIsNavigating(true)
-      if (timeoutId) clearTimeout(timeoutId)
-      timeoutId = setTimeout(() => setIsNavigating(false), 1000)
-    }
-
-    const handleLoad = () => setIsNavigating(false)
-
-    document.addEventListener('click', handleClick)
-    window.addEventListener('popstate', handlePopState)
-    window.addEventListener('load', handleLoad)
-
-    return () => {
-      document.removeEventListener('click', handleClick)
-      window.removeEventListener('popstate', handlePopState)
-      window.removeEventListener('load', handleLoad)
-      if (timeoutId) clearTimeout(timeoutId)
-    }
-  }, [])
-
-  if (!isNavigating) return null
-
-  return (
-    <Backdrop sx={{ color: '#fff', zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.7)' }} open={true}>
-      <CircularProgress size={60} sx={{ color: '#10b981' }} />
-    </Backdrop>
-  )
-}
-
 // Component that uses routing hooks
 const AppRoutes = () => {
   const { user, authLoading } = useAuth()
   const location = useLocation()
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showTour, setShowTour] = useState(false)
-  const [isPageLoading, setIsPageLoading] = useState(false)
-
-  // Show loading overlay on page navigation
-  useEffect(() => {
-    setIsPageLoading(true)
-    const timer = setTimeout(() => setIsPageLoading(false), 500)
-    return () => clearTimeout(timer)
-  }, [location.pathname])
 
   // FORCE MOBILE LAYOUT - THIS IS THE KEY FIX
   useEffect(() => {
@@ -220,7 +156,7 @@ const AppRoutes = () => {
     }
   }, [])
 
-  // SESSION KEEP ALIVE - prevents unexpected logout when idle (FASTER - 2 minutes)
+  // SESSION KEEP ALIVE - prevents unexpected logout when idle
   useEffect(() => {
     if (!user) return
     
@@ -228,23 +164,20 @@ const AppRoutes = () => {
       keepAlive().catch((err) => {
         console.log('Session ping failed:', err.response?.status)
       })
-    }, 2 * 60 * 1000)  // Changed from 5 minutes to 2 minutes
+    }, 5 * 60 * 1000)
     
     return () => clearInterval(interval)
   }, [user])
 
-  // ========== KEEP BACKEND AWAKE - PREVENTS RENDER SPIN-DOWN (FASTER - 2 minutes) ==========
+  // ========== KEEP BACKEND AWAKE - FIXES WEBSOCKET TIMEOUT ==========
   useEffect(() => {
-    // Initial ping to wake up backend
     fetch('https://zivre-backend.onrender.com/api/services')
       .catch(() => console.log('Backend waking up...'))
     
-    // Keep backend awake (ping every 2 minutes - Render spins down after 15 min)
     const keepAliveInterval = setInterval(() => {
       fetch('https://zivre-backend.onrender.com/api/services')
         .catch(() => {})
-      console.log('🔄 Keep-alive ping sent to backend')
-    }, 2 * 60 * 1000)  // Every 2 minutes (faster)
+    }, 2 * 60 * 1000)
     
     return () => clearInterval(keepAliveInterval)
   }, [])
@@ -255,8 +188,8 @@ const AppRoutes = () => {
 
   return (
     <>
-      {/* Loading Overlay for page navigation */}
-      <LoadingOverlay open={isPageLoading || authLoading} message={authLoading ? "Processing..." : "Loading page..."} />
+      {/* Loading Overlay - ONLY for Sign In, Sign Up, Logout (NOT for page navigation) */}
+      <LoadingOverlay open={authLoading} message={authLoading ? "Processing..." : ""} />
       
       <Routes>
         <Route path="/reset-password" element={<ResetPassword />} />
@@ -295,7 +228,6 @@ const AppRoutes = () => {
             </main>
             <Footer />
             {!user && <TourButton tourSteps={customerTourSteps} title="Welcome to Zivre!" autoShow={showTour} />}
-            <NavigationSpinner />
           </>
         } />
       </Routes>
