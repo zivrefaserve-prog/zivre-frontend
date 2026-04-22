@@ -297,15 +297,16 @@ const loadData = useCallback(async () => {
 
   // Fallback polling interval (15 seconds)
 // Fallback polling interval (15 seconds)
-useEffect(() => {
-  const interval = setInterval(() => {
-    if (!document.hidden && user?.role === 'provider' && user?.is_verified === true) {
-      loadData()
-      loadUnreadCounts()
-    }
-  }, 15000)
-  return () => clearInterval(interval)
-}, [loadData, loadUnreadCounts, user?.role, user?.is_verified])
+// Fallback polling interval (5 seconds for faster updates)
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!document.hidden && user?.role === 'provider' && user?.is_verified === true) {
+        loadData()
+        loadUnreadCounts()
+      }
+    }, 5000)  // Changed from 15000 to 5000
+    return () => clearInterval(interval)
+  }, [loadData, loadUnreadCounts, user?.role, user?.is_verified])
 
   // Initial load
   useEffect(() => {
