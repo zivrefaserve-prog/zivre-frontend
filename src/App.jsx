@@ -87,7 +87,7 @@ const theme = createTheme({
   },
 })
 
-// Navigation Spinner Component - FIXED
+// Navigation Spinner Component
 const NavigationSpinner = () => {
   const [isNavigating, setIsNavigating] = useState(false)
 
@@ -136,17 +136,7 @@ const NavigationSpinner = () => {
   if (!isNavigating) return null
 
   return (
-    <Backdrop 
-      sx={{ 
-        color: '#fff', 
-        zIndex: 9999, 
-        backgroundColor: 'rgba(0,0,0,0.7)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }} 
-      open={true}
-    >
+    <Backdrop sx={{ color: '#fff', zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.7)' }} open={true}>
       <CircularProgress size={60} sx={{ color: '#10b981' }} />
     </Backdrop>
   )
@@ -158,9 +148,18 @@ const AppRoutes = () => {
   const location = useLocation()
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showTour, setShowTour] = useState(false)
+  const [isPageLoading, setIsPageLoading] = useState(false)
 
-  // FORCE MOBILE LAYOUT
+  // Show loading overlay on page navigation
   useEffect(() => {
+    setIsPageLoading(true)
+    const timer = setTimeout(() => setIsPageLoading(false), 500)
+    return () => clearTimeout(timer)
+  }, [location.pathname])
+
+  // FORCE MOBILE LAYOUT - THIS IS THE KEY FIX
+  useEffect(() => {
+    // Force viewport on mobile
     const setViewport = () => {
       const viewport = document.querySelector('meta[name="viewport"]')
       if (viewport && window.innerWidth <= 768) {
@@ -170,10 +169,12 @@ const AppRoutes = () => {
     setViewport()
     window.addEventListener('resize', setViewport)
     
+    // FORCE MOBILE CLASS ON BODY
     const forceMobileLayout = () => {
       if (window.innerWidth <= 768) {
         document.body.classList.add('mobile-device')
         document.body.classList.remove('desktop-device')
+        // Force all MUI grid containers to be column
         const allGrids = document.querySelectorAll('.MuiGrid-container')
         allGrids.forEach(grid => {
           grid.style.flexDirection = 'column'
@@ -186,6 +187,8 @@ const AppRoutes = () => {
     
     forceMobileLayout()
     window.addEventListener('resize', forceMobileLayout)
+    
+    // Run again after all content loads
     const timer = setTimeout(forceMobileLayout, 100)
     
     return () => {
@@ -203,35 +206,46 @@ const AppRoutes = () => {
     }
   }, [location, user])
 
+  // Listen for forgot password event
   useEffect(() => {
     const handleOpenForgotPassword = () => {
+      console.log('Opening forgot password modal from event')
       setShowForgotPasswordModal(true)
     }
+    
     window.addEventListener('open_forgot_password', handleOpenForgotPassword)
+    
     return () => {
       window.removeEventListener('open_forgot_password', handleOpenForgotPassword)
     }
   }, [])
 
-  // SESSION KEEP ALIVE
+  // SESSION KEEP ALIVE - prevents unexpected logout when idle (FASTER - 2 minutes)
   useEffect(() => {
     if (!user) return
+    
     const interval = setInterval(() => {
       keepAlive().catch((err) => {
         console.log('Session ping failed:', err.response?.status)
       })
-    }, 5 * 60 * 1000)
+    }, 2 * 60 * 1000)  // Changed from 5 minutes to 2 minutes
+    
     return () => clearInterval(interval)
   }, [user])
 
-  // KEEP BACKEND AWAKE
+  // ========== KEEP BACKEND AWAKE - PREVENTS RENDER SPIN-DOWN (FASTER - 2 minutes) ==========
   useEffect(() => {
+    // Initial ping to wake up backend
     fetch('https://zivre-backend.onrender.com/api/services')
       .catch(() => console.log('Backend waking up...'))
+    
+    // Keep backend awake (ping every 2 minutes - Render spins down after 15 min)
     const keepAliveInterval = setInterval(() => {
       fetch('https://zivre-backend.onrender.com/api/services')
         .catch(() => {})
-    }, 2 * 60 * 1000)
+      console.log('🔄 Keep-alive ping sent to backend')
+    }, 2 * 60 * 1000)  // Every 2 minutes (faster)
+    
     return () => clearInterval(keepAliveInterval)
   }, [])
 
@@ -241,18 +255,31 @@ const AppRoutes = () => {
 
   return (
     <>
-      {/* Loading Overlay - ONLY for Sign In, Sign Up, Logout */}
-      <LoadingOverlay open={authLoading} message={authLoading ? "Processing..." : ""} />
+      {/* Loading Overlay for page navigation */}
+      <LoadingOverlay open={isPageLoading || authLoading} message={authLoading ? "Processing..." : "Loading page..."} />
       
       <Routes>
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/profile" element={user ? <ProfileSettings /> : <Navigate to="/" />} />
-        <Route path="/messages" element={user ? <Messages /> : <Navigate to="/" />} />
-        <Route path="/customer/dashboard" element={user ? <CustomerDashboard /> : <Navigate to="/" />} />
-        <Route path="/provider/dashboard" element={user ? <ProviderDashboard /> : <Navigate to="/" />} />
-        <Route path="/admin/dashboard" element={user && user.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />} />
+        
+        <Route path="/profile" element={
+          user ? <ProfileSettings /> : <Navigate to="/" />
+        } />
+        <Route path="/messages" element={
+          user ? <Messages /> : <Navigate to="/" />
+        } />
+        <Route path="/customer/dashboard" element={
+          user ? <CustomerDashboard /> : <Navigate to="/" />
+        } />
+        <Route path="/provider/dashboard" element={
+          user ? <ProviderDashboard /> : <Navigate to="/" />
+        } />
+        <Route path="/admin/dashboard" element={
+          user && user.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />
+        } />
+        
         <Route path="/my-requests" element={<Navigate to="/customer/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
+        
         <Route path="/" element={
           <>
             <Header onGetQuote={scrollToContact} />
