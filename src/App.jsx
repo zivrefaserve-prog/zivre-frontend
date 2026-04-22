@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
-import { CircularProgress } from '@mui/material'
+import { Backdrop, CircularProgress } from '@mui/material'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { WebSocketProvider } from './contexts/WebSocketContext'
 import Header from './layout/Header'
@@ -87,7 +87,7 @@ const theme = createTheme({
   },
 })
 
-// Navigation Spinner Component - FIXED (no MUI Backdrop error)
+// Navigation Spinner Component
 const NavigationSpinner = () => {
   const [isNavigating, setIsNavigating] = useState(false)
 
@@ -136,22 +136,9 @@ const NavigationSpinner = () => {
   if (!isNavigating) return null
 
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.7)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 9999
-      }}
-    >
+    <Backdrop sx={{ color: '#fff', zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.7)' }} open={true}>
       <CircularProgress size={60} sx={{ color: '#10b981' }} />
-    </div>
+    </Backdrop>
   )
 }
 
@@ -161,6 +148,14 @@ const AppRoutes = () => {
   const location = useLocation()
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showTour, setShowTour] = useState(false)
+  const [isPageLoading, setIsPageLoading] = useState(false)
+
+  // Show loading overlay on page navigation
+  useEffect(() => {
+    setIsPageLoading(true)
+    const timer = setTimeout(() => setIsPageLoading(false), 500)
+    return () => clearTimeout(timer)
+  }, [location.pathname])
 
   // FORCE MOBILE LAYOUT - THIS IS THE KEY FIX
   useEffect(() => {
@@ -225,7 +220,7 @@ const AppRoutes = () => {
     }
   }, [])
 
-  // SESSION KEEP ALIVE - prevents unexpected logout when idle
+  // SESSION KEEP ALIVE - prevents unexpected logout when idle (FASTER - 2 minutes)
   useEffect(() => {
     if (!user) return
     
@@ -233,20 +228,23 @@ const AppRoutes = () => {
       keepAlive().catch((err) => {
         console.log('Session ping failed:', err.response?.status)
       })
-    }, 5 * 60 * 1000)
+    }, 2 * 60 * 1000)  // Changed from 5 minutes to 2 minutes
     
     return () => clearInterval(interval)
   }, [user])
 
-  // ========== KEEP BACKEND AWAKE - FIXES WEBSOCKET TIMEOUT ==========
+  // ========== KEEP BACKEND AWAKE - PREVENTS RENDER SPIN-DOWN (FASTER - 2 minutes) ==========
   useEffect(() => {
+    // Initial ping to wake up backend
     fetch('https://zivre-backend.onrender.com/api/services')
       .catch(() => console.log('Backend waking up...'))
     
+    // Keep backend awake (ping every 2 minutes - Render spins down after 15 min)
     const keepAliveInterval = setInterval(() => {
       fetch('https://zivre-backend.onrender.com/api/services')
         .catch(() => {})
-    }, 2 * 60 * 1000)
+      console.log('🔄 Keep-alive ping sent to backend')
+    }, 2 * 60 * 1000)  // Every 2 minutes (faster)
     
     return () => clearInterval(keepAliveInterval)
   }, [])
@@ -257,8 +255,8 @@ const AppRoutes = () => {
 
   return (
     <>
-      {/* Loading Overlay - ONLY for Sign In, Sign Up, Logout */}
-      <LoadingOverlay open={authLoading} message={authLoading ? "Processing..." : ""} />
+      {/* Loading Overlay for page navigation */}
+      <LoadingOverlay open={isPageLoading || authLoading} message={authLoading ? "Processing..." : "Loading page..."} />
       
       <Routes>
         <Route path="/reset-password" element={<ResetPassword />} />
