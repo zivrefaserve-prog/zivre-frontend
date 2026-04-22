@@ -167,5 +167,12 @@ export const updatePaymentSettings = (data) => api.put('/admin/payment-settings'
 // ========== PASSWORD RESET ==========
 export const forgotPassword = (email) => api.post('/auth/forgot-password', { email })
 export const resetPassword = (token, newPassword) => api.post('/auth/reset-password', { token, new_password: newPassword })
+// ====================
+
+// ========== REQUEST MANAGEMENT (Cancel, Reject, Decline, Delete) ==========
+export const cancelRequest = (requestId) => api.put(`/requests/${requestId}/cancel`)
+export const rejectRequest = (requestId, reason) => api.put(`/admin/requests/${requestId}/reject`, { reason })
+export const declineJob = (jobId, reason) => api.put(`/jobs/${jobId}/decline`, { reason })
+export const deleteRequestPermanently = (requestId) => api.delete(`/admin/requests/${requestId}/delete`)
 
 export default api
