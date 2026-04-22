@@ -23,6 +23,8 @@ import ForgotPasswordModal from './common/ForgotPasswordModal'
 import { TourButton, customerTourSteps } from './common/DemoTour'
 import { keepAlive } from './api/client'
 import LoadingOverlay from './common/LoadingOverlay'
+import UserReferralDashboard from './pages/UserReferralDashboard'
+import AdminReferralDashboard from './pages/AdminReferralDashboard'
 import './App.css'
 
 // Force mobile breakpoints in theme
@@ -101,7 +103,9 @@ const AppRoutes = () => {
                           location.pathname === '/provider/dashboard' ||
                           location.pathname === '/admin/dashboard' ||
                           location.pathname === '/profile' ||
-                          location.pathname === '/messages'
+                          location.pathname === '/messages' ||
+                          location.pathname === '/referrals' ||
+                          location.pathname === '/admin/referrals'
       
       if (isDashboard) {
         // Small delay to ensure dashboard renders
@@ -228,6 +232,14 @@ const AppRoutes = () => {
         } />
         <Route path="/admin/dashboard" element={
           user && user.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />
+        } />
+        
+        {/* REFERRAL SYSTEM ROUTES */}
+        <Route path="/referrals" element={
+          user ? <UserReferralDashboard /> : <Navigate to="/" />
+        } />
+        <Route path="/admin/referrals" element={
+          user && user.role === 'admin' ? <AdminReferralDashboard /> : <Navigate to="/" />
         } />
         
         <Route path="/my-requests" element={<Navigate to="/customer/dashboard" replace />} />
