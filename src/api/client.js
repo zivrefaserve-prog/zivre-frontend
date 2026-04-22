@@ -12,10 +12,18 @@ const api = axios.create({
 api.interceptors.response.use(
     response => response,
     error => {
-        if (error.response?.status === 401) {
+        const url = error.config?.url || ''
+        const isJobsEndpoint = url.includes('/jobs/available') || url.includes('/jobs/provider/')
+        
+        if (error.response?.status === 401 && !isJobsEndpoint) {
             sessionStorage.removeItem('zivre_user')
             window.location.href = '/'
         }
+        
+        if (isJobsEndpoint && (error.response?.status === 403 || error.response?.status === 401)) {
+            return Promise.resolve({ data: [] })
+        }
+        
         return Promise.reject(error)
     }
 )
