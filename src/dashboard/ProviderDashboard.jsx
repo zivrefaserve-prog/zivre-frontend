@@ -134,9 +134,16 @@ const ProviderDashboard = () => {
 
   // Main data loading function
 const loadData = useCallback(async () => {
-  // ONLY LOAD IF USER IS A VERIFIED PROVIDER
-  if (!user?.id || user?.role !== 'provider' || !user?.is_verified) {
-    console.log('Not a verified provider, skipping data load')
+  if (!user?.id || user?.role !== 'provider') {
+    return
+  }
+  
+  // Unverified providers - set empty arrays, NO API calls
+  if (!user?.is_verified) {
+    setAvailableJobs([])
+    setMyJobs([])
+    setNotifications([])
+    setLoading(false)
     return
   }
   
@@ -152,15 +159,18 @@ const loadData = useCallback(async () => {
     setNotifications(notifRes.data)
   } catch (err) {
     console.error(err)
-    // Only show toast for non-403 errors
-    if (err.response?.status !== 403) {
+    if (err.response?.status !== 403 && err.response?.status !== 401) {
       showToast('Error loading data', 'error')
     }
+    setAvailableJobs([])
+    setMyJobs([])
   } finally {
     setLoading(false)
     setRefreshing(false)
   }
 }, [user?.id, user?.role, user?.is_verified])
+
+  
   
 
   // Load unread counts
