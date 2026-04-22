@@ -153,7 +153,7 @@ const AppRoutes = () => {
   // Show loading overlay on page navigation
   useEffect(() => {
     setIsPageLoading(true)
-    const timer = setTimeout(() => setIsPageLoading(false), 500)
+    const timer = setTimeout(() => setIsPageLoading(false), 100)
     return () => clearTimeout(timer)
   }, [location.pathname])
 
