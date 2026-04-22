@@ -224,15 +224,18 @@ const AppRoutes = () => {
     return () => clearInterval(interval)
   }, [user])
 
-  // ========== KEEP BACKEND AWAKE - FIXES WEBSOCKET TIMEOUT ==========
+  // ========== KEEP BACKEND AWAKE - PREVENTS RENDER SPIN-DOWN ==========
   useEffect(() => {
+    // Initial ping to wake up backend
     fetch('https://zivre-backend.onrender.com/api/services')
       .catch(() => console.log('Backend waking up...'))
     
+    // Keep backend awake (ping every 4 minutes - Render spins down after 15 min)
     const keepAliveInterval = setInterval(() => {
       fetch('https://zivre-backend.onrender.com/api/services')
         .catch(() => {})
-    }, 2 * 60 * 1000)
+      console.log('🔄 Keep-alive ping sent to backend')
+    }, 4 * 60 * 1000)  // Every 4 minutes
     
     return () => clearInterval(keepAliveInterval)
   }, [])
