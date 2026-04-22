@@ -7,7 +7,8 @@ import {
   getAvailableProviders, getUnreadMessagesCount, getUnreadCount,
   getAdminComments, toggleCommentApproval, adminDeleteComment,
   getPaymentSettings, updatePaymentSettings,
-  getPercentages, getUserFullDetails, rejectRequest, deleteRequestPermanently
+  getPercentages, updatePercentages,  // ← ADD THIS
+  getUserFullDetails, rejectRequest, deleteRequestPermanently
 } from '../api/client'
 import {
   Box, Drawer, Typography, IconButton, Grid, Card, CardContent,
