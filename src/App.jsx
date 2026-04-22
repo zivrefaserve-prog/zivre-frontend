@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom'
 import { ThemeProvider, createTheme } from '@mui/material/styles'
-import { Backdrop, CircularProgress } from '@mui/material'
+import { CircularProgress } from '@mui/material'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { WebSocketProvider } from './contexts/WebSocketContext'
 import Header from './layout/Header'
@@ -87,7 +87,7 @@ const theme = createTheme({
   },
 })
 
-// Navigation Spinner Component (YOUR ORIGINAL - UNCHANGED)
+// Navigation Spinner Component - FIXED (no MUI Backdrop error)
 const NavigationSpinner = () => {
   const [isNavigating, setIsNavigating] = useState(false)
 
@@ -136,9 +136,22 @@ const NavigationSpinner = () => {
   if (!isNavigating) return null
 
   return (
-    <Backdrop sx={{ color: '#fff', zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.7)' }} open={true}>
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.7)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        zIndex: 9999
+      }}
+    >
       <CircularProgress size={60} sx={{ color: '#10b981' }} />
-    </Backdrop>
+    </div>
   )
 }
 
