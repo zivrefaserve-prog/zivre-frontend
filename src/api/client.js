@@ -175,4 +175,22 @@ export const rejectRequest = (requestId, reason) => api.put(`/admin/requests/${r
 export const declineJob = (jobId, reason) => api.put(`/jobs/${jobId}/decline`, { reason })
 export const deleteRequestPermanently = (requestId) => api.delete(`/admin/requests/${requestId}/delete`)
 
+
+// ========== REFERRAL SYSTEM ==========
+export const getMyReferralInfo = () => api.get('/referrals/my-info')
+export const getMyReferralTree = () => api.get('/referrals/my-tree')
+export const getCommissionHistory = () => api.get('/referrals/commission-history')
+export const requestWithdrawal = (data) => api.post('/referrals/withdraw', data)
+export const getWithdrawalHistory = () => api.get('/referrals/withdrawal-history')
+export const getReferralKPIs = () => api.get('/referrals/kpis')
+export const confirmWithdrawalReceipt = (withdrawalId) => api.put(`/referrals/withdrawals/${withdrawalId}/confirm`)
+
+// ========== ADMIN REFERRAL ==========
+export const getPendingWithdrawals = () => api.get('/admin/referrals/pending-withdrawals')
+export const markWithdrawalAsSent = (withdrawalId, data) => api.put(`/admin/referrals/withdrawals/${withdrawalId}/mark-sent`, data)
+export const getOwnerNetSummary = () => api.get('/admin/referrals/owner-net-summary')
+export const getPendingBookingsForCommission = () => api.get('/admin/referrals/pending-bookings')
+export const updateServiceShares = (serviceId, data) => api.put(`/admin/services/${serviceId}/shares`, data)
+export const getUserTreeForAdmin = (userId) => api.get(`/admin/referrals/user-tree/${userId}`)
+
 export default api
