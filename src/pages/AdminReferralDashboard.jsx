@@ -155,7 +155,7 @@ const AdminReferralDashboard = () => {
             {node.full_name} (ID: {node.id})
           </Typography>
           <Typography variant="caption" color="text.secondary">
-            {node.is_active ? 'Active' : 'Inactive'} • Balance: GHS{node.commission_balance}
+            {node.is_referral_active ? 'Active' : 'Inactive'} • Balance: GHS{node.commission_balance}
           </Typography>
           {node.position && (
             <Chip label={node.position.toUpperCase()} size="small" sx={{ ml: 1, height: 20 }} />
