@@ -82,11 +82,14 @@ export const AuthProvider = ({ children }) => {
   }
 
   const signup = async (userData) => {
-    const res = await apiSignup(userData)
-    const newUser = res.data.user
-    setUser(newUser)
-    setStoredUser(newUser)
-    return res.data
+      const res = await apiSignup(userData)
+      const { token, user: newUser } = res.data  // ← Get token from response
+      if (token) {
+          setStoredToken(token)  // ← Store token
+      }
+      setUser(newUser)
+      setStoredUser(newUser)
+      return res.data
   }
 
   const logout = async () => {
