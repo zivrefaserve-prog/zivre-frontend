@@ -15,9 +15,9 @@ const LoadingOverlay = ({ open, message = 'Loading...' }) => {
         gap: 2
       }}
       open={open}
-      transitionDuration={300}
+      transitionDuration={100}  // Changed from 300 to 100
     >
-      <Fade in={open} timeout={500}>
+      <Fade in={open} timeout={100}>  // Changed from 200 to 100
         <Box sx={{ textAlign: 'center' }}>
           <CircularProgress size={70} sx={{ color: '#10b981', mb: 3 }} />
           <Typography variant="h6" sx={{ color: 'white', fontWeight: 600 }}>
