@@ -1,5 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react'
-import { login as apiLogin, signup as apiSignup, getUser, logout as apiLogout } from '../api/client'
+import { login as apiLogin, signup as apiSignup, verifyToken, logout as apiLogout } from '../api/client'
 
 const AuthContext = createContext()
 
@@ -17,6 +17,10 @@ const getStoredUser = () => {
   return null
 }
 
+const getStoredToken = () => {
+  return sessionStorage.getItem('zivre_token')
+}
+
 const setStoredUser = (user) => {
   if (user) {
     sessionStorage.setItem('zivre_user', JSON.stringify(user))
@@ -25,35 +29,53 @@ const setStoredUser = (user) => {
   }
 }
 
+const setStoredToken = (token) => {
+  if (token) {
+    sessionStorage.setItem('zivre_token', token)
+  } else {
+    sessionStorage.removeItem('zivre_token')
+  }
+}
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => getStoredUser())
   const [loading, setLoading] = useState(true)
 
-  const verifyUser = useCallback(async (userData) => {
+  const verifyUser = useCallback(async () => {
+    const token = getStoredToken()
+    if (!token) {
+      setLoading(false)
+      return
+    }
+    
     try {
-      const res = await getUser(userData.id)
-      if (res.data) {
-        setUser(res.data)
-        setStoredUser(res.data)
+      const res = await verifyToken()
+      if (res.data.valid) {
+        setUser(res.data.user)
+        setStoredUser(res.data.user)
+      } else {
+        setUser(null)
+        setStoredUser(null)
+        setStoredToken(null)
       }
     } catch (err) {
-      console.error('User verification failed:', err)
+      console.error('Token verification failed:', err)
       setUser(null)
       setStoredUser(null)
+      setStoredToken(null)
+    } finally {
+      setLoading(false)
     }
   }, [])
 
   useEffect(() => {
-    const storedUser = getStoredUser()
-    if (storedUser && storedUser.id) {
-      verifyUser(storedUser)
-    }
-    setLoading(false)
+    verifyUser()
   }, [verifyUser])
 
   const login = async (email, password) => {
     const res = await apiLogin({ email, password })
-    const userData = res.data.user
+    const { token, user: userData } = res.data
+    setStoredToken(token)
     setUser(userData)
     setStoredUser(userData)
     return res.data
