@@ -3,7 +3,7 @@ import { useAuth } from '../contexts/AuthContext'
 import {
   getServices, createRequest, getUserRequests, getNotifications, rateRequest,
   confirmRequestCompletion, getUnreadMessagesCount, getUnreadCount,
-  getPercentages
+  getPercentages, cancelRequest
 } from '../api/client'
 import {
   Box, Drawer, Typography, IconButton, Grid, Card, CardContent,
@@ -356,6 +356,22 @@ const CustomerDashboard = () => {
     }
   }
 
+
+const handleCancelRequest = async (requestId) => {
+  if (!window.confirm('Are you sure you want to cancel this request? This cannot be undone.')) return
+  
+  setActionLoading(requestId)
+  try {
+    await cancelRequest(requestId)
+    showToast('Request cancelled successfully', 'success')
+    await loadData()
+  } catch (err) {
+    showToast(err.response?.data?.error || 'Error cancelling request', 'error')
+  } finally {
+    setActionLoading(null)
+  }
+}
+  
   const handleConfirmCompletion = async (requestId) => {
     setActionLoading(true)
     try {
@@ -694,12 +710,38 @@ const CustomerDashboard = () => {
                             <Typography variant="caption" color="success.main">✓ Service complete. Please pay provider directly.</Typography>
                           )}
                           {req.status === 'assigned' && (
-                            <Typography variant="caption" color="success.main"> Provider will contact you</Typography>
+                            <>
+                              <Typography variant="caption" color="success.main" sx={{ display: 'block' }}> Provider will contact you</Typography>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                color="error"
+                                onClick={() => handleCancelRequest(req.id)}
+                                disabled={actionLoading === req.id}
+                                sx={{ mt: 1 }}
+                              >
+                                {actionLoading === req.id ? <CircularProgress size={20} /> : 'Cancel Request'}
+                              </Button>
+                            </>
                           )}
                           {req.status === 'pending_approval' && (
-                            <Typography variant="caption" color="warning.main"> Awaiting admin approval</Typography>
+                            <>
+                              <Typography variant="caption" color="warning.main" sx={{ display: 'block' }}> Awaiting admin approval</Typography>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                color="error"
+                                onClick={() => handleCancelRequest(req.id)}
+                                disabled={actionLoading === req.id}
+                                sx={{ mt: 1 }}
+                              >
+                                {actionLoading === req.id ? <CircularProgress size={20} /> : 'Cancel Request'}
+                              </Button>
+                            </>
                           )}
                         </TableCell>
+
+                        
                       </TableRow>
                     ))}
                   </TableBody>
