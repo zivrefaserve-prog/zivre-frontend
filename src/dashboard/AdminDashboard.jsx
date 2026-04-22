@@ -543,14 +543,14 @@ const handleDeleteRequestPermanently = async (requestId) => {
     }
   }, [handleServiceCreated, handleServiceUpdated, handleServiceToggled, handleNewRequest, handleRequestStatusChanged, handleProviderAssigned, handleJobClaimed, handleJobStarted, handleJobCompleted, handleCustomerConfirmed, handleNewQuote, handleQuoteStatusUpdated, handleNewComment, handleCommentToggled, handleCommentDeleted, handleUsersUpdated, handleUserVerified, handleUserSuspended, handlePercentagesUpdated, handlePaymentSettingsUpdated, handleNewNotification, handleMessageReceived])
 
-  // Fallback polling interval (15 seconds)
+  // Fallback polling interval (5 seconds for faster updates)
   useEffect(() => {
     const interval = setInterval(() => {
       if (!document.hidden) {
         loadData()
         loadUnreadCounts()
       }
-    }, 15000)
+    }, 5000)  // Changed from 15000 to 5000
     return () => clearInterval(interval)
   }, [loadData, loadUnreadCounts])
 
