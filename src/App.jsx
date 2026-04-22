@@ -88,10 +88,30 @@ const theme = createTheme({
 
 // Component that uses routing hooks
 const AppRoutes = () => {
-  const { user, authLoading } = useAuth()
+  const { user, authLoading, hideAuthLoading } = useAuth()
   const location = useLocation()
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showTour, setShowTour] = useState(false)
+
+  // Hide overlay when dashboard is fully loaded
+  useEffect(() => {
+    if (authLoading && user) {
+      // Dashboard routes
+      const isDashboard = location.pathname === '/customer/dashboard' ||
+                          location.pathname === '/provider/dashboard' ||
+                          location.pathname === '/admin/dashboard' ||
+                          location.pathname === '/profile' ||
+                          location.pathname === '/messages'
+      
+      if (isDashboard) {
+        // Small delay to ensure dashboard renders
+        const timer = setTimeout(() => {
+          hideAuthLoading()
+        }, 100)
+        return () => clearTimeout(timer)
+      }
+    }
+  }, [authLoading, user, location.pathname, hideAuthLoading])
 
   // FORCE MOBILE LAYOUT - THIS IS THE KEY FIX
   useEffect(() => {
@@ -188,7 +208,7 @@ const AppRoutes = () => {
 
   return (
     <>
-      {/* Loading Overlay - ONLY for Sign In, Sign Up, Logout (NOT for page navigation) */}
+      {/* Loading Overlay - ONLY for Sign In and Sign Up */}
       <LoadingOverlay open={authLoading} message={authLoading ? "Processing..." : ""} />
       
       <Routes>
