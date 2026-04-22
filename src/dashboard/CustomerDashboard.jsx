@@ -165,6 +165,10 @@ const CustomerDashboard = () => {
     
     setRefreshing(true)
     try {
+      // Show dashboard shell immediately
+      setLoading(false)
+      
+      // Load data in background (doesn't block UI)
       const [servicesRes, requestsRes, notifRes] = await Promise.all([
         getServices(true),
         getUserRequests(user.id),
@@ -180,7 +184,6 @@ const CustomerDashboard = () => {
       console.error(err)
       showToast('Error loading data', 'error')
     } finally {
-      setLoading(false)
       setRefreshing(false)
     }
   }, [user?.id])
