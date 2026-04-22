@@ -87,7 +87,7 @@ const theme = createTheme({
   },
 })
 
-// Navigation Spinner Component
+// Navigation Spinner Component (YOUR ORIGINAL - UNCHANGED)
 const NavigationSpinner = () => {
   const [isNavigating, setIsNavigating] = useState(false)
 
@@ -148,14 +148,6 @@ const AppRoutes = () => {
   const location = useLocation()
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showTour, setShowTour] = useState(false)
-  const [isPageLoading, setIsPageLoading] = useState(false)
-
-  // Show loading overlay on page navigation
-  useEffect(() => {
-    setIsPageLoading(true)
-    const timer = setTimeout(() => setIsPageLoading(false), 500)
-    return () => clearTimeout(timer)
-  }, [location.pathname])
 
   // FORCE MOBILE LAYOUT - THIS IS THE KEY FIX
   useEffect(() => {
@@ -220,7 +212,7 @@ const AppRoutes = () => {
     }
   }, [])
 
-  // SESSION KEEP ALIVE - prevents unexpected logout when idle (FASTER - 2 minutes)
+  // SESSION KEEP ALIVE - prevents unexpected logout when idle
   useEffect(() => {
     if (!user) return
     
@@ -228,23 +220,20 @@ const AppRoutes = () => {
       keepAlive().catch((err) => {
         console.log('Session ping failed:', err.response?.status)
       })
-    }, 2 * 60 * 1000)  // Changed from 5 minutes to 2 minutes
+    }, 5 * 60 * 1000)
     
     return () => clearInterval(interval)
   }, [user])
 
-  // ========== KEEP BACKEND AWAKE - PREVENTS RENDER SPIN-DOWN (FASTER - 2 minutes) ==========
+  // ========== KEEP BACKEND AWAKE - FIXES WEBSOCKET TIMEOUT ==========
   useEffect(() => {
-    // Initial ping to wake up backend
     fetch('https://zivre-backend.onrender.com/api/services')
       .catch(() => console.log('Backend waking up...'))
     
-    // Keep backend awake (ping every 2 minutes - Render spins down after 15 min)
     const keepAliveInterval = setInterval(() => {
       fetch('https://zivre-backend.onrender.com/api/services')
         .catch(() => {})
-      console.log('🔄 Keep-alive ping sent to backend')
-    }, 2 * 60 * 1000)  // Every 2 minutes (faster)
+    }, 2 * 60 * 1000)
     
     return () => clearInterval(keepAliveInterval)
   }, [])
@@ -255,8 +244,8 @@ const AppRoutes = () => {
 
   return (
     <>
-      {/* Loading Overlay for page navigation */}
-      <LoadingOverlay open={isPageLoading || authLoading} message={authLoading ? "Processing..." : "Loading page..."} />
+      {/* Loading Overlay - ONLY for Sign In, Sign Up, Logout */}
+      <LoadingOverlay open={authLoading} message={authLoading ? "Processing..." : ""} />
       
       <Routes>
         <Route path="/reset-password" element={<ResetPassword />} />
