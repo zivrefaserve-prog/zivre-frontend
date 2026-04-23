@@ -201,7 +201,7 @@ const AppRoutes = () => {
   return (
     <>
       {/* Loading Overlay - ONLY for Sign In and Sign Up */}
-      <LoadingOverlay open={authLoading} message={authLoading ? "Processing..." : ""} />
+      <LoadingOverlay open={authLoading} message={authLoading ? "Logging out..." : ""} />
       
       <Routes>
         <Route path="/reset-password" element={<ResetPassword />} />
