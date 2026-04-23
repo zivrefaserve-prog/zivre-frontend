@@ -237,7 +237,6 @@ const AppRoutes = () => {
           <>
             <Header onGetQuote={scrollToContact} />
             <main>
-              <PaymentFlier />
               <Hero onGetQuote={scrollToContact} />
               <ServicesGrid />
               <WhyChoose />
