@@ -95,27 +95,15 @@ const AppRoutes = () => {
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showTour, setShowTour] = useState(false)
 
-  // Hide overlay when dashboard is fully loaded
+  // FIX: Auto-hide loading overlay after max 2 seconds
   useEffect(() => {
-    if (authLoading && user) {
-      // Dashboard routes
-      const isDashboard = location.pathname === '/customer/dashboard' ||
-                          location.pathname === '/provider/dashboard' ||
-                          location.pathname === '/admin/dashboard' ||
-                          location.pathname === '/profile' ||
-                          location.pathname === '/messages' ||
-                          location.pathname === '/referrals' ||
-                          location.pathname === '/admin/referrals'
-      
-      if (isDashboard) {
-        // Small delay to ensure dashboard renders
-        const timer = setTimeout(() => {
-          hideAuthLoading()
-        }, 100)
-        return () => clearTimeout(timer)
-      }
+    if (authLoading) {
+      const timer = setTimeout(() => {
+        hideAuthLoading()
+      }, 2000)
+      return () => clearTimeout(timer)
     }
-  }, [authLoading, user, location.pathname, hideAuthLoading])
+  }, [authLoading, hideAuthLoading])
 
   // FORCE MOBILE LAYOUT - THIS IS THE KEY FIX
   useEffect(() => {
