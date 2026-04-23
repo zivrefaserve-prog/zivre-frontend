@@ -5,7 +5,8 @@ import {
   TextField, Dialog, DialogTitle, DialogContent, DialogActions,
   Alert, Snackbar, CircularProgress, Chip, Divider, IconButton,
   Tooltip, Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Paper, Accordion, AccordionSummary, AccordionDetails
+  TableRow, Paper, Accordion, AccordionSummary, AccordionDetails,
+  Avatar  // ← ADDED Avatar import
 } from '@mui/material'
 import {
   ContentCopy as CopyIcon,
@@ -26,7 +27,7 @@ import {
   requestWithdrawal, 
   getWithdrawalHistory, 
   getReferralKPIs,
-  confirmWithdrawalReceipt  // ← ADDED THIS IMPORT
+  confirmWithdrawalReceipt
 } from '../api/client'
 
 const UserReferralDashboard = () => {
@@ -121,7 +122,6 @@ const UserReferralDashboard = () => {
     }
   }
 
-  // ADDED: Handle confirm receipt
   const handleConfirmReceipt = async (withdrawalId) => {
     setSubmitting(true)
     try {
@@ -135,39 +135,162 @@ const UserReferralDashboard = () => {
     }
   }
 
+  // ========== NEW VERTICAL TREE VIEW (Like your friend's) ==========
+  const getPositionColor = (position) => {
+    if (position === 'left') return '#2196f3'
+    if (position === 'center') return '#9c27b0'
+    if (position === 'right') return '#ff9800'
+    return '#10b981'
+  }
+
+  const getInitials = (name) => {
+    return name?.charAt(0).toUpperCase() || '?'
+  }
+
   const TreeView = ({ node, level = 0 }) => {
     if (!node) return null
+    
+    const hasChildren = node.children && node.children.length > 0
+    const isRoot = level === 0
+    
     return (
-      <Box sx={{ ml: level * 4, mb: 1 }}>
-        <Paper
-          variant="outlined"
-          sx={{
-            p: 1.5,
-            display: 'inline-block',
-            minWidth: 200,
-            bgcolor: node.is_referral_active ? '#e8f5e9' : '#fff3e0',
-            borderColor: node.is_referral_active ? '#4caf50' : '#ff9800'
-          }}
-        >
-          <Typography variant="body2" fontWeight="600">
-            {node.full_name}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {node.is_referral_active ? 'Active' : 'Inactive'} • Balance: GHS{node.commission_balance}
-          </Typography>
-          {node.position && (
-            <Chip
-              label={node.position.toUpperCase()}
-              size="small"
-              sx={{ ml: 1, height: 20, fontSize: '0.7rem' }}
-            />
-          )}
-        </Paper>
-        {node.children && node.children.length > 0 && (
-          <Box sx={{ mt: 1 }}>
-            {node.children.map((child, idx) => (
-              <TreeView key={child.id} node={child} level={level + 1} />
-            ))}
+      <Box sx={{ 
+        display: 'flex', 
+        flexDirection: 'column', 
+        alignItems: 'center',
+        width: '100%',
+        position: 'relative'
+      }}>
+        {/* Current Node Card */}
+        <Box sx={{ 
+          textAlign: 'center', 
+          mb: hasChildren ? 3 : 0,
+          position: 'relative',
+          zIndex: 2
+        }}>
+          <Paper
+            elevation={2}
+            sx={{
+              p: 2,
+              minWidth: 140,
+              bgcolor: node.is_referral_active ? '#e8f5e9' : '#fff3e0',
+              borderTop: `4px solid ${getPositionColor(node.position)}`,
+              borderRadius: 2,
+              textAlign: 'center',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              '&:hover': {
+                transform: 'translateY(-4px)',
+                boxShadow: 3
+              }
+            }}
+          >
+            <Avatar 
+              sx={{ 
+                width: 56, 
+                height: 56, 
+                bgcolor: getPositionColor(node.position),
+                mx: 'auto',
+                mb: 1,
+                fontSize: '1.25rem',
+                fontWeight: 'bold'
+              }}
+            >
+              {getInitials(node.full_name)}
+            </Avatar>
+            <Typography variant="body1" fontWeight="700" sx={{ fontSize: '0.9rem' }}>
+              {node.full_name?.length > 15 ? node.full_name?.substring(0, 12) + '...' : node.full_name}
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+              {node.is_referral_active ? '🟢 Active' : '⚪ Inactive'}
+            </Typography>
+            <Typography variant="body2" fontWeight="700" sx={{ color: '#10b981', display: 'block' }}>
+              GHS{node.commission_balance?.toFixed(2) || '0.00'}
+            </Typography>
+            {node.position && (
+              <Chip
+                label={node.position.toUpperCase()}
+                size="small"
+                sx={{ 
+                  mt: 0.5, 
+                  height: 20, 
+                  fontSize: '0.6rem',
+                  fontWeight: 600,
+                  bgcolor: `${getPositionColor(node.position)}20`,
+                  color: getPositionColor(node.position)
+                }}
+              />
+            )}
+          </Paper>
+        </Box>
+
+        {/* Children Section */}
+        {hasChildren && (
+          <Box sx={{ 
+            position: 'relative',
+            width: '100%',
+            mt: 1
+          }}>
+            {/* Connecting line from parent to children container */}
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'center',
+              position: 'relative',
+              '&::before': {
+                content: '""',
+                position: 'absolute',
+                top: -16,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                width: 2,
+                height: 16,
+                bgcolor: '#cbd5e1'
+              }
+            }}>
+              {/* Horizontal line connecting all children */}
+              <Box sx={{ 
+                position: 'relative',
+                width: `${Math.max(200, node.children.length * 160)}px`,
+                '&::before': {
+                  content: '""',
+                  position: 'absolute',
+                  top: -1,
+                  left: 0,
+                  right: 0,
+                  height: 2,
+                  bgcolor: '#cbd5e1'
+                }
+              }} />
+            </Box>
+
+            {/* Children nodes in a row */}
+            <Box sx={{ 
+              display: 'flex', 
+              justifyContent: 'center', 
+              alignItems: 'flex-start',
+              gap: 4,
+              flexWrap: 'wrap',
+              mt: 2,
+              position: 'relative'
+            }}>
+              {node.children.map((child, idx) => (
+                <Box key={child.id} sx={{ 
+                  position: 'relative',
+                  '&::before': {
+                    content: '""',
+                    position: 'absolute',
+                    top: -16,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: 2,
+                    height: 16,
+                    bgcolor: '#cbd5e1'
+                  }
+                }}>
+                  <TreeView node={child} level={level + 1} />
+                </Box>
+              ))}
+            </Box>
           </Box>
         )}
       </Box>
@@ -302,7 +425,7 @@ const UserReferralDashboard = () => {
           </Grid>
         </Grid>
 
-        {/* Referral Tree */}
+        {/* Referral Tree - NEW VERTICAL LAYOUT */}
         <Card sx={{ mb: 4 }}>
           <Accordion defaultExpanded>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -310,7 +433,9 @@ const UserReferralDashboard = () => {
             </AccordionSummary>
             <AccordionDetails>
               {tree ? (
-                <TreeView node={tree} />
+                <Box sx={{ overflowX: 'auto', py: 3 }}>
+                  <TreeView node={tree} />
+                </Box>
               ) : (
                 <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>
                   No referrals yet. Share your link to build your team!
@@ -363,7 +488,7 @@ const UserReferralDashboard = () => {
           </Accordion>
         </Card>
 
-        {/* Withdrawal History - UPDATED with Action column and Confirm button */}
+        {/* Withdrawal History */}
         <Card>
           <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
