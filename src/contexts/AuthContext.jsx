@@ -81,7 +81,6 @@ export const AuthProvider = ({ children }) => {
       setStoredToken(token)
       setUser(userData)
       setStoredUser(userData)
-      // FIX: Hide loading overlay on success
       setAuthLoading(false)
       return res.data
     } catch (err) {
@@ -100,7 +99,6 @@ export const AuthProvider = ({ children }) => {
       }
       setUser(newUser)
       setStoredUser(newUser)
-      // FIX: Hide loading overlay on success
       setAuthLoading(false)
       return res.data
     } catch (err) {
