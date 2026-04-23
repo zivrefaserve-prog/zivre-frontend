@@ -17,7 +17,7 @@ import HomeIcon from '@mui/icons-material/Home'
 import InfoIcon from '@mui/icons-material/Info'
 import QuoteIcon from '@mui/icons-material/FormatQuote'
 import PersonIcon from '@mui/icons-material/Person'
-import ShareIcon from '@mui/icons-material/Share'  // ← ADD THIS IMPORT
+import ShareIcon from '@mui/icons-material/Share'
 
 const Header = ({ onGetQuote, hideNavLinks = false }) => {
   const { user, logout } = useAuth()
@@ -33,6 +33,25 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     if (document.activeElement && document.activeElement.blur) {
       document.activeElement.blur()
     }
+  }
+
+  // Helper function to get correct referrals URL based on role
+  const getReferralsUrl = () => {
+    if (!user) return '/'
+    if (user.role === 'admin') return '/admin/referrals'
+    return '/referrals'
+  }
+
+  // Helper function to get correct button text based on role
+  const getReferralsButtonText = () => {
+    if (!user) return 'Referrals'
+    if (user.role === 'admin') return 'Referral Admin'
+    return 'Referrals'
+  }
+
+  const handleReferralsClick = () => {
+    blurActiveElement()
+    window.location.href = getReferralsUrl()
   }
 
   const handleGetStarted = () => {
@@ -184,17 +203,17 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
               <ListItemIcon><DashboardIcon /></ListItemIcon>
               <ListItemText primary="Dashboard" />
             </ListItem>
-            {/* ✅ ADD REFERRALS LINK IN MOBILE DRAWER */}
+            {/* FIXED: Referrals link - admin goes to /admin/referrals */}
             <ListItem 
               onClick={() => { 
                 blurActiveElement()
-                window.location.href = '/referrals'; 
+                window.location.href = getReferralsUrl(); 
                 setMobileOpen(false); 
               }}
               sx={{ cursor: 'pointer' }}
             >
               <ListItemIcon><ShareIcon /></ListItemIcon>
-              <ListItemText primary="Referrals" />
+              <ListItemText primary={getReferralsButtonText()} />
             </ListItem>
             <ListItem 
               onClick={() => { 
@@ -289,13 +308,13 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
               ))}
               {user ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  {/* ✅ ADD REFERRALS BUTTON IN HEADER */}
+                  {/* FIXED: Referrals button - admin goes to /admin/referrals */}
                   <Button 
-                    onClick={() => window.location.href = '/referrals'}
+                    onClick={handleReferralsClick}
                     sx={{ color: '#10b981', fontWeight: 500 }}
                     startIcon={<ShareIcon />}
                   >
-                    Referrals
+                    {getReferralsButtonText()}
                   </Button>
                   <NotificationDropdown />
                   <Tooltip title="Account">
@@ -332,12 +351,13 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
                     }}>
                       <DashboardIcon sx={{ mr: 1.5, fontSize: 20 }} /> Dashboard
                     </MenuItem>
+                    {/* FIXED: Menu dropdown referrals link */}
                     <MenuItem onClick={() => { 
                       blurActiveElement()
                       handleMenuClose(); 
-                      window.location.href = '/referrals'; 
+                      window.location.href = getReferralsUrl(); 
                     }}>
-                      <ShareIcon sx={{ mr: 1.5, fontSize: 20 }} /> Referrals
+                      <ShareIcon sx={{ mr: 1.5, fontSize: 20 }} /> {getReferralsButtonText()}
                     </MenuItem>
                     <MenuItem onClick={() => { 
                       blurActiveElement()
