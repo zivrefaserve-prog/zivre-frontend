@@ -19,7 +19,15 @@ import {
 } from '@mui/icons-material'
 import Header from '../layout/Header'
 import Footer from '../layout/Footer'
-import { getMyReferralInfo, getMyReferralTree, getCommissionHistory, requestWithdrawal, getWithdrawalHistory, getReferralKPIs } from '../api/client'
+import { 
+  getMyReferralInfo, 
+  getMyReferralTree, 
+  getCommissionHistory, 
+  requestWithdrawal, 
+  getWithdrawalHistory, 
+  getReferralKPIs,
+  confirmWithdrawalReceipt  // ← ADDED THIS IMPORT
+} from '../api/client'
 
 const UserReferralDashboard = () => {
   const { user } = useAuth()
@@ -108,6 +116,20 @@ const UserReferralDashboard = () => {
       await loadData()
     } catch (err) {
       showToast(err.response?.data?.error || 'Error submitting withdrawal', 'error')
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  // ADDED: Handle confirm receipt
+  const handleConfirmReceipt = async (withdrawalId) => {
+    setSubmitting(true)
+    try {
+      await confirmWithdrawalReceipt(withdrawalId)
+      showToast('Withdrawal confirmed successfully!', 'success')
+      await loadData()
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Error confirming receipt', 'error')
     } finally {
       setSubmitting(false)
     }
@@ -341,7 +363,7 @@ const UserReferralDashboard = () => {
           </Accordion>
         </Card>
 
-        {/* Withdrawal History */}
+        {/* Withdrawal History - UPDATED with Action column and Confirm button */}
         <Card>
           <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -356,12 +378,13 @@ const UserReferralDashboard = () => {
                       <TableCell>Amount</TableCell>
                       <TableCell>Method</TableCell>
                       <TableCell>Status</TableCell>
+                      <TableCell>Action</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {withdrawals.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={4} align="center">No withdrawal requests yet</TableCell>
+                        <TableCell colSpan={5} align="center">No withdrawal requests yet</TableCell>
                       </TableRow>
                     ) : (
                       withdrawals.map((w) => (
@@ -382,6 +405,22 @@ const UserReferralDashboard = () => {
                                 color: w.status === 'pending' ? '#ff9800' : w.status === 'admin_sent' ? '#2196f3' : '#4caf50'
                               }}
                             />
+                          </TableCell>
+                          <TableCell>
+                            {w.status === 'admin_sent' && (
+                              <Button
+                                size="small"
+                                variant="contained"
+                                onClick={() => handleConfirmReceipt(w.id)}
+                                disabled={submitting}
+                                sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
+                              >
+                                {submitting ? <CircularProgress size={20} /> : 'Confirm Receipt'}
+                              </Button>
+                            )}
+                            {w.status === 'user_confirmed' && (
+                              <Chip label="Completed" size="small" sx={{ bgcolor: '#e8f5e9', color: '#4caf50' }} />
+                            )}
                           </TableCell>
                         </TableRow>
                       ))
