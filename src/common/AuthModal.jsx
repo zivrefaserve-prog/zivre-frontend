@@ -92,39 +92,41 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-
+  
     if (!validateEmail(formData.email)) {
       setError('Please enter a valid email address (e.g., name@example.com)')
       return
     }
-
+  
     if (isSignUp) {
+      // SIGN UP
       if (!formData.full_name.trim()) {
         setError('Please enter your full name')
         return
       }
-
+  
       if (!validatePhone(formData.phone)) {
         setError('Please enter a valid phone number (10-15 digits, e.g., 024XXXXXXX)')
         return
       }
-
+  
       if (!isPasswordValid()) {
         setError(getPasswordErrorMessage())
         return
       }
-
+  
       if (formData.password !== formData.confirm_password) {
         setError("Passwords don't match. Please re-enter.")
         return
       }
-
+  
       if (role === 'provider' && !formData.service_specialization) {
         setError('Please select your service specialization')
         return
       }
-
+  
       setLoading(true)
+      setError('')
       try {
         const userData = {
           full_name: formData.full_name,
@@ -145,28 +147,39 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         } else {
           setError(errorMsg || 'Signup failed. Please try again.')
         }
+        // Modal stays open on error
       } finally {
         setLoading(false)
       }
     } else {
+      // SIGN IN - Modal stays open on error
       if (!formData.email || !formData.password) {
         setError('Please enter both email and password')
         return
       }
-
+  
       setLoading(true)
+      setError('')
       try {
         const res = await login(formData.email, formData.password)
         onSuccess(res.user)
-        onClose()
+        onClose()  // Only close on success
       } catch (err) {
-        setError('Incorrect email or password. Please try again or reset your password.')
+        console.error('Login error:', err.response?.data)
+        // Keep modal open - show user-friendly error
+        if (err.response?.data?.error === 'Account has been suspended') {
+          setError('Your account has been suspended. Please contact support.')
+        } else if (err.response?.data?.error === 'Invalid email or password') {
+          setError('Incorrect email or password. Please try again.')
+        } else {
+          setError(err.response?.data?.error || 'Login failed. Please try again.')
+        }
+        // DO NOT call onClose() - modal stays open
       } finally {
         setLoading(false)
       }
     }
   }
-
   const getPasswordStrengthColor = () => {
     const passed = Object.values(passwordStrength).filter(Boolean).length
     if (passed <= 2) return '#ef4444'
