@@ -108,6 +108,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   const logout = async () => {
+    setAuthLoading(true)  // ← ADD THIS LINE
     try {
       await apiLogout()
     } catch (err) {
