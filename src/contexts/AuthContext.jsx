@@ -108,7 +108,7 @@ export const AuthProvider = ({ children }) => {
   }
 
   const logout = async () => {
-    setAuthLoading(true)  // ← ADD THIS LINE
+    setAuthLoading(true)  // Show overlay
     try {
       await apiLogout()
     } catch (err) {
@@ -116,7 +116,10 @@ export const AuthProvider = ({ children }) => {
     }
     sessionStorage.clear()
     setUser(null)
-    window.location.href = '/'
+    // Small delay to ensure overlay shows before redirect
+    setTimeout(() => {
+      window.location.href = '/'
+    }, 300)
   }
 
   const hideAuthLoading = () => {
