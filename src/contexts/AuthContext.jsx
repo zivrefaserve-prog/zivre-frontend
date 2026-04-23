@@ -116,10 +116,8 @@ export const AuthProvider = ({ children }) => {
     }
     sessionStorage.clear()
     setUser(null)
-    // Small delay to ensure overlay shows before redirect
-    setTimeout(() => {
-      window.location.href = '/'
-    }, 300)
+    // Force hard reload to clear any cached state
+    window.location.replace('/')
   }
 
   const hideAuthLoading = () => {
