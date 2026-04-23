@@ -81,10 +81,11 @@ export const AuthProvider = ({ children }) => {
       setStoredToken(token)
       setUser(userData)
       setStoredUser(userData)
-      // DO NOT hide overlay here - let App.jsx handle it
+      // FIX: Hide loading overlay on success
+      setAuthLoading(false)
       return res.data
     } catch (err) {
-      setAuthLoading(false) // Only hide on error
+      setAuthLoading(false)
       throw err
     }
   }
@@ -99,16 +100,16 @@ export const AuthProvider = ({ children }) => {
       }
       setUser(newUser)
       setStoredUser(newUser)
-      // DO NOT hide overlay here - let App.jsx handle it
+      // FIX: Hide loading overlay on success
+      setAuthLoading(false)
       return res.data
     } catch (err) {
-      setAuthLoading(false) // Only hide on error
+      setAuthLoading(false)
       throw err
     }
   }
 
   const logout = async () => {
-    // No overlay for logout
     try {
       await apiLogout()
     } catch (err) {
