@@ -5,6 +5,7 @@ import LoadingSpinner from "../../common/LoadingSpinner";
 const ServicesGrid = () => {
     const [services, setServices] = useState([])
     const [loading, setLoading] = useState(true)
+    const [showServices, setShowServices] = useState(false)  // ← ADD THIS - controls visibility
 
     // FIX: Service cards now open signup for non-logged-in users
     const handleServiceClick = () => {
@@ -54,26 +55,45 @@ const ServicesGrid = () => {
                 <div className="section-label">Our Expertise</div>
                 <h2 className="section-title">Tailored Facility Solutions</h2>
                 <p className="section-subtitle">From HVAC to Security, Plumbing to Healthcare — a complete solution for every need.</p>
-                <div className="services-grid">
-                    {services.map((service) => (
-                        <div 
-                            key={service.id} 
-                            className={`service-card ${!service.is_active ? 'inactive-service' : ''}`}
-                            onClick={handleServiceClick}
-                            style={{ cursor: 'pointer' }}
-                        >
-                            <div className="service-icon">{service.icon}</div>
-                            <h3>{service.name}</h3>
-                            <p>{service.description}</p>
-                            {!service.is_active && (
-                                <span className="service-badge inactive">Currently Unavailable</span>
-                            )}
-                            {service.is_active && (
-                                <span className="service-badge active">Available Now</span>
-                            )}
-                        </div>
-                    ))}
+                
+                {/* ADDED: View All Services Button */}
+                <div style={{ textAlign: 'center', marginBottom: showServices ? '2rem' : '0' }}>
+                    <button 
+                        className="btn-primary"
+                        onClick={() => setShowServices(!showServices)}
+                        style={{ 
+                            padding: '0.75rem 2rem', 
+                            fontSize: '1rem',
+                            backgroundColor: showServices ? '#64748b' : '#10b981'
+                        }}
+                    >
+                        {showServices ? 'Hide Services ↑' : 'View All Services →'}
+                    </button>
                 </div>
+
+                {/* ADDED: Services only show when button is clicked */}
+                {showServices && (
+                    <div className="services-grid">
+                        {services.map((service) => (
+                            <div 
+                                key={service.id} 
+                                className={`service-card ${!service.is_active ? 'inactive-service' : ''}`}
+                                onClick={handleServiceClick}
+                                style={{ cursor: 'pointer' }}
+                            >
+                                <div className="service-icon">{service.icon}</div>
+                                <h3>{service.name}</h3>
+                                <p>{service.description}</p>
+                                {!service.is_active && (
+                                    <span className="service-badge inactive">Currently Unavailable</span>
+                                )}
+                                {service.is_active && (
+                                    <span className="service-badge active">Available Now</span>
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                )}
             </div>
         </section>
     )
