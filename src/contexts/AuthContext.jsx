@@ -108,16 +108,22 @@ export const AuthProvider = ({ children }) => {
   }
 
   const logout = async () => {
-    setAuthLoading(true)  // Show overlay
+    // Show overlay and prevent it from hiding
+    setAuthLoading(true)
+    
+    // Clear session data immediately
+    sessionStorage.clear()
+    setUser(null)
+    
+    // Call logout API (don't wait for it)
     try {
       await apiLogout()
     } catch (err) {
       console.error('Logout error:', err)
     }
-    sessionStorage.clear()
-    setUser(null)
-    // Force hard reload to clear any cached state
-    window.location.replace('/')
+    
+    // Force immediate redirect without waiting
+    window.location.href = '/'
   }
 
   const hideAuthLoading = () => {
