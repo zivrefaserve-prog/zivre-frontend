@@ -29,7 +29,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     password: '',
     confirm_password: '',
     service_specialization: '',
-    referral_code: ''  // ← ADDED THIS LINE
+    referral_code: ''
   })
 
   // Load services for provider signup
@@ -133,7 +133,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
           password: formData.password,
           role: role || 'customer',
           service_specialization: role === 'provider' ? parseInt(formData.service_specialization) : null,
-          referral_code: formData.referral_code  // ← ADDED THIS LINE
+          referral_code: formData.referral_code
         }
         const res = await signup(userData)
         onSuccess(res.user)
