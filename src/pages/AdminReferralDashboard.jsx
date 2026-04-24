@@ -47,7 +47,7 @@ const AdminReferralDashboard = () => {
   const [searchedTree, setSearchedTree] = useState(null)
   const [editingService, setEditingService] = useState(null)
   const [editSharesOpen, setEditSharesOpen] = useState(false)
-  const [editSharesData, setEditSharesData] = useState({ admin_share: '', website_share: '', provider_share: '' })
+  const [editSharesData, setEditSharesData] = useState({ admin_share: '', website_share: '', provider_share: '', referral_pool: '' })
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type })
@@ -120,30 +120,35 @@ const AdminReferralDashboard = () => {
   }
 
   const handleUpdateShares = async () => {
-    if (!editingService) return
-    
-    const total = parseFloat(editSharesData.admin_share) + parseFloat(editSharesData.website_share) + parseFloat(editSharesData.provider_share)
-    if (Math.abs(total - 100) > 0.01) {
-      showToast('Total shares must equal 100%', 'error')
-      return
-    }
-    
-    setActionLoading(true)
-    try {
-      await updateServiceShares(editingService.id, {
-        admin_share_percent: parseFloat(editSharesData.admin_share),
-        website_share_percent: parseFloat(editSharesData.website_share),
-        provider_share_percent: parseFloat(editSharesData.provider_share)
-      })
-      showToast('Service shares updated successfully!', 'success')
-      setEditSharesOpen(false)
-      setEditingService(null)
-      await loadData()
-    } catch (err) {
-      showToast(err.response?.data?.error || 'Error updating shares', 'error')
-    } finally {
-      setActionLoading(false)
-    }
+      if (!editingService) return
+      
+      const total = parseFloat(editSharesData.admin_share) + 
+                    parseFloat(editSharesData.website_share) + 
+                    parseFloat(editSharesData.provider_share) +
+                    parseFloat(editSharesData.referral_pool)
+      
+      if (Math.abs(total - 100) > 0.01) {
+          showToast('Total shares must equal 100%', 'error')
+          return
+      }
+      
+      setActionLoading(true)
+      try {
+          await updateServiceShares(editingService.id, {
+              admin_share_percent: parseFloat(editSharesData.admin_share),
+              website_share_percent: parseFloat(editSharesData.website_share),
+              provider_share_percent: parseFloat(editSharesData.provider_share),
+              referral_pool_percent: parseFloat(editSharesData.referral_pool)
+          })
+          showToast('Service shares updated successfully!', 'success')
+          setEditSharesOpen(false)
+          setEditingService(null)
+          await loadData()
+      } catch (err) {
+          showToast(err.response?.data?.error || 'Error updating shares', 'error')
+      } finally {
+          setActionLoading(false)
+      }
   }
 
   const TreeView = ({ node, level = 0 }) => {
@@ -261,14 +266,15 @@ const AdminReferralDashboard = () => {
               <TableContainer component={Paper}>
                 <Table>
                   <TableHead sx={{ bgcolor: '#f8fafc' }}>
-                    <TableRow>
-                      <TableCell>User</TableCell>
-                      <TableCell>Amount</TableCell>
-                      <TableCell>Payment Method</TableCell>
-                      <TableCell>Account Details</TableCell>
-                      <TableCell>Requested</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
+                      <TableRow>
+                          <TableCell>Service</TableCell>
+                          <TableCell align="center">Admin Share (%)</TableCell>
+                          <TableCell align="center">Website Share (%)</TableCell>
+                          <TableCell align="center">Provider Share (%)</TableCell>
+                          <TableCell align="center">Referral Pool (%)</TableCell>
+                          <TableCell align="center">Total</TableCell>
+                          <TableCell>Actions</TableCell>
+                      </TableRow>
                   </TableHead>
                   <TableBody>
                     {pendingWithdrawals.length === 0 ? (
@@ -384,37 +390,42 @@ const AdminReferralDashboard = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {services.map((s) => {
-                      const total = (s.admin_share_percent || 10) + (s.website_share_percent || 10) + (s.provider_share_percent || 80)
-                      return (
-                        <TableRow key={s.id}>
-                          <TableCell>{s.icon} {s.name}</TableCell>
-                          <TableCell align="center">{s.admin_share_percent || 10}%</TableCell>
-                          <TableCell align="center">{s.website_share_percent || 10}%</TableCell>
-                          <TableCell align="center">{s.provider_share_percent || 80}%</TableCell>
-                          <TableCell align="center">
-                            <Chip label={`${total}%`} size="small" color={total === 100 ? 'success' : 'error'} />
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              size="small"
-                              variant="outlined"
-                              onClick={() => {
-                                setEditingService(s)
-                                setEditSharesData({
-                                  admin_share: s.admin_share_percent || 10,
-                                  website_share: s.website_share_percent || 10,
-                                  provider_share: s.provider_share_percent || 80
-                                })
-                                setEditSharesOpen(true)
-                              }}
-                            >
-                              Edit Shares
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })}
+                      {services.map((s) => {
+                          const total = (s.admin_share_percent || 10) + 
+                                        (s.website_share_percent || 10) + 
+                                        (s.provider_share_percent || 80) +
+                                        (s.referral_pool_percent || 10)
+                          return (
+                              <TableRow key={s.id}>
+                                  <TableCell>{s.icon} {s.name}</TableCell>
+                                  <TableCell align="center">{s.admin_share_percent || 10}%</TableCell>
+                                  <TableCell align="center">{s.website_share_percent || 10}%</TableCell>
+                                  <TableCell align="center">{s.provider_share_percent || 80}%</TableCell>
+                                  <TableCell align="center">{s.referral_pool_percent || 10}%</TableCell>
+                                  <TableCell align="center">
+                                      <Chip label={`${total}%`} size="small" color={total === 100 ? 'success' : 'error'} />
+                                  </TableCell>
+                                  <TableCell>
+                                      <Button
+                                          size="small"
+                                          variant="outlined"
+                                          onClick={() => {
+                                              setEditingService(s)
+                                              setEditSharesData({
+                                                  admin_share: s.admin_share_percent || 10,
+                                                  website_share: s.website_share_percent || 10,
+                                                  provider_share: s.provider_share_percent || 80,
+                                                  referral_pool: s.referral_pool_percent || 10
+                                              })
+                                              setEditSharesOpen(true)
+                                          }}
+                                      >
+                                          Edit Shares
+                                      </Button>
+                                  </TableCell>
+                              </TableRow>
+                          )
+                      })}
                   </TableBody>
                 </Table>
               </TableContainer>
@@ -527,16 +538,31 @@ const AdminReferralDashboard = () => {
             inputProps={{ min: 0, max: 100, step: 0.5 }}
           />
           <TextField
-            fullWidth
-            label="Provider Share (%)"
-            type="number"
-            value={editSharesData.provider_share}
-            onChange={(e) => setEditSharesData({ ...editSharesData, provider_share: e.target.value })}
-            margin="normal"
-            inputProps={{ min: 0, max: 100, step: 0.5 }}
+              fullWidth
+              label="Provider Share (%)"
+              type="number"
+              value={editSharesData.provider_share}
+              onChange={(e) => setEditSharesData({ ...editSharesData, provider_share: e.target.value })}
+              margin="normal"
+              inputProps={{ min: 0, max: 100, step: 0.5 }}
+          />
+          <TextField
+              fullWidth
+              label="Referral Pool (%)"
+              type="number"
+              value={editSharesData.referral_pool}
+              onChange={(e) => setEditSharesData({ ...editSharesData, referral_pool: e.target.value })}
+              margin="normal"
+              inputProps={{ min: 0, max: 100, step: 0.5 }}
+              helperText="This percentage is used for referral commissions (separate from Admin/Website fees)"
           />
           <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-            Total: {parseFloat(editSharesData.admin_share || 0) + parseFloat(editSharesData.website_share || 0) + parseFloat(editSharesData.provider_share || 0)}% (Must be 100%)
+              Total: {(
+                  parseFloat(editSharesData.admin_share || 0) + 
+                  parseFloat(editSharesData.website_share || 0) + 
+                  parseFloat(editSharesData.provider_share || 0) +
+                  parseFloat(editSharesData.referral_pool || 0)
+              ).toFixed(1)}% (Must be 100%)
           </Typography>
         </DialogContent>
         <DialogActions>
