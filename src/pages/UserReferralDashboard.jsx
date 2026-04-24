@@ -147,11 +147,31 @@ const UserReferralDashboard = () => {
     return name?.charAt(0).toUpperCase() || '?'
   }
 
+
+
+  
   const TreeView = ({ node, level = 0 }) => {
     if (!node) return null
     
     const hasChildren = node.children && node.children.length > 0
-    const isRoot = level === 0
+    const [isMobile, setIsMobile] = React.useState(false)
+    
+    React.useEffect(() => {
+      const checkMobile = () => setIsMobile(window.innerWidth <= 768)
+      checkMobile()
+      window.addEventListener('resize', checkMobile)
+      return () => window.removeEventListener('resize', checkMobile)
+    }, [])
+    
+    // CARD SIZES: Smaller on both mobile AND desktop
+    const cardPadding = isMobile ? 0.75 : 1
+    const cardMinWidth = isMobile ? 90 : 110
+    const avatarSize = isMobile ? 32 : 40
+    const avatarFontSize = isMobile ? '0.8rem' : '1rem'
+    const nameFontSize = isMobile ? '0.65rem' : '0.75rem'
+    const balanceFontSize = isMobile ? '0.7rem' : '0.8rem'
+    const statusFontSize = isMobile ? '0.5rem' : '0.6rem'
+    const nameMaxLength = isMobile ? 8 : 12
     
     return (
       <Box sx={{ 
@@ -164,47 +184,46 @@ const UserReferralDashboard = () => {
         {/* Current Node Card */}
         <Box sx={{ 
           textAlign: 'center', 
-          mb: hasChildren ? 3 : 0,
+          mb: hasChildren ? (isMobile ? 1.5 : 2) : 0,
           position: 'relative',
           zIndex: 2
         }}>
           <Paper
             elevation={2}
             sx={{
-              p: 2,
-              minWidth: 140,
+              p: cardPadding,
+              minWidth: cardMinWidth,
               bgcolor: node.is_referral_active ? '#e8f5e9' : '#fff3e0',
-              borderTop: `4px solid ${getPositionColor(node.position)}`,
+              borderTop: `3px solid ${getPositionColor(node.position)}`,
               borderRadius: 2,
               textAlign: 'center',
-              cursor: 'pointer',
               transition: 'all 0.2s',
               '&:hover': {
-                transform: 'translateY(-4px)',
+                transform: 'translateY(-2px)',
                 boxShadow: 3
               }
             }}
           >
             <Avatar 
               sx={{ 
-                width: 56, 
-                height: 56, 
+                width: avatarSize, 
+                height: avatarSize, 
                 bgcolor: getPositionColor(node.position),
                 mx: 'auto',
-                mb: 1,
-                fontSize: '1.25rem',
+                mb: 0.5,
+                fontSize: avatarFontSize,
                 fontWeight: 'bold'
               }}
             >
               {getInitials(node.full_name)}
             </Avatar>
-            <Typography variant="body1" fontWeight="700" sx={{ fontSize: '0.9rem' }}>
-              {node.full_name?.length > 15 ? node.full_name?.substring(0, 12) + '...' : node.full_name}
+            <Typography fontWeight="700" sx={{ fontSize: nameFontSize }}>
+              {node.full_name?.length > nameMaxLength ? node.full_name?.substring(0, nameMaxLength) + '...' : node.full_name}
             </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: statusFontSize }}>
               {node.is_referral_active ? '🟢 Active' : '⚪ Inactive'}
             </Typography>
-            <Typography variant="body2" fontWeight="700" sx={{ color: '#10b981', display: 'block' }}>
+            <Typography fontWeight="700" sx={{ color: '#10b981', display: 'block', fontSize: balanceFontSize }}>
               GHS{node.commission_balance?.toFixed(2) || '0.00'}
             </Typography>
             {node.position && (
@@ -213,8 +232,8 @@ const UserReferralDashboard = () => {
                 size="small"
                 sx={{ 
                   mt: 0.5, 
-                  height: 20, 
-                  fontSize: '0.6rem',
+                  height: 16, 
+                  fontSize: '0.5rem',
                   fontWeight: 600,
                   bgcolor: `${getPositionColor(node.position)}20`,
                   color: getPositionColor(node.position)
@@ -223,15 +242,15 @@ const UserReferralDashboard = () => {
             )}
           </Paper>
         </Box>
-
+  
         {/* Children Section */}
         {hasChildren && (
           <Box sx={{ 
             position: 'relative',
             width: '100%',
-            mt: 1
+            mt: 0.5
           }}>
-            {/* Connecting line from parent to children container */}
+            {/* Connecting line */}
             <Box sx={{ 
               display: 'flex', 
               justifyContent: 'center',
@@ -239,18 +258,17 @@ const UserReferralDashboard = () => {
               '&::before': {
                 content: '""',
                 position: 'absolute',
-                top: -16,
+                top: -12,
                 left: '50%',
                 transform: 'translateX(-50%)',
                 width: 2,
-                height: 16,
+                height: 12,
                 bgcolor: '#cbd5e1'
               }
             }}>
-              {/* Horizontal line connecting all children */}
               <Box sx={{ 
                 position: 'relative',
-                width: `${Math.max(200, node.children.length * 160)}px`,
+                width: { xs: `${Math.max(200, node.children.length * 100)}px`, md: `${Math.max(200, node.children.length * 120)}px` },
                 '&::before': {
                   content: '""',
                   position: 'absolute',
@@ -262,28 +280,46 @@ const UserReferralDashboard = () => {
                 }
               }} />
             </Box>
-
-            {/* Children nodes in a row */}
+  
+            {/* Children nodes - NO WRAP ON MOBILE, WRAP ON DESKTOP */}
             <Box sx={{ 
               display: 'flex', 
               justifyContent: 'center', 
               alignItems: 'flex-start',
-              gap: 4,
-              flexWrap: 'wrap',
-              mt: 2,
-              position: 'relative'
+              gap: isMobile ? 1.5 : 3,
+              flexWrap: isMobile ? 'nowrap' : 'wrap',
+              mt: 1.5,
+              position: 'relative',
+              ...(isMobile && {
+                overflowX: 'auto',
+                overflowY: 'visible',
+                px: 2,
+                pb: 1,
+                '&::-webkit-scrollbar': {
+                  height: '4px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: '#e2e8f0',
+                  borderRadius: '10px',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: '#10b981',
+                  borderRadius: '10px',
+                },
+              })
             }}>
-              {node.children.map((child, idx) => (
+              {node.children.map((child) => (
                 <Box key={child.id} sx={{ 
                   position: 'relative',
+                  flexShrink: 0,
                   '&::before': {
                     content: '""',
                     position: 'absolute',
-                    top: -16,
+                    top: -12,
                     left: '50%',
                     transform: 'translateX(-50%)',
                     width: 2,
-                    height: 16,
+                    height: 12,
                     bgcolor: '#cbd5e1'
                   }
                 }}>
@@ -297,6 +333,9 @@ const UserReferralDashboard = () => {
     )
   }
 
+
+
+  
   if (loading) {
     return (
       <>
