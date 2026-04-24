@@ -68,9 +68,10 @@ const AdminDashboard = () => {
   const [providers, setProviders] = useState([])
   const [comments, setComments] = useState([])
   const [percentages, setPercentages] = useState({
-    provider_percent: 60,
-    admin_percent: 25,
-    site_fee_percent: 15
+      provider_percent: 60,
+      admin_percent: 20,
+      site_fee_percent: 10,
+      referral_pool_percent: 10
   })
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -590,23 +591,23 @@ const handleDeleteRequestPermanently = async (requestId) => {
   }
 
   const handleUpdatePercentages = async () => {
-    const total = percentages.provider_percent + percentages.admin_percent + percentages.site_fee_percent
-    if (Math.abs(total - 100) > 0.01) {
-      setPercentageError(`Total must be 100%. Current total: ${total}%`)
-      return
-    }
-    setPercentageError('')
-    setActionLoading(true)
-    try {
-      await updatePercentages(percentages)
-      showToast('Percentages updated successfully!', 'success')
-      await loadPercentages()
-      await loadData()
-    } catch (err) {
-      showToast(err.response?.data?.error || 'Error updating percentages', 'error')
-    } finally {
-      setActionLoading(false)
-    }
+      const total = percentages.provider_percent + percentages.admin_percent + percentages.site_fee_percent + (percentages.referral_pool_percent || 0)
+      if (Math.abs(total - 100) > 0.01) {
+        setPercentageError(`Total must be 100%. Current total: ${total}%`)
+        return
+      }
+      setPercentageError('')
+      setActionLoading(true)
+      try {
+        await updatePercentages(percentages)
+        showToast('Percentages updated successfully!', 'success')
+        await loadPercentages()
+        await loadData()
+      } catch (err) {
+        showToast(err.response?.data?.error || 'Error updating percentages', 'error')
+      } finally {
+        setActionLoading(false)
+      }
   }
 
   const handleToggleService = async (serviceId) => {
@@ -1451,82 +1452,144 @@ const handleDeleteRequestPermanently = async (requestId) => {
                 <Alert severity="success" sx={{ mb: 2 }}>{percentageSuccess}</Alert>
               )}
               
+
+                
               <Grid container spacing={3}>
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Card sx={{ p: 2, bgcolor: '#f0fdf4' }}>
-                    <Typography variant="subtitle1" fontWeight="600" sx={{ color: '#10b981', mb: 1 }}> Provider Percentage</Typography>
-                    <TextField
-                      fullWidth
-                      type="number"
-                      label="Provider %"
-                      value={percentages.provider_percent}
-                      onChange={(e) => setPercentages({...percentages, provider_percent: parseFloat(e.target.value) || 0})}
-                      slotProps={{ input: { endAdornment: '%' } }}
-                      sx={{ mb: 1 }}
-                    />
-                    <Typography variant="caption" color="text.secondary">What providers earn from each job</Typography>
-                    <Box sx={{ mt: 2, p: 1.5, bgcolor: 'white', borderRadius: 1 }}>
-                      <Typography variant="body2">Example on GH₵500:</Typography>
-                      <Typography variant="body2" fontWeight="600" sx={{ color: '#10b981' }}>Provider gets: GH₵{(500 * percentages.provider_percent / 100).toFixed(2)}</Typography>
-                    </Box>
-                  </Card>
-                </Grid>
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Card sx={{ p: 2, bgcolor: '#f3e8ff' }}>
-                    <Typography variant="subtitle1" fontWeight="600" sx={{ color: '#8b5cf6', mb: 1 }}> Admin Percentage</Typography>
-                    <TextField
-                      fullWidth
-                      type="number"
-                      label="Admin %"
-                      value={percentages.admin_percent}
-                      onChange={(e) => setPercentages({...percentages, admin_percent: parseFloat(e.target.value) || 0})}
-                      slotProps={{ input: { endAdornment: '%' } }}
-                      sx={{ mb: 1 }}
-                    />
-                    <Typography variant="caption" color="text.secondary">Platform admin fee</Typography>
-                    <Box sx={{ mt: 2, p: 1.5, bgcolor: 'white', borderRadius: 1 }}>
-                      <Typography variant="body2">Example on GH₵500:</Typography>
-                      <Typography variant="body2" fontWeight="600" sx={{ color: '#8b5cf6' }}>Admin earns: GH₵{(500 * percentages.admin_percent / 100).toFixed(2)}</Typography>
-                    </Box>
-                  </Card>
-                </Grid>
-                <Grid size={{ xs: 12, md: 4 }}>
-                  <Card sx={{ p: 2, bgcolor: '#fef3c7' }}>
-                    <Typography variant="subtitle1" fontWeight="600" sx={{ color: '#f59e0b', mb: 1 }}> Site Fee Percentage</Typography>
-                    <TextField
-                      fullWidth
-                      type="number"
-                      label="Site Fee %"
-                      value={percentages.site_fee_percent}
-                      onChange={(e) => setPercentages({...percentages, site_fee_percent: parseFloat(e.target.value) || 0})}
-                      slotProps={{ input: { endAdornment: '%' } }}
-                      sx={{ mb: 1 }}
-                    />
-                    <Typography variant="caption" color="text.secondary">Maintenance & marketing fee</Typography>
-                    <Box sx={{ mt: 2, p: 1.5, bgcolor: 'white', borderRadius: 1 }}>
-                      <Typography variant="body2">Example on GH₵500:</Typography>
-                      <Typography variant="body2" fontWeight="600" sx={{ color: '#f59e0b' }}>Site fee: GH₵{(500 * percentages.site_fee_percent / 100).toFixed(2)}</Typography>
-                    </Box>
-                  </Card>
-                </Grid>
+                  {/* Provider Percentage Card */}
+                  <Grid size={{ xs: 12, md: 3 }}>
+                      <Card sx={{ p: 2, bgcolor: '#f0fdf4', height: '100%' }}>
+                          <Typography variant="subtitle1" fontWeight="600" sx={{ color: '#10b981', mb: 1 }}>
+                              Provider Percentage
+                          </Typography>
+                          <TextField
+                              fullWidth
+                              type="number"
+                              label="Provider %"
+                              value={percentages.provider_percent}
+                              onChange={(e) => setPercentages({...percentages, provider_percent: parseFloat(e.target.value) || 0})}
+                              slotProps={{ input: { endAdornment: '%' } }}
+                              sx={{ mb: 1 }}
+                          />
+                          <Typography variant="caption" color="text.secondary">
+                              What providers earn from each job
+                          </Typography>
+                          <Box sx={{ mt: 2, p: 1.5, bgcolor: 'white', borderRadius: 1 }}>
+                              <Typography variant="body2">Example on GH₵500:</Typography>
+                              <Typography variant="body2" fontWeight="600" sx={{ color: '#10b981' }}>
+                                  Provider gets: GH₵{(500 * percentages.provider_percent / 100).toFixed(2)}
+                              </Typography>
+                          </Box>
+                      </Card>
+                  </Grid>
+                  
+                  {/* Admin Percentage Card */}
+                  <Grid size={{ xs: 12, md: 3 }}>
+                      <Card sx={{ p: 2, bgcolor: '#f3e8ff', height: '100%' }}>
+                          <Typography variant="subtitle1" fontWeight="600" sx={{ color: '#8b5cf6', mb: 1 }}>
+                              Admin Percentage
+                          </Typography>
+                          <TextField
+                              fullWidth
+                              type="number"
+                              label="Admin %"
+                              value={percentages.admin_percent}
+                              onChange={(e) => setPercentages({...percentages, admin_percent: parseFloat(e.target.value) || 0})}
+                              slotProps={{ input: { endAdornment: '%' } }}
+                              sx={{ mb: 1 }}
+                          />
+                          <Typography variant="caption" color="text.secondary">
+                              Platform admin fee
+                          </Typography>
+                          <Box sx={{ mt: 2, p: 1.5, bgcolor: 'white', borderRadius: 1 }}>
+                              <Typography variant="body2">Example on GH₵500:</Typography>
+                              <Typography variant="body2" fontWeight="600" sx={{ color: '#8b5cf6' }}>
+                                  Admin earns: GH₵{(500 * percentages.admin_percent / 100).toFixed(2)}
+                              </Typography>
+                          </Box>
+                      </Card>
+                  </Grid>
+                  
+                  {/* Site Fee Percentage Card */}
+                  <Grid size={{ xs: 12, md: 3 }}>
+                      <Card sx={{ p: 2, bgcolor: '#fef3c7', height: '100%' }}>
+                          <Typography variant="subtitle1" fontWeight="600" sx={{ color: '#f59e0b', mb: 1 }}>
+                              Site Fee Percentage
+                          </Typography>
+                          <TextField
+                              fullWidth
+                              type="number"
+                              label="Site Fee %"
+                              value={percentages.site_fee_percent}
+                              onChange={(e) => setPercentages({...percentages, site_fee_percent: parseFloat(e.target.value) || 0})}
+                              slotProps={{ input: { endAdornment: '%' } }}
+                              sx={{ mb: 1 }}
+                          />
+                          <Typography variant="caption" color="text.secondary">
+                              Maintenance & marketing fee
+                          </Typography>
+                          <Box sx={{ mt: 2, p: 1.5, bgcolor: 'white', borderRadius: 1 }}>
+                              <Typography variant="body2">Example on GH₵500:</Typography>
+                              <Typography variant="body2" fontWeight="600" sx={{ color: '#f59e0b' }}>
+                                  Site fee: GH₵{(500 * percentages.site_fee_percent / 100).toFixed(2)}
+                              </Typography>
+                          </Box>
+                      </Card>
+                  </Grid>
+                  
+                  {/* NEW: Referral Pool Percentage Card */}
+                  <Grid size={{ xs: 12, md: 3 }}>
+                      <Card sx={{ p: 2, bgcolor: '#e0f2fe', height: '100%', border: '2px solid #0284c7' }}>
+                          <Typography variant="subtitle1" fontWeight="600" sx={{ color: '#0284c7', mb: 1 }}>
+                              Referral Pool Percentage
+                          </Typography>
+                          <TextField
+                              fullWidth
+                              type="number"
+                              label="Referral Pool %"
+                              value={percentages.referral_pool_percent || 0}
+                              onChange={(e) => setPercentages({...percentages, referral_pool_percent: parseFloat(e.target.value) || 0})}
+                              slotProps={{ input: { endAdornment: '%' } }}
+                              sx={{ mb: 1 }}
+                          />
+                          <Typography variant="caption" color="text.secondary">
+                              Distributed to referrers (self, level 1, level 2, etc.)
+                          </Typography>
+                          <Box sx={{ mt: 2, p: 1.5, bgcolor: 'white', borderRadius: 1 }}>
+                              <Typography variant="body2">Example on GH₵500:</Typography>
+                              <Typography variant="body2" fontWeight="600" sx={{ color: '#0284c7' }}>
+                                  Referral pool: GH₵{(500 * (percentages.referral_pool_percent || 0) / 100).toFixed(2)}
+                              </Typography>
+                              <Typography variant="caption" display="block" color="text.secondary" sx={{ mt: 0.5 }}>
+                                  Shared among all referrers in the chain
+                              </Typography>
+                          </Box>
+                      </Card>
+                  </Grid>
               </Grid>
-              
               <Box sx={{ mt: 3, p: 2, bgcolor: '#f8fafc', borderRadius: 2 }}>
-                <Typography variant="body2">
-                  <strong>Total: {percentages.provider_percent + percentages.admin_percent + percentages.site_fee_percent}%</strong>
-                  {Math.abs(percentages.provider_percent + percentages.admin_percent + percentages.site_fee_percent - 100) > 0.01 && (
-                    <span style={{ color: '#ef4444' }}> (Must be 100%)</span>
-                  )}
-                  {Math.abs(percentages.provider_percent + percentages.admin_percent + percentages.site_fee_percent - 100) <= 0.01 && (
-                    <span style={{ color: '#10b981' }}> ✓ Valid</span>
-                  )}
-                </Typography>
+                  <Typography variant="body2">
+                      <strong>Total: {(
+                          percentages.provider_percent + 
+                          percentages.admin_percent + 
+                          percentages.site_fee_percent + 
+                          (percentages.referral_pool_percent || 0)
+                      ).toFixed(1)}%</strong>
+                      {Math.abs(
+                          percentages.provider_percent + 
+                          percentages.admin_percent + 
+                          percentages.site_fee_percent + 
+                          (percentages.referral_pool_percent || 0) - 100
+                      ) > 0.01 ? (
+                          <span style={{ color: '#ef4444' }}> ❌ Must equal 100%</span>
+                      ) : (
+                          <span style={{ color: '#10b981' }}> ✓ Valid</span>
+                      )}
+                  </Typography>
               </Box>
-              
               <Button
                 variant="contained"
                 onClick={handleUpdatePercentages}
-                disabled={actionLoading === true || Math.abs(percentages.provider_percent + percentages.admin_percent + percentages.site_fee_percent - 100) > 0.01}
+                disabled={actionLoading === true || Math.abs(percentages.provider_percent + percentages.admin_percent + percentages.site_fee_percent + (percentages.referral_pool_percent || 0) - 100) > 0.01}
                 sx={{ mt: 3, bgcolor: '#10b981' }}
               >
                 {actionLoading === true ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Update Percentages'}
