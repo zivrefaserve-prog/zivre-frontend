@@ -999,7 +999,7 @@ const handleDeleteRequestPermanently = async (requestId) => {
                 </Button>
               </Box>
               <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
-                <strong>Current Fee Distribution:</strong> Provider {percentages.provider_percent}% | Admin {percentages.admin_percent}% | Site Fee {percentages.site_fee_percent}%
+                <strong>Current Fee Distribution:</strong> Provider {percentages.provider_percent}% | Admin {percentages.admin_percent}% | Site Fee {percentages.site_fee_percent}% | Referral Pool {percentages.referral_pool_percent || 0}%
               </Alert>
               <TableContainer component={Paper} sx={{ overflowX: 'auto', borderRadius: 2, boxShadow: 'none', border: '1px solid #e2e8f0' }}>
                 <Table sx={{ minWidth: 600 }}>
@@ -1011,10 +1011,12 @@ const handleDeleteRequestPermanently = async (requestId) => {
                       <TableCell>Provider ({percentages.provider_percent}%)</TableCell>
                       <TableCell>Admin ({percentages.admin_percent}%)</TableCell>
                       <TableCell>Site ({percentages.site_fee_percent}%)</TableCell>
+                      <TableCell>Referral Pool ({percentages.referral_pool_percent || 0}%)</TableCell>  {/* ADD THIS */}
                       <TableCell>Status</TableCell>
                       <TableCell>Actions</TableCell>
-                    </TableRow>
+                  </TableRow>
                   </TableHead>
+                  <TableBody>
                   <TableBody>
                     {services.map((s) => (
                       <TableRow key={s.id} sx={{ '&:hover': { bgcolor: '#f8fafc' } }}>
@@ -1027,6 +1029,12 @@ const handleDeleteRequestPermanently = async (requestId) => {
                         <TableCell><Typography fontWeight="600" sx={{ color: '#10b981' }}>GH₵{s.provider_payout?.toFixed(2)}</Typography></TableCell>
                         <TableCell><Typography fontWeight="600" sx={{ color: '#8b5cf6' }}>GH₵{s.admin_fee?.toFixed(2)}</Typography></TableCell>
                         <TableCell><Typography fontWeight="600" sx={{ color: '#f59e0b' }}>GH₵{s.site_fee?.toFixed(2)}</Typography></TableCell>
+                        {/* NEW: Referral Pool Cell */}
+                        <TableCell>
+                          <Typography fontWeight="600" sx={{ color: '#0284c7' }}>
+                            GH₵{s.referral_pool_amount?.toFixed(2) || (s.total_price * (percentages.referral_pool_percent || 0) / 100).toFixed(2)}
+                          </Typography>
+                        </TableCell>
                         <TableCell>
                           <Chip
                             label={s.is_active ? 'Active' : 'Inactive'}
@@ -1052,6 +1060,8 @@ const handleDeleteRequestPermanently = async (requestId) => {
                       </TableRow>
                     ))}
                   </TableBody>
+
+                  
                 </Table>
               </TableContainer>
             </Card>
