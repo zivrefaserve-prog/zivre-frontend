@@ -147,150 +147,115 @@ const UserReferralDashboard = () => {
     return name?.charAt(0).toUpperCase() || '?'
   }
 
+// ========== MOBILE-FRIENDLY VERTICAL TREE VIEW ==========
   const TreeView = ({ node, level = 0 }) => {
     if (!node) return null
     
+    const [expanded, setExpanded] = useState(true)
     const hasChildren = node.children && node.children.length > 0
-    const isRoot = level === 0
+    const isMobile = window.innerWidth <= 768
+    
+    const toggleExpand = () => {
+      if (hasChildren) {
+        setExpanded(!expanded)
+      }
+    }
     
     return (
       <Box sx={{ 
-        display: 'flex', 
-        flexDirection: 'column', 
-        alignItems: 'center',
-        width: '100%',
-        position: 'relative'
+        ml: level === 0 ? 0 : { xs: 2, sm: 3 },
+        mb: 1.5,
+        borderLeft: level > 0 ? '2px solid #e2e8f0' : 'none',
+        pl: level > 0 ? { xs: 1.5, sm: 2 } : 0
       }}>
         {/* Current Node Card */}
-        <Box sx={{ 
-          textAlign: 'center', 
-          mb: hasChildren ? 3 : 0,
-          position: 'relative',
-          zIndex: 2
-        }}>
-          <Paper
-            elevation={2}
-            sx={{
-              p: 2,
-              minWidth: 140,
-              bgcolor: node.is_referral_active ? '#e8f5e9' : '#fff3e0',
-              borderTop: `4px solid ${getPositionColor(node.position)}`,
-              borderRadius: 2,
-              textAlign: 'center',
-              cursor: 'pointer',
-              transition: 'all 0.2s',
-              '&:hover': {
-                transform: 'translateY(-4px)',
-                boxShadow: 3
-              }
-            }}
-          >
+        <Paper
+          elevation={1}
+          onClick={toggleExpand}
+          sx={{
+            p: { xs: 1.5, sm: 2 },
+            bgcolor: node.is_referral_active ? '#f0fdf4' : '#fefce8',
+            borderLeft: `4px solid ${getPositionColor(node.position)}`,
+            borderRadius: 2,
+            cursor: hasChildren ? 'pointer' : 'default',
+            transition: 'all 0.2s',
+            '&:hover': {
+              bgcolor: node.is_referral_active ? '#dcfce7' : '#fef9c3',
+              transform: 'translateX(4px)'
+            }
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            {/* Expand/Collapse Icon for children */}
+            {hasChildren && (
+              <IconButton 
+                size="small" 
+                onClick={(e) => { e.stopPropagation(); toggleExpand() }}
+                sx={{ p: 0.5 }}
+              >
+                {expanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+              </IconButton>
+            )}
+            
+            {/* Avatar */}
             <Avatar 
               sx={{ 
-                width: 56, 
-                height: 56, 
+                width: { xs: 40, sm: 48 }, 
+                height: { xs: 40, sm: 48 }, 
                 bgcolor: getPositionColor(node.position),
-                mx: 'auto',
-                mb: 1,
-                fontSize: '1.25rem',
+                fontSize: { xs: '1rem', sm: '1.25rem' },
                 fontWeight: 'bold'
               }}
             >
               {getInitials(node.full_name)}
             </Avatar>
-            <Typography variant="body1" fontWeight="700" sx={{ fontSize: '0.9rem' }}>
-              {node.full_name?.length > 15 ? node.full_name?.substring(0, 12) + '...' : node.full_name}
-            </Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
-              {node.is_referral_active ? '🟢 Active' : '⚪ Inactive'}
-            </Typography>
-            <Typography variant="body2" fontWeight="700" sx={{ color: '#10b981', display: 'block' }}>
-              GHS{node.commission_balance?.toFixed(2) || '0.00'}
-            </Typography>
-            {node.position && (
-              <Chip
-                label={node.position.toUpperCase()}
-                size="small"
-                sx={{ 
-                  mt: 0.5, 
-                  height: 20, 
-                  fontSize: '0.6rem',
-                  fontWeight: 600,
-                  bgcolor: `${getPositionColor(node.position)}20`,
-                  color: getPositionColor(node.position)
-                }}
-              />
-            )}
-          </Paper>
-        </Box>
-
-        {/* Children Section */}
-        {hasChildren && (
-          <Box sx={{ 
-            position: 'relative',
-            width: '100%',
-            mt: 1
-          }}>
-            {/* Connecting line from parent to children container */}
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'center',
-              position: 'relative',
-              '&::before': {
-                content: '""',
-                position: 'absolute',
-                top: -16,
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: 2,
-                height: 16,
-                bgcolor: '#cbd5e1'
-              }
-            }}>
-              {/* Horizontal line connecting all children */}
-              <Box sx={{ 
-                position: 'relative',
-                width: `${Math.max(200, node.children.length * 160)}px`,
-                '&::before': {
-                  content: '""',
-                  position: 'absolute',
-                  top: -1,
-                  left: 0,
-                  right: 0,
-                  height: 2,
-                  bgcolor: '#cbd5e1'
-                }
-              }} />
+            
+            {/* User Info */}
+            <Box sx={{ flex: 1 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
+                <Typography variant="body1" fontWeight="700" sx={{ fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>
+                  {node.full_name}
+                </Typography>
+                {node.position && (
+                  <Chip
+                    label={node.position.toUpperCase()}
+                    size="small"
+                    sx={{ 
+                      height: 18, 
+                      fontSize: '0.55rem',
+                      fontWeight: 600,
+                      bgcolor: `${getPositionColor(node.position)}20`,
+                      color: getPositionColor(node.position)
+                    }}
+                  />
+                )}
+                <Chip
+                  label={node.is_referral_active ? 'Active' : 'Inactive'}
+                  size="small"
+                  sx={{ 
+                    height: 18, 
+                    fontSize: '0.55rem',
+                    bgcolor: node.is_referral_active ? '#10b98115' : '#f59e0b15',
+                    color: node.is_referral_active ? '#10b981' : '#f59e0b'
+                  }}
+                />
+              </Box>
+              <Typography variant="body2" fontWeight="700" sx={{ color: '#10b981', fontSize: { xs: '0.8rem', sm: '0.85rem' } }}>
+                GHS{node.commission_balance?.toFixed(2) || '0.00'}
+              </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.65rem' }}>
+                Total earned: GHS{node.total_earned?.toFixed(2) || '0.00'}
+              </Typography>
             </Box>
-
-            {/* Children nodes in a row */}
-            <Box sx={{ 
-              display: 'flex', 
-              justifyContent: 'center', 
-              alignItems: 'flex-start',
-              gap: 4,
-              flexWrap: 'wrap',
-              mt: 2,
-              position: 'relative'
-            }}>
-              {node.children.map((child, idx) => (
-                <Box key={child.id} sx={{ 
-                  position: 'relative',
-                  '&::before': {
-                    content: '""',
-                    position: 'absolute',
-                    top: -16,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: 2,
-                    height: 16,
-                    bgcolor: '#cbd5e1'
-                  }
-                }}>
-                  <TreeView node={child} level={level + 1} />
-                </Box>
-              ))}
-            </Box>
+          </Box>
+        </Paper>
+  
+        {/* Children Section - Collapsible */}
+        {hasChildren && expanded && (
+          <Box sx={{ mt: 1.5, ml: { xs: 2, sm: 3 } }}>
+            {node.children.map((child) => (
+              <TreeView key={child.id} node={child} level={level + 1} />
+            ))}
           </Box>
         )}
       </Box>
