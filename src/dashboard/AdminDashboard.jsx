@@ -1017,7 +1017,6 @@ const handleDeleteRequestPermanently = async (requestId) => {
                   </TableRow>
                   </TableHead>
                   <TableBody>
-                  <TableBody>
                     {services.map((s) => (
                       <TableRow key={s.id} sx={{ '&:hover': { bgcolor: '#f8fafc' } }}>
                         <TableCell><Typography variant="h5">{s.icon}</Typography></TableCell>
