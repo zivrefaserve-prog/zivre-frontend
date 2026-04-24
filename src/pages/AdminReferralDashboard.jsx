@@ -26,7 +26,8 @@ import {
   getPendingBookingsForCommission,
   getServices,
   updateServiceShares,
-  getUserTreeForAdmin
+  getUserTreeForAdmin,
+  getPercentages   // ← ADD THIS
 } from '../api/client'
 
 const AdminReferralDashboard = () => {
@@ -47,6 +48,12 @@ const AdminReferralDashboard = () => {
   const [searchedTree, setSearchedTree] = useState(null)
   const [editingService, setEditingService] = useState(null)
   const [editSharesOpen, setEditSharesOpen] = useState(false)
+  const [percentages, setPercentages] = useState({
+    provider_percent: 60,
+    admin_percent: 20,
+    site_fee_percent: 10,
+    referral_pool_percent: 10
+  })
   const [editSharesData, setEditSharesData] = useState({ admin_share: '', website_share: '', provider_share: '', referral_pool: '' })
 
   const showToast = (message, type = 'success') => {
@@ -54,26 +61,35 @@ const AdminReferralDashboard = () => {
     setTimeout(() => setToast(null), 3000)
   }
 
-  const loadData = async () => {
-    setRefreshing(true)
+  const loadPercentages = async () => {
     try {
-      const [withdrawalsRes, ownerNetRes, bookingsRes, servicesRes] = await Promise.all([
-        getPendingWithdrawals(),
-        getOwnerNetSummary(),
-        getPendingBookingsForCommission(),
-        getServices(false)
-      ])
-      setPendingWithdrawals(withdrawalsRes.data)
-      setOwnerNet(ownerNetRes.data)
-      setPendingBookings(bookingsRes.data)
-      setServices(servicesRes.data)
+        const res = await getPercentages()
+        setPercentages(res.data)
     } catch (err) {
-      console.error('Error loading admin referral data:', err)
-      showToast('Error loading data', 'error')
-    } finally {
-      setLoading(false)
-      setRefreshing(false)
+        console.error('Error loading percentages:', err)
     }
+  }
+  const loadData = async () => {
+      setRefreshing(true)
+      try {
+        const [withdrawalsRes, ownerNetRes, bookingsRes, servicesRes] = await Promise.all([
+          getPendingWithdrawals(),
+          getOwnerNetSummary(),
+          getPendingBookingsForCommission(),
+          getServices(false)
+        ])
+        setPendingWithdrawals(withdrawalsRes.data)
+        setOwnerNet(ownerNetRes.data)
+        setPendingBookings(bookingsRes.data)
+        setServices(servicesRes.data)
+        await loadPercentages()  // ← ADD THIS LINE
+      } catch (err) {
+        console.error('Error loading admin referral data:', err)
+        showToast('Error loading data', 'error')
+      } finally {
+        setLoading(false)
+        setRefreshing(false)
+      }
   }
 
   useEffect(() => {
@@ -369,70 +385,89 @@ const AdminReferralDashboard = () => {
           </Card>
         )}
 
-        {/* Tab 2: Service Shares */}
+        {/* Tab 2: Service Shares - READ-ONLY */}
         {tabValue === 2 && (
-          <Card>
-            <CardContent>
-              <Typography variant="h6" fontWeight="600" sx={{ mb: 2 }}>Service Share Percentages</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                These percentages determine how each service payment is split. Total must equal 100%.
-              </Typography>
-              <TableContainer component={Paper}>
-                <Table>
-                  <TableHead sx={{ bgcolor: '#f8fafc' }}>
-                    <TableRow>
-                      <TableCell>Service</TableCell>
-                      <TableCell align="center">Admin Share (%)</TableCell>
-                      <TableCell align="center">Website Share (%)</TableCell>
-                      <TableCell align="center">Provider Share (%)</TableCell>
-                      <TableCell align="center">Total</TableCell>
-                      <TableCell>Actions</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                      {services.map((s) => {
-                          const total = (s.admin_share_percent || 10) + 
-                                        (s.website_share_percent || 10) + 
-                                        (s.provider_share_percent || 80) +
-                                        (s.referral_pool_percent || 10)
-                          return (
-                              <TableRow key={s.id}>
-                                  <TableCell>{s.icon} {s.name}</TableCell>
-                                  <TableCell align="center">{s.admin_share_percent || 10}%</TableCell>
-                                  <TableCell align="center">{s.website_share_percent || 10}%</TableCell>
-                                  <TableCell align="center">{s.provider_share_percent || 80}%</TableCell>
-                                  <TableCell align="center">{s.referral_pool_percent || 10}%</TableCell>
-                                  <TableCell align="center">
-                                      <Chip label={`${total}%`} size="small" color={total === 100 ? 'success' : 'error'} />
-                                  </TableCell>
-                                  <TableCell>
-                                      <Button
-                                          size="small"
-                                          variant="outlined"
-                                          onClick={() => {
-                                              setEditingService(s)
-                                              setEditSharesData({
-                                                  admin_share: s.admin_share_percent || 10,
-                                                  website_share: s.website_share_percent || 10,
-                                                  provider_share: s.provider_share_percent || 80,
-                                                  referral_pool: s.referral_pool_percent || 10
-                                              })
-                                              setEditSharesOpen(true)
-                                          }}
-                                      >
-                                          Edit Shares
-                                      </Button>
-                                  </TableCell>
-                              </TableRow>
-                          )
-                      })}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            </CardContent>
-          </Card>
+            <Card>
+                <CardContent>
+                    <Typography variant="h6" fontWeight="600" sx={{ mb: 2 }}>
+                        Referral Pool Distribution (Read-Only)
+                    </Typography>
+                    
+                    <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
+                        <strong>📌 Note:</strong> These percentages are controlled from the 
+                        <strong> "Percentage Settings" tab</strong> in the main Admin Dashboard.
+                        To change the referral pool, go to <strong>Percentage Settings → Referral Pool Percentage</strong>.
+                    </Alert>
+        
+                    <TableContainer component={Paper}>
+                        <Table>
+                            <TableHead sx={{ bgcolor: '#f8fafc' }}>
+                                <TableRow>
+                                    <TableCell>Component</TableCell>
+                                    <TableCell align="center">Percentage</TableCell>
+                                    <TableCell>Description</TableCell>
+                                </TableRow>
+                            </TableHead>
+                            <TableBody>
+                                <TableRow>
+                                    <TableCell>💰 Provider Share</TableCell>
+                                    <TableCell align="center">
+                                        <Chip label={`${percentages?.provider_percent || 60}%`} sx={{ bgcolor: '#10b98115', color: '#10b981', fontWeight: 600 }} />
+                                    </TableCell>
+                                    <TableCell>What the service provider earns (from global settings)</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>🏢 Admin Share</TableCell>
+                                    <TableCell align="center">
+                                        <Chip label={`${percentages?.admin_percent || 20}%`} sx={{ bgcolor: '#8b5cf615', color: '#8b5cf6', fontWeight: 600 }} />
+                                    </TableCell>
+                                    <TableCell>Platform admin fee (from global settings)</TableCell>
+                                </TableRow>
+                                <TableRow>
+                                    <TableCell>🌐 Site Fee</TableCell>
+                                    <TableCell align="center">
+                                        <Chip label={`${percentages?.site_fee_percent || 10}%`} sx={{ bgcolor: '#f59e0b15', color: '#f59e0b', fontWeight: 600 }} />
+                                    </TableCell>
+                                    <TableCell>Maintenance &amp; marketing fee (from global settings)</TableCell>
+                                </TableRow>
+                                <TableRow sx={{ bgcolor: '#e0f2fe' }}>
+                                    <TableCell>
+                                        <strong>💰 Referral Pool</strong>
+                                    </TableCell>
+                                    <TableCell align="center">
+                                        <Chip 
+                                            label={`${percentages?.referral_pool_percent || 10}%`} 
+                                            sx={{ bgcolor: '#0284c715', color: '#0284c7', fontWeight: 700, fontSize: '1rem', py: 2 }}
+                                        />
+                                    </TableCell>
+                                    <TableCell>
+                                        <strong>From Percentage Settings → Referral Pool %</strong>
+                                        <Typography variant="caption" display="block" color="text.secondary">
+                                            This percentage of each booking goes to the referral commission pool
+                                        </Typography>
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </TableContainer>
+        
+                    <Box sx={{ mt: 3, p: 2, bgcolor: '#f8fafc', borderRadius: 2 }}>
+                        <Typography variant="body2" color="text.secondary">
+                            <strong>📌 How to change these values:</strong>
+                            <br />
+                            1. Go back to <strong>Admin Dashboard → Percentage Settings</strong>
+                            <br />
+                            2. Update <strong>Provider %, Admin %, Site Fee %, or Referral Pool %</strong>
+                            <br />
+                            3. Click <strong>Update Percentages</strong>
+                            <br />
+                            <br />
+                            <strong>💡 Note:</strong> Changes will only affect future bookings. Existing bookings already have their shares locked.
+                        </Typography>
+                    </Box>
+                </CardContent>
+            </Card>
         )}
-
         {/* Tab 3: User Tree Viewer */}
         {tabValue === 3 && (
           <Card>
