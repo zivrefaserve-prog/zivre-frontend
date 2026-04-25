@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import RoleBasedTour from '../common/RoleBasedTour'
 import { TourButton, adminTourSteps } from '../common/DemoTour'
-import RoleBasedTour from '../common/RoleBasedTour'
 import {
   getAdminStats, getServices, toggleServiceActive, updateService, createService,
   getQuotes, updateQuoteStatus, deleteQuote, getAllRequests, approveAndAssignRequest,
