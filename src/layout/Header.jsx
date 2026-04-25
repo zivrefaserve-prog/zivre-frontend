@@ -86,6 +86,10 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     blurActiveElement()
     setSelectedRole(role)
     setShowRoleModal(false)
+    
+    // Check for referral code in sessionStorage
+    const referralCode = sessionStorage.getItem('zivre_referral_code');
+    
     setShowSignUpModal(true)
   }
 
