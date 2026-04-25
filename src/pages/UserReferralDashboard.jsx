@@ -121,7 +121,7 @@ const UserReferralDashboard = () => {
       window.removeEventListener('referral_tree_updated', handleReferralTreeUpdated)
       window.removeEventListener('percentages_updated', handlePercentagesUpdated)
     }
-  }, [])
+  }, [loadData, showToast])
   const handleCopyLink = () => {
     if (myInfo?.referral_link) {
       navigator.clipboard.writeText(myInfo.referral_link)
