@@ -81,6 +81,47 @@ const UserReferralDashboard = () => {
     }
   }, [user])
 
+  // ========== REALTIME WEBSOCKET UPDATES ==========
+  useEffect(() => {
+    // Handle new commission earned
+    const handleNewCommission = (event) => {
+      console.log('💰 New commission received:', event.detail)
+      showToast('You earned a new commission!', 'success')
+      loadData()
+    }
+    
+    // Handle withdrawal status change
+    const handleWithdrawalUpdated = (event) => {
+      console.log('🔄 Withdrawal status changed:', event.detail)
+      showToast(`Withdrawal ${event.detail.status === 'admin_sent' ? 'has been sent! Please confirm receipt.' : 'status updated'}`, 'info')
+      loadData()
+    }
+    
+    // Handle referral tree update
+    const handleReferralTreeUpdated = (event) => {
+      console.log('🌳 Referral tree updated:', event.detail)
+      loadData()
+    }
+    
+    // Handle percentage update (affects commission calculations)
+    const handlePercentagesUpdated = (event) => {
+      console.log('📊 Percentages updated:', event.detail)
+      loadData()
+    }
+    
+    // Add event listeners
+    window.addEventListener('new_commission', handleNewCommission)
+    window.addEventListener('withdrawal_updated', handleWithdrawalUpdated)
+    window.addEventListener('referral_tree_updated', handleReferralTreeUpdated)
+    window.addEventListener('percentages_updated', handlePercentagesUpdated)
+    
+    return () => {
+      window.removeEventListener('new_commission', handleNewCommission)
+      window.removeEventListener('withdrawal_updated', handleWithdrawalUpdated)
+      window.removeEventListener('referral_tree_updated', handleReferralTreeUpdated)
+      window.removeEventListener('percentages_updated', handlePercentagesUpdated)
+    }
+  }, [])
   const handleCopyLink = () => {
     if (myInfo?.referral_link) {
       navigator.clipboard.writeText(myInfo.referral_link)
