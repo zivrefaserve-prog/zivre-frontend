@@ -226,7 +226,7 @@ const AppRoutes = () => {
       
       <Routes>
         <Route path="/reset-password" element={<ResetPassword />} />
-        
+        <Route path="/signup" element={<ReferralSignup />} />
         <Route path="/profile" element={
           user ? <ProfileSettings /> : <Navigate to="/" />
         } />
