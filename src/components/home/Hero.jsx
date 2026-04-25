@@ -1,6 +1,8 @@
-import React from 'react'
+import React, { useState } from 'react'
 
 const Hero = ({ onGetQuote }) => {
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+
   // Helper to get user from sessionStorage
   const getUser = () => {
     const userData = sessionStorage.getItem('zivre_user')
@@ -14,11 +16,16 @@ const Hero = ({ onGetQuote }) => {
     return null
   }
 
-  // Handle logout
-  const handleLogout = () => {
-    sessionStorage.removeItem('zivre_token')
-    sessionStorage.removeItem('zivre_user')
-    window.location.href = '/'
+  // Handle logout with loading overlay
+  const handleLogout = async () => {
+    setIsLoggingOut(true)
+    
+    // Simulate logout delay for better UX
+    setTimeout(() => {
+      sessionStorage.removeItem('zivre_token')
+      sessionStorage.removeItem('zivre_user')
+      window.location.href = '/'
+    }, 500)
   }
 
   // Handle Get Started / Go to Dashboard
@@ -26,7 +33,6 @@ const Hero = ({ onGetQuote }) => {
     const user = getUser()
     
     if (user) {
-      // User is logged in - go to dashboard
       if (user.role === 'customer') {
         window.location.href = '/customer/dashboard'
       } else if (user.role === 'provider') {
@@ -37,7 +43,6 @@ const Hero = ({ onGetQuote }) => {
       return
     }
     
-    // User not logged in - open role modal
     window.dispatchEvent(new CustomEvent('open_get_started_modal'))
   }
 
@@ -46,7 +51,6 @@ const Hero = ({ onGetQuote }) => {
     const user = getUser()
     
     if (user) {
-      // User is logged in - go to dashboard
       if (user.role === 'customer') {
         window.location.href = '/customer/dashboard'
       } else if (user.role === 'provider') {
@@ -57,7 +61,6 @@ const Hero = ({ onGetQuote }) => {
       return
     }
     
-    // User not logged in - open sign in modal
     window.dispatchEvent(new CustomEvent('open_signin_modal'))
   }
 
@@ -65,6 +68,41 @@ const Hero = ({ onGetQuote }) => {
 
   return (
     <section className="hero">
+      {/* Logout Loading Overlay */}
+      {isLoggingOut && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0,0,0,0.85)',
+          zIndex: 9999,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          color: 'white'
+        }}>
+          <div style={{
+            width: 60,
+            height: 60,
+            border: '4px solid #10b981',
+            borderTopColor: 'transparent',
+            borderRadius: '50%',
+            animation: 'spin 0.8s linear infinite',
+            marginBottom: 20
+          }} />
+          <Typography variant="h6" style={{ fontWeight: 600 }}>Logging out...</Typography>
+          <Typography variant="body2" style={{ marginTop: 10, opacity: 0.7 }}>Please wait</Typography>
+          <style>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      )}
+
       <div className="container">
         <div className="hero-badge">✓ Premium Facility Management</div>
         <h1 className="hero-title">
