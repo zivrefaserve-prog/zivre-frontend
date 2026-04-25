@@ -274,7 +274,7 @@ const ReferralSignup = () => {
             }}>
               <TrendingUp sx={{ fontSize: { xs: 28, sm: 34, md: 40 } }} />
             </Avatar>
-            <Typography variant="h4" fontWeight="800" sx={{ fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.1rem } }}>
+            <Typography variant="h4" fontWeight="800" sx={{ fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.1rem' } }}>
               {referralCodeFromUrl ? '🎉 You Were Referred!' : 'Join Zivre Today!'}
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.95, maxWidth: 600, mx: 'auto', mt: 1, fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
