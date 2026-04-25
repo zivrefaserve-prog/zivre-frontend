@@ -46,6 +46,16 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     }
   }, [isSignUp, role])
 
+// Check for referral code from sessionStorage when modal opens
+useEffect(() => {
+  const referralCode = sessionStorage.getItem('zivre_referral_code');
+  if (referralCode && !formData.referral_code) {
+    setFormData(prev => ({ ...prev, referral_code: referralCode }));
+    // Clear it after using
+    sessionStorage.removeItem('zivre_referral_code');
+  }
+}, []);
+  
   const validateEmail = (email) => {
     const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
     return pattern.test(email)
