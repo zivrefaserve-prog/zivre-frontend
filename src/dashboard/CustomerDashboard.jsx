@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import { getPaymentSettings } from '../api/client'
 import { useAuth } from '../contexts/AuthContext'
 import RoleBasedTour from '../common/RoleBasedTour'
 import { TourButton, customerTourSteps } from '../common/DemoTour'
@@ -32,6 +33,11 @@ const drawerWidth = 280
 const saveCustomerState = (key, value) => {
   localStorage.setItem(`customer_${key}`, JSON.stringify(value))
 }
+
+const [paymentSettings, setPaymentSettings] = useState({
+  payment_number: '024 000 0000',
+  momopay_number: '024 000 0000'
+})
 
 const loadCustomerState = (key, defaultValue) => {
   const saved = localStorage.getItem(`customer_${key}`)
