@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
-import { useAuth } from '../contexts/AuthContext'
+import RoleBasedTour from '../common/RoleBasedTour'
+import { TourButton, adminTourSteps } from '../common/DemoTour'
 import RoleBasedTour from '../common/RoleBasedTour'
 import {
   getAdminStats, getServices, toggleServiceActive, updateService, createService,
@@ -1973,6 +1974,7 @@ const handleDeleteRequestPermanently = async (requestId) => {
         </Box>
       </Box>
       <RoleBasedTour />
+      <TourButton tourSteps={adminTourSteps} title="Admin Dashboard Tour" />
     </>
   )
 }
