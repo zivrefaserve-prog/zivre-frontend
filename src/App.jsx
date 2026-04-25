@@ -247,7 +247,7 @@ const AppRoutes = () => {
               <CommentSection />
             </main>
             <Footer />
-            {!user && <TourButton tourSteps={homepageTourSteps} title="Welcome to Zivre!" autoShow={false} />}}
+            {!user && <TourButton tourSteps={homepageTourSteps} title="Welcome to Zivre!" />}
           </>
         } />
       </Routes>
