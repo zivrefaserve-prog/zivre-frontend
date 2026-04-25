@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Dialog, DialogContent, DialogActions,
   Button, Box, Typography, Step, StepLabel, Stepper,
@@ -15,9 +15,16 @@ const DemoTour = ({ open, onClose, onComplete, steps, title = "Guided Tour" }) =
   const [activeStep, setActiveStep] = useState(0)
   const isLastStep = activeStep === steps.length - 1
 
+  // Reset step when dialog opens
+  useEffect(() => {
+    if (open) {
+      setActiveStep(0)
+    }
+  }, [open])
+
   const handleNext = () => {
     if (isLastStep) {
-      // User COMPLETED the tour - call onComplete
+      // User COMPLETED the tour
       if (onComplete) onComplete()
       onClose()
       setActiveStep(0)
@@ -31,7 +38,7 @@ const DemoTour = ({ open, onClose, onComplete, steps, title = "Guided Tour" }) =
   }
 
   const handleSkip = () => {
-    // Skip does NOT mark as completed - tour will show again
+    // Skip does NOT mark as completed
     setActiveStep(0)
     onClose()
   }
@@ -385,7 +392,7 @@ export const adminTourSteps = [
 ]
 
 // ============================================
-// TOUR BUTTON COMPONENT (Manual start)
+// TOUR BUTTON COMPONENT (Manual start button)
 // ============================================
 export const TourButton = ({ tourSteps, title = "Guided Tour" }) => {
   const [tourOpen, setTourOpen] = useState(false)
@@ -399,7 +406,6 @@ export const TourButton = ({ tourSteps, title = "Guided Tour" }) => {
   }
 
   const handleCompleteTour = () => {
-    // Tour completed - close and let parent handle saving
     setTourOpen(false)
   }
 
