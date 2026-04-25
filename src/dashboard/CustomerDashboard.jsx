@@ -775,7 +775,20 @@ const handleCancelRequest = async (requestId) => {
               <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
                 You will pay the provider directly after service completion. No online payment required.
               </Alert>
-              
+                  <Box sx={{ mb: 2, p: 1.5, bgcolor: '#e0f2fe', borderRadius: 2 }}>
+                  <Typography variant="subtitle2" fontWeight="600" sx={{ color: '#0284c7', mb: 1 }}>
+                    📱 Pay Using These Numbers
+                  </Typography>
+                  <Typography variant="body2" sx={{ mb: 0.5 }}>
+                    <strong>Mobile Money:</strong> {paymentSettings?.payment_number || '024 000 0000'}
+                  </Typography>
+                  <Typography variant="body2">
+                    <strong>MoMoPay:</strong> {paymentSettings?.momopay_number || '024 000 0000'}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                    Pay the provider directly after service is complete.
+                  </Typography>
+                </Box>
               <Typography variant="subtitle2" fontWeight="600" sx={{ mb: 1 }}>📞 Contact Information</Typography>
               <TextField
                 fullWidth
