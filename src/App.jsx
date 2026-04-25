@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { WebSocketProvider } from './contexts/WebSocketContext'
+import { TourButton, homepageTourSteps } from './common/DemoTour'
 import Header from './layout/Header'
 import Footer from './layout/Footer'
 import Hero from './components/home/Hero'
@@ -246,7 +247,7 @@ const AppRoutes = () => {
               <CommentSection />
             </main>
             <Footer />
-            {!user && <TourButton tourSteps={customerTourSteps} title="Welcome to Zivre!" autoShow={showTour} />}
+            {!user && <TourButton tourSteps={homepageTourSteps} title="Welcome to Zivre!" autoShow={false} />}}
           </>
         } />
       </Routes>
