@@ -4,7 +4,6 @@ import LoadingOverlay from '../common/LoadingOverlay'
 const Hero = ({ onGetQuote }) => {
   const [loggingOut, setLoggingOut] = useState(false)
 
-  // Helper to get user from sessionStorage
   const getUser = () => {
     const userData = sessionStorage.getItem('zivre_user')
     if (userData) {
@@ -17,7 +16,6 @@ const Hero = ({ onGetQuote }) => {
     return null
   }
 
-  // Handle logout with spinner
   const handleLogout = () => {
     setLoggingOut(true)
     setTimeout(() => {
@@ -27,7 +25,6 @@ const Hero = ({ onGetQuote }) => {
     }, 500)
   }
 
-  // Handle Get Started / Go to Dashboard
   const handleGetStarted = () => {
     const user = getUser()
     
@@ -45,7 +42,6 @@ const Hero = ({ onGetQuote }) => {
     window.dispatchEvent(new CustomEvent('open_get_started_modal'))
   }
 
-  // Handle Sign In / Go to Dashboard
   const handleSignIn = () => {
     const user = getUser()
     
@@ -67,6 +63,7 @@ const Hero = ({ onGetQuote }) => {
 
   return (
     <>
+      {/* Same loading overlay as Header logout */}
       <LoadingOverlay open={loggingOut} message="Logging out..." />
       
       <section className="hero">
@@ -100,9 +97,8 @@ const Hero = ({ onGetQuote }) => {
                 className="btn-outline" 
                 onClick={handleLogout} 
                 style={{ borderColor: '#ef4444', color: '#ef4444' }}
-                disabled={loggingOut}
               >
-                {loggingOut ? 'Logging out...' : 'Logout'}
+                Logout
               </button>
             ) : (
               <button className="btn-outline" onClick={handleSignIn}>
