@@ -75,8 +75,9 @@ const CustomerDashboard = () => {
   const [notifications, setNotifications] = useState([])
   const [percentages, setPercentages] = useState({
     provider_percent: 60,
-    admin_percent: 25,
-    site_fee_percent: 15
+    admin_percent: 20,
+    site_fee_percent: 10,
+    referral_pool_percent: 10
   })
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
