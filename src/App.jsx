@@ -160,18 +160,15 @@ const AppRoutes = () => {
 
 
     // Check URL for referral code and auto-open signup modal
+// Check URL for referral code and redirect to signup page
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const refCode = urlParams.get('ref');
     
-    if (refCode) {
-      // Store referral code in sessionStorage
+    if (refCode && window.location.pathname !== '/signup') {
+      // Save referral code and redirect to signup page
       sessionStorage.setItem('zivre_referral_code', refCode);
-      
-      // Auto-open the signup modal after a short delay
-      setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('open_get_started_modal'));
-      }, 500);
+      window.location.href = `/signup?ref=${refCode}`;
     }
   }, []);
   
