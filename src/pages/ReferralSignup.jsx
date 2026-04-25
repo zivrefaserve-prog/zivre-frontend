@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 import { getPercentages, getServices } from '../api/client'
+import LoadingOverlay from '../common/LoadingOverlay'
 import {
   Container, Paper, Box, Typography, TextField, Button,
   Alert, CircularProgress, IconButton, InputAdornment,
@@ -44,7 +45,7 @@ const ReferralSignup = () => {
     referral_pool_percent: 10
   })
   const [loadingPercentages, setLoadingPercentages] = useState(true)
-  
+  const [isLoading, setIsLoading] = useState(true)
   const [passwordStrength, setPasswordStrength] = useState({
     length: false,
     uppercase: false,
@@ -73,6 +74,7 @@ const ReferralSignup = () => {
         console.error('Error loading percentages:', err)
       } finally {
         setLoadingPercentages(false)
+        setIsLoading(false)  // ← ADD THIS LINE - Hide overlay when done
       }
     }
     loadData()
@@ -234,9 +236,10 @@ const ReferralSignup = () => {
   if (loadingPercentages) {
     return (
       <>
+        <LoadingOverlay open={isLoading} message="Loading referral page..." />
         <Header onGetQuote={scrollToContact} />
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-          <CircularProgress sx={{ color: '#10b981' }} />
+          {/* Remove the extra CircularProgress - LoadingOverlay already shows spinner */}
         </Box>
         <Footer />
       </>
