@@ -34,11 +34,6 @@ const saveCustomerState = (key, value) => {
   localStorage.setItem(`customer_${key}`, JSON.stringify(value))
 }
 
-const [paymentSettings, setPaymentSettings] = useState({
-  payment_number: '024 000 0000',
-  momopay_number: '024 000 0000'
-})
-
 const loadCustomerState = (key, defaultValue) => {
   const saved = localStorage.getItem(`customer_${key}`)
   if (saved) {
@@ -101,7 +96,11 @@ const CustomerDashboard = () => {
     window.addEventListener('resize', handleResize)
     return () => window.removeEventListener('resize', handleResize)
   }, [])
-  
+
+    const [paymentSettings, setPaymentSettings] = useState({
+    payment_number: '024 000 0000',
+    momopay_number: '024 000 0000'
+  })
   // Load saved location from localStorage
   const [locationData, setLocationData] = useState(() => ({
     ...loadLocationData(user?.id),
@@ -161,6 +160,14 @@ const CustomerDashboard = () => {
     }
   }, [])
 
+  const loadPaymentSettings = async () => {
+  try {
+    const res = await getPaymentSettings()
+    setPaymentSettings(res.data)
+  } catch (err) {
+    console.error('Error loading payment settings:', err)
+  }
+}
   // Show toast notification
   const showToast = (message, type = 'success') => {
     setToast({ message, type })
@@ -322,6 +329,7 @@ const CustomerDashboard = () => {
     loadData()
     loadUnreadCounts()
     loadPercentages()
+    loadPaymentSettings()
   }, [user?.id, loadData, loadUnreadCounts, loadPercentages])
 
   const handleRequest = async () => {
