@@ -1,58 +1,108 @@
 import React from 'react'
+import { useAuth } from '../contexts/AuthContext'
 
 const Hero = ({ onGetQuote }) => {
-    const handleGetStarted = () => {
-        // Check if user is logged in via sessionStorage
-        const userData = sessionStorage.getItem('zivre_user')
+  const { user, logout } = useAuth()
+
+  const handleGetStarted = () => {
+    // Check if user is logged in
+    if (user) {
+      // Redirect to appropriate dashboard based on role
+      if (user.role === 'customer') {
+        window.location.href = '/customer/dashboard'
+      } else if (user.role === 'provider') {
+        window.location.href = '/provider/dashboard'
+      } else if (user.role === 'admin') {
+        window.location.href = '/admin/dashboard'
+      }
+      return
+    }
+
+    // If not logged in, open role modal
+    window.dispatchEvent(new CustomEvent('open_get_started_modal'))
+  }
+
+  const handleSignIn = () => {
+    if (user) {
+      // If logged in, go to dashboard
+      if (user.role === 'customer') {
+        window.location.href = '/customer/dashboard'
+      } else if (user.role === 'provider') {
+        window.location.href = '/provider/dashboard'
+      } else if (user.role === 'admin') {
+        window.location.href = '/admin/dashboard'
+      }
+      return
+    }
+
+    // If not logged in, open sign in modal
+    window.dispatchEvent(new CustomEvent('open_signin_modal'))
+  }
+
+  const handleLogout = async () => {
+    await logout()
+    window.location.href = '/'
+  }
+
+  return (
+    <section className="hero">
+      <div className="container">
+        <div className="hero-badge">✓ Premium Facility Management</div>
+        <h1 className="hero-title">
+          Total Facility Solutions<br />
+          <span className="hero-highlight">Across Ghana</span>
+        </h1>
+        <p className="hero-subtitle">
+          Reliable, professional, and affordable facility management for homes and businesses across Ghana.
+        </p>
         
-        if (userData) {
-            try {
-                const user = JSON.parse(userData)
-                if (user.role === 'customer') {
-                    window.location.href = '/customer/dashboard'
-                    return
-                } else if (user.role === 'provider') {
-                    window.location.href = '/provider/dashboard'
-                    return
-                } else if (user.role === 'admin') {
-                    window.location.href = '/admin/dashboard'
-                    return
-                }
-            } catch (e) {
-                console.error('Error parsing user data', e)
-            }
-        }
+        <div className="hero-buttons">
+          <button className="btn-primary" onClick={onGetQuote}>Get Free Quote →</button>
+          
+          {user ? (
+            <button className="btn-secondary" onClick={handleGetStarted}>
+              Go to Dashboard →
+            </button>
+          ) : (
+            <button className="btn-secondary" onClick={handleGetStarted}>
+              Get Started
+            </button>
+          )}
+        </div>
+        
+        <div className="hero-buttons" style={{ marginTop: '12px' }}>
+          {user ? (
+            <button 
+              className="btn-outline" 
+              onClick={handleLogout} 
+              style={{ borderColor: '#ef4444', color: '#ef4444' }}
+            >
+              Logout
+            </button>
+          ) : (
+            <button className="btn-outline" onClick={handleSignIn}>
+              Sign In
+            </button>
+          )}
+        </div>
 
-        // DIRECTLY dispatch event to open role modal
-        window.dispatchEvent(new CustomEvent('open_get_started_modal'))
-    }
-
-    const handleSignIn = () => {
-        // Directly dispatch event to open sign in modal
-        window.dispatchEvent(new CustomEvent('open_signin_modal'))
-    }
-
-    return (
-        <section className="hero">
-            <div className="container">
-                <div className="hero-badge">✓ Premium Facility Management</div>
-                <h1 className="hero-title">
-                    Total Facility Solutions<br />
-                    <span className="hero-highlight">Across Ghana</span>
-                </h1>
-                <p className="hero-subtitle">
-                    Reliable, professional, and affordable facility management for homes and businesses across Ghana.
-                </p>
-                <div className="hero-buttons">
-                    <button className="btn-primary" onClick={onGetQuote}>Get Free Quote →</button>
-                    <button className="btn-secondary" onClick={handleGetStarted}>Get Started</button>
-                </div>
-                <div className="hero-buttons" style={{ marginTop: '12px' }}>
-                    <button className="btn-outline" onClick={handleSignIn}>Sign In</button>
-                </div>
-            </div>
-        </section>
-    )
+        {/* Welcome message when logged in */}
+        {user && (
+          <div style={{ 
+            marginTop: '20px', 
+            padding: '10px 20px', 
+            backgroundColor: '#e6f7f0', 
+            borderRadius: '8px', 
+            display: 'inline-block'
+          }}>
+            <span style={{ color: '#10b981', fontWeight: 600 }}>
+              👋 Welcome back, {user.full_name}!
+            </span>
+          </div>
+        )}
+      </div>
+    </section>
+  )
 }
 
 export default Hero
