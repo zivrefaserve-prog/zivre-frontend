@@ -287,27 +287,28 @@ useEffect(() => {
                   sx={{ mb: 1.5 }}
                 />
 
-                {/* REFERRAL CODE FIELD - ADDED */}
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Referral Code or Link (Optional)"
-                  value={formData.referral_code}
-                  onChange={(e) => {
-                    let input = e.target.value;
-                    // Auto-extract referral code from full link if pasted
-                    if (input.includes('ref=')) {
-                      const match = input.match(/ref=([A-Za-z0-9]+)/);
-                      if (match && match[1]) {
-                        input = match[1];
+                {/* REFERRAL CODE FIELD - ONLY FOR CUSTOMERS */}
+                {role !== 'provider' && (
+                  <TextField
+                    fullWidth
+                    size="small"
+                    label="Referral Code or Link (Optional)"
+                    value={formData.referral_code}
+                    onChange={(e) => {
+                      let input = e.target.value;
+                      if (input.includes('ref=')) {
+                        const match = input.match(/ref=([A-Za-z0-9]+)/);
+                        if (match && match[1]) {
+                          input = match[1];
+                        }
                       }
-                    }
-                    setFormData({ ...formData, referral_code: input });
-                  }}
-                  margin="dense"
-                  helperText="You can paste the referral link or just the code"
-                  sx={{ mb: 1.5 }}
-                />
+                      setFormData({ ...formData, referral_code: input });
+                    }}
+                    margin="dense"
+                    helperText="Enter a referral code if you have one"
+                    sx={{ mb: 1.5 }}
+                  />
+                )}
 
                 {role === 'provider' && (
                   <FormControl fullWidth size="small" sx={{ mb: 1.5 }} required>
