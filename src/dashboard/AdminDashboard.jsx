@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 import RoleBasedTour from '../common/RoleBasedTour'
 import { TourButton, adminTourSteps } from '../common/DemoTour'
 import {
