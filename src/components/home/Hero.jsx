@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import LoadingOverlay from '../common/LoadingOverlay'
+import LoadingOverlay from '../../common/LoadingOverlay'
 
 const Hero = ({ onGetQuote }) => {
   const [loggingOut, setLoggingOut] = useState(false)
@@ -63,7 +63,6 @@ const Hero = ({ onGetQuote }) => {
 
   return (
     <>
-      {/* Same loading overlay as Header logout */}
       <LoadingOverlay open={loggingOut} message="Logging out..." />
       
       <section className="hero">
