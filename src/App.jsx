@@ -157,6 +157,23 @@ const AppRoutes = () => {
     }
   }, [])
 
+
+    // Check URL for referral code and auto-open signup modal
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    
+    if (refCode) {
+      // Store referral code in sessionStorage
+      sessionStorage.setItem('zivre_referral_code', refCode);
+      
+      // Auto-open the signup modal after a short delay
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('open_get_started_modal'));
+      }, 500);
+    }
+  }, []);
+  
   // SESSION KEEP ALIVE
   useEffect(() => {
     if (!user) return
