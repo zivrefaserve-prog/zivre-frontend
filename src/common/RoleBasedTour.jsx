@@ -11,7 +11,7 @@ const RoleBasedTour = () => {
   const { user } = useAuth()
   const [showTour, setShowTour] = useState(false)
 
-  // Check if user has COMPLETED the tour (not just seen it)
+  // Check if user has COMPLETED the tour for their role
   const hasCompletedTour = () => {
     if (!user) return true
     const completed = localStorage.getItem(`zivre_tour_${user.role}_completed`)
