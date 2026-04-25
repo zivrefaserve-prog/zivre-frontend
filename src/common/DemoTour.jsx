@@ -11,11 +11,14 @@ import {
   School as SchoolIcon
 } from '@mui/icons-material'
 
-const DemoTour = ({ open, onClose, steps, title = "Guided Tour" }) => {
+const DemoTour = ({ open, onClose, onComplete, steps, title = "Guided Tour" }) => {
   const [activeStep, setActiveStep] = useState(0)
+  const isLastStep = activeStep === steps.length - 1
 
   const handleNext = () => {
-    if (activeStep === steps.length - 1) {
+    if (isLastStep) {
+      // User COMPLETED the tour - call onComplete
+      if (onComplete) onComplete()
       onClose()
       setActiveStep(0)
     } else {
@@ -27,7 +30,8 @@ const DemoTour = ({ open, onClose, steps, title = "Guided Tour" }) => {
     setActiveStep(activeStep - 1)
   }
 
-  const handleReset = () => {
+  const handleSkip = () => {
+    // Skip does NOT mark as completed - tour will show again
     setActiveStep(0)
     onClose()
   }
@@ -37,7 +41,7 @@ const DemoTour = ({ open, onClose, steps, title = "Guided Tour" }) => {
   return (
     <Dialog 
       open={open} 
-      onClose={handleReset}
+      onClose={handleSkip}
       maxWidth="sm" 
       fullWidth
       PaperProps={{ sx: { borderRadius: 3, overflow: 'hidden' } }}
@@ -47,7 +51,7 @@ const DemoTour = ({ open, onClose, steps, title = "Guided Tour" }) => {
           <SchoolIcon />
           <Typography variant="h6" fontWeight="600">{title}</Typography>
         </Box>
-        <IconButton onClick={handleReset} sx={{ color: 'white' }}>
+        <IconButton onClick={handleSkip} sx={{ color: 'white' }}>
           <CloseIcon />
         </IconButton>
       </Box>
@@ -80,7 +84,7 @@ const DemoTour = ({ open, onClose, steps, title = "Guided Tour" }) => {
       </DialogContent>
 
       <DialogActions sx={{ p: 2, borderTop: '1px solid #e2e8f0' }}>
-        <Button onClick={handleReset} sx={{ color: '#64748b' }}>
+        <Button onClick={handleSkip} sx={{ color: '#64748b' }}>
           Skip Tour
         </Button>
         <Box sx={{ flex: 1 }} />
@@ -94,10 +98,10 @@ const DemoTour = ({ open, onClose, steps, title = "Guided Tour" }) => {
         <Button 
           onClick={handleNext}
           variant="contained"
-          endIcon={activeStep === steps.length - 1 ? null : <NextIcon />}
+          endIcon={isLastStep ? null : <NextIcon />}
           sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
         >
-          {activeStep === steps.length - 1 ? 'Finish' : 'Next'}
+          {isLastStep ? 'Complete Tour' : 'Next'}
         </Button>
       </DialogActions>
     </Dialog>
@@ -381,23 +385,21 @@ export const adminTourSteps = [
 ]
 
 // ============================================
-// TOUR BUTTON COMPONENT (With "Start Tour" text)
+// TOUR BUTTON COMPONENT (Manual start)
 // ============================================
-export const TourButton = ({ tourSteps, title = "Guided Tour", autoShow = false }) => {
+export const TourButton = ({ tourSteps, title = "Guided Tour" }) => {
   const [tourOpen, setTourOpen] = useState(false)
-
-  React.useEffect(() => {
-    if (autoShow) {
-      const timer = setTimeout(() => setTourOpen(true), 1500)
-      return () => clearTimeout(timer)
-    }
-  }, [autoShow])
 
   const handleStartTour = () => {
     setTourOpen(true)
   }
 
   const handleCloseTour = () => {
+    setTourOpen(false)
+  }
+
+  const handleCompleteTour = () => {
+    // Tour completed - close and let parent handle saving
     setTourOpen(false)
   }
 
@@ -430,7 +432,8 @@ export const TourButton = ({ tourSteps, title = "Guided Tour", autoShow = false 
       
       <DemoTour 
         open={tourOpen} 
-        onClose={handleCloseTour} 
+        onClose={handleCloseTour}
+        onComplete={handleCompleteTour}
         steps={tourSteps}
         title={title}
       />
