@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import RoleBasedTour from '../common/RoleBasedTour'
+import { TourButton, customerTourSteps } from '../common/DemoTour'
 import {
   getServices, createRequest, getUserRequests, getNotifications, rateRequest,
   confirmRequestCompletion, getUnreadMessagesCount, getUnreadCount,
@@ -862,6 +863,7 @@ const handleCancelRequest = async (requestId) => {
         </Box>
       </Box>
       <RoleBasedTour />
+      <TourButton tourSteps={customerTourSteps} title="Customer Dashboard Tour" />
     </>
   )
 }
