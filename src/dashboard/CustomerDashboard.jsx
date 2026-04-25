@@ -558,46 +558,25 @@ const handleCancelRequest = async (requestId) => {
                   </Card>
                 </Grid>
               </Grid>
-
-              <Card sx={{ p: 3, mb: 3, bgcolor: '#f8fafc' }}>
-                <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 1, color: '#0f172a' }}>💰 How Payments Work</Typography>
-                <Typography variant="body2" color="text.secondary">
-                  When you pay for a service, the amount is distributed as follows:
+              <Card sx={{ p: 3, mb: 3, bgcolor: '#e0f2fe', borderRadius: 3 }}>
+                <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 1, color: '#0284c7' }}>
+                  💰 Referral Program
                 </Typography>
-                <Box sx={{ mt: 2 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                    <Typography variant="body2" sx={{ width: 120 }}>Provider gets:</Typography>
-                    <Box sx={{ flex: 1 }}>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={percentages.provider_percent} 
-                        sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0', '& .MuiLinearProgress-bar': { bgcolor: '#10b981' } }}
-                      />
-                    </Box>
-                    <Typography variant="body2" fontWeight="600" sx={{ color: '#10b981' }}>{percentages.provider_percent}%</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-                    <Typography variant="body2" sx={{ width: 120 }}>Admin fee:</Typography>
-                    <Box sx={{ flex: 1 }}>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={percentages.admin_percent} 
-                        sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0', '& .MuiLinearProgress-bar': { bgcolor: '#8b5cf6' } }}
-                      />
-                    </Box>
-                    <Typography variant="body2" fontWeight="600" sx={{ color: '#8b5cf6' }}>{percentages.admin_percent}%</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Typography variant="body2" sx={{ width: 120 }}>Site fee:</Typography>
-                    <Box sx={{ flex: 1 }}>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={percentages.site_fee_percent} 
-                        sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0', '& .MuiLinearProgress-bar': { bgcolor: '#f59e0b' } }}
-                      />
-                    </Box>
-                    <Typography variant="body2" fontWeight="600" sx={{ color: '#f59e0b' }}>{percentages.site_fee_percent}%</Typography>
-                  </Box>
+                <Typography variant="body2" color="text.secondary">
+                  When you refer friends and they complete their first service, you earn a commission from the <strong>Referral Pool ({percentages.referral_pool_percent || 0}%)</strong>.
+                </Typography>
+                <Box sx={{ mt: 2, p: 2, bgcolor: 'white', borderRadius: 2 }}>
+                  <Typography variant="body2">
+                    🔗 Share your referral code: <strong>{user?.referral_code}</strong>
+                  </Typography>
+                  <Button 
+                    size="small" 
+                    variant="outlined" 
+                    onClick={() => window.location.href = '/referrals'}
+                    sx={{ mt: 1, borderColor: '#0284c7', color: '#0284c7' }}
+                  >
+                    Go to Referrals →
+                  </Button>
                 </Box>
               </Card>
 
