@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useAuth } from '../contexts/AuthContext'
+import RoleBasedTour from '../common/RoleBasedTour'
 import {
   getAvailableJobs, claimJob, getProviderJobs, updateJobStatus,
   getNotifications, providerCompleteRequest,
@@ -817,6 +818,7 @@ const ProviderDashboard = () => {
           )}
         </Box>
       </Box>
+      <RoleBasedTour />
     </>
   )
 }
