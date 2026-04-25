@@ -11,25 +11,34 @@ const RoleBasedTour = () => {
   const { user } = useAuth()
   const [showTour, setShowTour] = useState(false)
 
+  // Check if user has COMPLETED the tour (not just seen it)
+  const hasCompletedTour = () => {
+    if (!user) return true
+    const completed = localStorage.getItem(`zivre_tour_${user.role}_completed`)
+    return completed === 'true'
+  }
+
   useEffect(() => {
     if (!user) return
     
-    // Check if user has seen the tour for their role
-    const tourKey = `zivre_tour_${user.role}_seen`
-    const tourSeen = localStorage.getItem(tourKey)
-    
-    if (!tourSeen) {
-      // Show tour after 1.5 seconds
+    // Only auto-show if user has NOT completed the tour
+    if (!hasCompletedTour()) {
       const timer = setTimeout(() => setShowTour(true), 1500)
       return () => clearTimeout(timer)
     }
   }, [user])
 
-  const handleCloseTour = () => {
-    setShowTour(false)
+  const handleCompleteTour = () => {
+    // Save that user COMPLETED the tour
     if (user) {
-      localStorage.setItem(`zivre_tour_${user.role}_seen`, 'true')
+      localStorage.setItem(`zivre_tour_${user.role}_completed`, 'true')
     }
+    setShowTour(false)
+  }
+
+  const handleCloseTour = () => {
+    // Just close - do NOT save completion
+    setShowTour(false)
   }
 
   // Select correct tour steps based on user role
@@ -70,6 +79,7 @@ const RoleBasedTour = () => {
     <DemoTour
       open={showTour}
       onClose={handleCloseTour}
+      onComplete={handleCompleteTour}
       steps={tourSteps}
       title={tourTitle}
     />
