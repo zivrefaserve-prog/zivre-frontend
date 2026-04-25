@@ -930,44 +930,52 @@ const handleDeleteRequestPermanently = async (requestId) => {
 
               <Card sx={{ p: 3, mb: 3, bgcolor: '#f8fafc' }}>
                 <Typography variant="h6" fontWeight="600" sx={{ mb: 2, color: '#0f172a' }}>💰 Current Fee Distribution</Typography>
+                
+                {/* Provider Row */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
                   <Typography variant="body2" sx={{ width: 120 }}>Provider gets:</Typography>
                   <Box sx={{ flex: 1 }}>
-                    <LinearProgress 
-                      variant="determinate" 
-                      value={percentages.provider_percent} 
-                      sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0', '& .MuiLinearProgress-bar': { bgcolor: '#10b981' } }}
-                    />
+                    <LinearProgress variant="determinate" value={percentages.provider_percent} sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0', '& .MuiLinearProgress-bar': { bgcolor: '#10b981' } }} />
                   </Box>
                   <Typography variant="body2" fontWeight="600" sx={{ color: '#10b981' }}>{percentages.provider_percent}%</Typography>
                 </Box>
+                
+                {/* Admin Row */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
                   <Typography variant="body2" sx={{ width: 120 }}>Admin fee:</Typography>
                   <Box sx={{ flex: 1 }}>
-                    <LinearProgress 
-                      variant="determinate" 
-                      value={percentages.admin_percent} 
-                      sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0', '& .MuiLinearProgress-bar': { bgcolor: '#8b5cf6' } }}
-                    />
+                    <LinearProgress variant="determinate" value={percentages.admin_percent} sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0', '& .MuiLinearProgress-bar': { bgcolor: '#8b5cf6' } }} />
                   </Box>
                   <Typography variant="body2" fontWeight="600" sx={{ color: '#8b5cf6' }}>{percentages.admin_percent}%</Typography>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                
+                {/* Site Fee Row */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
                   <Typography variant="body2" sx={{ width: 120 }}>Site fee:</Typography>
                   <Box sx={{ flex: 1 }}>
-                    <LinearProgress 
-                      variant="determinate" 
-                      value={percentages.site_fee_percent} 
-                      sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0', '& .MuiLinearProgress-bar': { bgcolor: '#f59e0b' } }}
-                    />
+                    <LinearProgress variant="determinate" value={percentages.site_fee_percent} sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0', '& .MuiLinearProgress-bar': { bgcolor: '#f59e0b' } }} />
                   </Box>
                   <Typography variant="body2" fontWeight="600" sx={{ color: '#f59e0b' }}>{percentages.site_fee_percent}%</Typography>
                 </Box>
+                
+                {/* NEW: Referral Pool Row - ADD THIS */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+                  <Typography variant="body2" sx={{ width: 120 }}>Referral Pool:</Typography>
+                  <Box sx={{ flex: 1 }}>
+                    <LinearProgress variant="determinate" value={percentages.referral_pool_percent || 0} sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0', '& .MuiLinearProgress-bar': { bgcolor: '#0284c7' } }} />
+                  </Box>
+                  <Typography variant="body2" fontWeight="600" sx={{ color: '#0284c7' }}>{percentages.referral_pool_percent || 0}%</Typography>
+                </Box>
+                
                 <Divider sx={{ my: 2 }} />
+                
+                {/* Total - Now includes Referral Pool */}
                 <Typography variant="body2" color="text.secondary">
-                  Total: <strong>{percentages.provider_percent + percentages.admin_percent + percentages.site_fee_percent}%</strong>
-                  {Math.abs(percentages.provider_percent + percentages.admin_percent + percentages.site_fee_percent - 100) > 0.01 && (
-                    <span style={{ color: '#ef4444' }}> (Must be 100%)</span>
+                  <strong>Total: {(percentages.provider_percent + percentages.admin_percent + percentages.site_fee_percent + (percentages.referral_pool_percent || 0)).toFixed(1)}%</strong>
+                  {Math.abs(percentages.provider_percent + percentages.admin_percent + percentages.site_fee_percent + (percentages.referral_pool_percent || 0) - 100) > 0.01 ? (
+                    <span style={{ color: '#ef4444' }}> ❌ Must equal 100%</span>
+                  ) : (
+                    <span style={{ color: '#10b981' }}> ✓ Valid</span>
                   )}
                 </Typography>
               </Card>
