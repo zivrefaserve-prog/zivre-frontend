@@ -135,12 +135,9 @@ const ProviderDashboard = () => {
   }
 
   // Main data loading function
-  const loadData = useCallback(async () => {
-    if (!user?.id || user?.role !== 'provider') {
-      return
-    }
+  const loadData = useCallback(async (showSpinner = true) => {
+    if (!user?.id || user?.role !== 'provider') return
     
-    // Unverified providers - set empty arrays, NO API calls
     if (!user?.is_verified) {
       setAvailableJobs([])
       setMyJobs([])
@@ -149,12 +146,11 @@ const ProviderDashboard = () => {
       return
     }
     
-    setRefreshing(true)
+    if (showSpinner) {
+      setRefreshing(true)  // ← Only show spinner on manual refresh
+    }
     try {
-      // Show dashboard shell immediately
       setLoading(false)
-      
-      // Load data in background (doesn't block UI)
       const [availableRes, jobsRes, notifRes] = await Promise.all([
         getAvailableJobs(),
         getProviderJobs(user.id),
@@ -166,12 +162,16 @@ const ProviderDashboard = () => {
     } catch (err) {
       console.error(err)
       if (err.response?.status !== 403 && err.response?.status !== 401) {
-        showToast('Error loading data', 'error')
+        if (showSpinner) {
+          showToast('Error loading data', 'error')
+        }
       }
       setAvailableJobs([])
       setMyJobs([])
     } finally {
-      setRefreshing(false)
+      if (showSpinner) {
+        setRefreshing(false)
+      }
     }
   }, [user?.id, user?.role, user?.is_verified])
 
@@ -334,7 +334,13 @@ const ProviderDashboard = () => {
     try {
       await declineJob(jobId, reason)
       showToast('Job declined successfully', 'success')
-      await loadData()
+      
+      // ✅ Remove from myJobs instantly
+      setMyJobs(prev => prev.filter(job => job.id !== jobId))
+      
+      // ✅ Background refresh
+      loadData(false)
+      
     } catch (err) {
       showToast(err.response?.data?.error || 'Error declining job', 'error')
     } finally {
@@ -348,7 +354,17 @@ const ProviderDashboard = () => {
     try {
       await claimJob({ request_id: requestId, provider_id: user.id })
       showToast('✅ Job claimed successfully!')
-      await loadData()
+      
+      // ✅ Move job from available to myJobs instantly
+      const claimedJob = availableJobs.find(job => job.id === requestId)
+      setAvailableJobs(prev => prev.filter(job => job.id !== requestId))
+      if (claimedJob) {
+        setMyJobs(prev => [{ ...claimedJob, status: 'assigned' }, ...prev])
+      }
+      
+      // ✅ Background refresh
+      loadData(false)
+      
     } catch (err) {
       showToast(err.response?.data?.error || 'Error claiming job', 'error')
     } finally {
@@ -361,7 +377,17 @@ const ProviderDashboard = () => {
     try {
       await providerCompleteRequest(jobId)
       showToast('✅ Job marked as completed! Awaiting customer confirmation.', 'success')
-      await loadData()
+      
+      // ✅ Update local state instantly
+      setMyJobs(prev => prev.map(job =>
+        job.id === jobId
+          ? { ...job, status: 'completed', provider_completed: true }
+          : job
+      ))
+      
+      // ✅ Background refresh
+      loadData(false)
+      
     } catch (err) {
       showToast(err.response?.data?.error || 'Error marking complete', 'error')
     } finally {
@@ -374,7 +400,17 @@ const ProviderDashboard = () => {
     try {
       await updateJobStatus(jobId, newStatus)
       showToast(`✅ Job marked as ${newStatus}!`)
-      await loadData()
+      
+      // ✅ Update local state instantly
+      setMyJobs(prev => prev.map(job =>
+        job.id === jobId
+          ? { ...job, status: newStatus }
+          : job
+      ))
+      
+      // ✅ Background refresh
+      loadData(false)
+      
     } catch (err) {
       showToast('Error updating job status', 'error')
     } finally {
@@ -520,7 +556,7 @@ const ProviderDashboard = () => {
                   sx={{ width: isMobile ? 200 : 280, bgcolor: 'white', borderRadius: 2 }}
                 />
               )}
-              <IconButton onClick={loadData} disabled={refreshing} sx={{ bgcolor: 'white' }}>
+              <IconButton onClick={() => loadData(true)} disabled={refreshing} sx={{ bgcolor: 'white' }}>
                 {refreshing ? <CircularProgress size={24} sx={{ color: '#10b981' }} /> : <RefreshIcon />}
               </IconButton>
             </Box>
