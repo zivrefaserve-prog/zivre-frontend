@@ -100,6 +100,57 @@ const AdminReferralDashboard = () => {
     }
   }, [user])
 
+    // ========== REALTIME WEBSOCKET UPDATES ==========
+  useEffect(() => {
+    // Handle new withdrawal request
+    const handleNewWithdrawal = (event) => {
+      console.log('💰 New withdrawal request:', event.detail)
+      showToast(`New withdrawal request from ${event.detail.user_name} for GHS${event.detail.amount}`, 'info')
+      loadData()
+    }
+    
+    // Handle withdrawal status change
+    const handleWithdrawalUpdated = (event) => {
+      console.log('🔄 Withdrawal updated:', event.detail)
+      loadData()
+    }
+    
+    // Handle booking confirmed (triggers commissions)
+    const handleBookingConfirmed = (event) => {
+      console.log('✅ Booking confirmed:', event.detail)
+      showToast(`Booking #${event.detail.booking_id} confirmed. Commissions processed.`, 'success')
+      loadData()
+    }
+    
+    // Handle percentage update
+    const handlePercentagesUpdated = (event) => {
+      console.log('📊 Percentages updated:', event.detail)
+      loadData()
+    }
+    
+    // Handle service shares update
+    const handleServiceSharesUpdated = (event) => {
+      console.log('🔄 Service shares updated:', event.detail)
+      loadData()
+    }
+    
+    // Add event listeners
+    window.addEventListener('new_withdrawal_request', handleNewWithdrawal)
+    window.addEventListener('withdrawal_updated', handleWithdrawalUpdated)
+    window.addEventListener('booking_confirmed', handleBookingConfirmed)
+    window.addEventListener('percentages_updated', handlePercentagesUpdated)
+    window.addEventListener('service_shares_updated', handleServiceSharesUpdated)
+    
+    return () => {
+      window.removeEventListener('new_withdrawal_request', handleNewWithdrawal)
+      window.removeEventListener('withdrawal_updated', handleWithdrawalUpdated)
+      window.removeEventListener('booking_confirmed', handleBookingConfirmed)
+      window.removeEventListener('percentages_updated', handlePercentagesUpdated)
+      window.removeEventListener('service_shares_updated', handleServiceSharesUpdated)
+    }
+  }, [loadData, showToast])
+
+  
   const handleMarkAsSent = async () => {
     if (!selectedWithdrawal) return
     
