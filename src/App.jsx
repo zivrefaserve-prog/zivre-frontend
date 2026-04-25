@@ -4,6 +4,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { WebSocketProvider } from './contexts/WebSocketContext'
 import { TourButton, homepageTourSteps } from './common/DemoTour'
+import DemoTour from './common/DemoTour'
 import Header from './layout/Header'
 import Footer from './layout/Footer'
 import Hero from './components/home/Hero'
@@ -21,7 +22,6 @@ import ProfileSettings from './pages/ProfileSettings'
 import Messages from './pages/Messages'
 import ResetPassword from './pages/ResetPassword'
 import ForgotPasswordModal from './common/ForgotPasswordModal'
-import { TourButton, customerTourSteps } from './common/DemoTour'
 import { keepAlive } from './api/client'
 import LoadingOverlay from './common/LoadingOverlay'
 import UserReferralDashboard from './pages/UserReferralDashboard'
@@ -94,7 +94,7 @@ const AppRoutes = () => {
   const { user, authLoading, hideAuthLoading } = useAuth()
   const location = useLocation()
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
-  const [showTour, setShowTour] = useState(false)
+  const [showHomepageTour, setShowHomepageTour] = useState(false)
 
   // FIX: Auto-hide loading overlay after max 2 seconds
   useEffect(() => {
@@ -106,9 +106,8 @@ const AppRoutes = () => {
     }
   }, [authLoading, hideAuthLoading])
 
-  // FORCE MOBILE LAYOUT - THIS IS THE KEY FIX
+  // FORCE MOBILE LAYOUT
   useEffect(() => {
-    // Force viewport on mobile
     const setViewport = () => {
       const viewport = document.querySelector('meta[name="viewport"]')
       if (viewport && window.innerWidth <= 768) {
@@ -118,12 +117,10 @@ const AppRoutes = () => {
     setViewport()
     window.addEventListener('resize', setViewport)
     
-    // FORCE MOBILE CLASS ON BODY
     const forceMobileLayout = () => {
       if (window.innerWidth <= 768) {
         document.body.classList.add('mobile-device')
         document.body.classList.remove('desktop-device')
-        // Force all MUI grid containers to be column
         const allGrids = document.querySelectorAll('.MuiGrid-container')
         allGrids.forEach(grid => {
           grid.style.flexDirection = 'column'
@@ -137,7 +134,6 @@ const AppRoutes = () => {
     forceMobileLayout()
     window.addEventListener('resize', forceMobileLayout)
     
-    // Run again after all content loads
     const timer = setTimeout(forceMobileLayout, 100)
     
     return () => {
@@ -146,14 +142,6 @@ const AppRoutes = () => {
       clearTimeout(timer)
     }
   }, [])
-
-  useEffect(() => {
-    const tourSeen = sessionStorage.getItem('zivre_tour_seen')
-    const isHomepage = location.pathname === '/'
-    if (!tourSeen && isHomepage && !user) {
-      setTimeout(() => setShowTour(true), 1500)
-    }
-  }, [location, user])
 
   // Listen for forgot password event
   useEffect(() => {
@@ -169,7 +157,7 @@ const AppRoutes = () => {
     }
   }, [])
 
-  // SESSION KEEP ALIVE - prevents unexpected logout when idle
+  // SESSION KEEP ALIVE
   useEffect(() => {
     if (!user) return
     
@@ -182,7 +170,22 @@ const AppRoutes = () => {
     return () => clearInterval(interval)
   }, [user])
 
-  // ========== KEEP BACKEND AWAKE - FIXES WEBSOCKET TIMEOUT ==========
+  // Homepage tour auto-show on first visit
+  useEffect(() => {
+    const tourCompleted = localStorage.getItem('zivre_tour_homepage_completed')
+    const isHomepage = location.pathname === '/'
+    if (!tourCompleted && isHomepage && !user) {
+      const timer = setTimeout(() => setShowHomepageTour(true), 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [location, user])
+
+  const handleHomepageTourComplete = () => {
+    localStorage.setItem('zivre_tour_homepage_completed', 'true')
+    setShowHomepageTour(false)
+  }
+
+  // KEEP BACKEND AWAKE
   useEffect(() => {
     fetch('https://zivre-backend.onrender.com/api/services')
       .catch(() => console.log('Backend waking up...'))
@@ -201,7 +204,6 @@ const AppRoutes = () => {
 
   return (
     <>
-      {/* Loading Overlay - ONLY for Sign In and Sign Up */}
       <LoadingOverlay open={authLoading} message={authLoading ? "Logging out..." : ""} />
       
       <Routes>
@@ -223,7 +225,6 @@ const AppRoutes = () => {
           user && user.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />
         } />
         
-        {/* REFERRAL SYSTEM ROUTES */}
         <Route path="/referrals" element={
           user ? <UserReferralDashboard /> : <Navigate to="/" />
         } />
@@ -247,6 +248,19 @@ const AppRoutes = () => {
               <CommentSection />
             </main>
             <Footer />
+            
+            {/* Homepage Tour - Auto shows for visitors */}
+            {!user && (
+              <DemoTour 
+                open={showHomepageTour}
+                onClose={() => setShowHomepageTour(false)}
+                onComplete={handleHomepageTourComplete}
+                steps={homepageTourSteps}
+                title="Welcome to Zivre!"
+              />
+            )}
+            
+            {/* Manual Start Tour button for homepage */}
             {!user && <TourButton tourSteps={homepageTourSteps} title="Welcome to Zivre!" />}
           </>
         } />
