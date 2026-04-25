@@ -483,7 +483,6 @@ export const TourButton = ({ tourSteps, title = "Guided Tour" }) => {
           fontSize: { xs: '0.8rem', sm: '0.9rem' }
         }}
       >
-        <SchoolIcon sx={{ mr: 1, fontSize: { xs: 18, sm: 20 } }} />
         Start Tour
       </Button>
       
