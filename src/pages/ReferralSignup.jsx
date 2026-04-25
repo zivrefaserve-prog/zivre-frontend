@@ -74,7 +74,7 @@ const ReferralSignup = () => {
         console.error('Error loading percentages:', err)
       } finally {
         setLoadingPercentages(false)
-        setIsLoading(false)  // ← ADD THIS LINE - Hide overlay when done
+        setIsLoading(false)
       }
     }
     loadData()
@@ -239,7 +239,6 @@ const ReferralSignup = () => {
         <LoadingOverlay open={isLoading} message="Loading referral page..." />
         <Header onGetQuote={scrollToContact} />
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
-          {/* Remove the extra CircularProgress - LoadingOverlay already shows spinner */}
         </Box>
         <Footer />
       </>
@@ -257,7 +256,7 @@ const ReferralSignup = () => {
       }}>
         <Container maxWidth="lg" sx={{ px: { xs: 1.5, sm: 2, md: 3 } }}>
           
-          {/* Hero Banner - Mobile optimized */}
+          {/* Hero Banner */}
           <Paper sx={{ 
             mb: { xs: 2, sm: 3, md: 5 }, 
             p: { xs: 2, sm: 3, md: 4 }, 
@@ -282,7 +281,7 @@ const ReferralSignup = () => {
             </Typography>
             <Typography variant="body2" sx={{ opacity: 0.95, maxWidth: 600, mx: 'auto', mt: 1, fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
               {referralCodeFromUrl 
-                ? 'Your referral code is already applied. Sign up now and start earning commissions!'
+                ? 'Your referral code is already applied. Sign up now and start earning!'
                 : 'Get premium facility services or offer your skills and earn money.'}
             </Typography>
           </Paper>
@@ -292,9 +291,10 @@ const ReferralSignup = () => {
             {/* LEFT COLUMN - Role Selection or Signup Form */}
             <Grid size={{ xs: 12, md: 7 }}>
               {!selectedRole ? (
-                // ROLE SELECTION CARDS - Mobile optimized
+                // ROLE SELECTION CARDS
                 <Grid container spacing={{ xs: 2, sm: 3 }}>
-                  {/* Customer Card */}
+                  
+                  {/* ========== CUSTOMER CARD ========== */}
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <Card sx={{ 
                       height: '100%', 
@@ -341,16 +341,16 @@ const ReferralSignup = () => {
                         
                         <Box sx={{ bgcolor: '#e0f2fe', p: { xs: 1, sm: 1.5, md: 2 }, borderRadius: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
                           <Typography variant="subtitle2" fontWeight="600" sx={{ color: '#0284c7' }} gutterBottom fontSize={{ xs: '0.7rem', sm: '0.75rem' }}>
-                            💰 Your Earnings
+                            💰 Customer Earnings
                           </Typography>
                           <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                            • Earn {percentages.referral_pool_percent}% commission on referrals
+                            • Referral commissions: Multi-level (20%, 10%, 5%...)
                           </Typography>
                           <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
                             • Self-bonus: 5% on your first booking
                           </Typography>
                           <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                            • Withdraw from GHS 20
+                            • Withdraw earnings from GHS 20
                           </Typography>
                         </Box>
                         
@@ -374,7 +374,7 @@ const ReferralSignup = () => {
                     </Card>
                   </Grid>
 
-                  {/* Provider Card */}
+                  {/* ========== PROVIDER CARD - CORRECTED ========== */}
                   <Grid size={{ xs: 12, sm: 6 }}>
                     <Card sx={{ 
                       height: '100%', 
@@ -419,21 +419,25 @@ const ReferralSignup = () => {
                           </Typography>
                         </Box>
                         
+                        {/* ========== CORRECTED PROVIDER EARNINGS SECTION ========== */}
                         <Box sx={{ bgcolor: '#fef3c7', p: { xs: 1, sm: 1.5, md: 2 }, borderRadius: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
                           <Typography variant="subtitle2" fontWeight="600" sx={{ color: '#d97706' }} gutterBottom fontSize={{ xs: '0.7rem', sm: '0.75rem' }}>
-                            💰 Your Earnings
+                            💰 Provider Earnings
                           </Typography>
                           <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                            • Earn {percentages.provider_percent}% per job
+                            • Service income: {percentages.provider_percent}% per job completed
                           </Typography>
                           <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                            • Customers pay you DIRECTLY
+                            • Customers pay you DIRECTLY after service
                           </Typography>
                           <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                            • Plus referral commissions!
+                            • Referral commissions: Same multi-level system (20%, 10%, 5%...)
+                          </Typography>
+                          <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' }, color: '#d97706', mt: 0.5 }}>
+                            ℹ️ Note: No self-bonus (you don't book your own services)
                           </Typography>
                           <Typography variant="caption" display="block" sx={{ mt: 0.5, fontWeight: 600, fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                            Example: GHS 500 → You earn GHS {(500 * percentages.provider_percent / 100).toFixed(0)}!
+                            Example: GHS 500 job → You earn GHS {(500 * percentages.provider_percent / 100).toFixed(0)}!
                           </Typography>
                         </Box>
                         
@@ -480,7 +484,7 @@ const ReferralSignup = () => {
                   </Grid>
                 </Grid>
               ) : (
-                // SIGNUP FORM (When role is selected) - Mobile optimized
+                // SIGNUP FORM (When role is selected)
                 <Paper sx={{ borderRadius: { xs: 2, sm: 3, md: 4 }, overflow: 'hidden' }}>
                   {/* Header */}
                   <Box sx={{ 
@@ -551,16 +555,30 @@ const ReferralSignup = () => {
                         placeholder="024XXXXXXX"
                       />
                       
-                      <TextField
-                        fullWidth
-                        label="Referral Code"
-                        size={isMobile ? "small" : "medium"}
-                        margin={isMobile ? "dense" : "normal"}
-                        value={formData.referral_code}
-                        InputProps={{ readOnly: true }}
-                        helperText={referralCodeFromUrl ? "✓ Referral code applied from your link!" : "Enter a referral code if you have one"}
-                        sx={{ '& .MuiInputBase-root': { bgcolor: '#f0fdf4' } }}
-                      />
+                      {/* Referral Code Field - Different handling for customers vs providers */}
+                      {selectedRole === 'customer' ? (
+                        <TextField
+                          fullWidth
+                          label="Referral Code (Optional)"
+                          size={isMobile ? "small" : "medium"}
+                          margin={isMobile ? "dense" : "normal"}
+                          value={formData.referral_code}
+                          onChange={(e) => setFormData({ ...formData, referral_code: e.target.value })}
+                          helperText={referralCodeFromUrl ? "✓ Referral code applied from your link!" : "Enter a referral code if you have one"}
+                          sx={referralCodeFromUrl ? { '& .MuiInputBase-root': { bgcolor: '#f0fdf4' } } : {}}
+                        />
+                      ) : (
+                        <TextField
+                          fullWidth
+                          label="Referral Code (Optional)"
+                          size={isMobile ? "small" : "medium"}
+                          margin={isMobile ? "dense" : "normal"}
+                          value={formData.referral_code}
+                          onChange={(e) => setFormData({ ...formData, referral_code: e.target.value })}
+                          helperText="Providers can also refer customers and earn commissions!"
+                          sx={{ '& .MuiInputBase-root': { bgcolor: '#fef3c715' } }}
+                        />
+                      )}
 
                       {selectedRole === 'provider' && (
                         <FormControl fullWidth size={isMobile ? "small" : "medium"} margin={isMobile ? "dense" : "normal"} required>
@@ -707,7 +725,7 @@ const ReferralSignup = () => {
               )}
             </Grid>
 
-            {/* RIGHT COLUMN - Commission Info (Sticky) - Mobile optimized */}
+            {/* RIGHT COLUMN - Commission Info (Sticky) */}
             <Grid size={{ xs: 12, md: 5 }}>
               <Paper sx={{ 
                 p: { xs: 2, sm: 2.5, md: 3 }, 
@@ -729,13 +747,13 @@ const ReferralSignup = () => {
                     📊 Referral Pool: {percentages.referral_pool_percent}% of each booking
                   </Typography>
                   <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                    When someone you refer completes a service, {percentages.referral_pool_percent}% goes to the referral pool.
+                    When someone you refer completes a service, {percentages.referral_pool_percent}% goes to the referral pool for distribution.
                   </Typography>
                 </Box>
                 
                 {/* Commission Table */}
                 <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 1.5, fontSize: { xs: '0.8rem', sm: '0.85rem', md: '0.9rem' } }}>
-                  Commission Distribution (on GHS 500):
+                  Commission Distribution (Example: GHS 500 booking):
                 </Typography>
                 
                 <Box sx={{ mb: 3 }}>
@@ -746,11 +764,11 @@ const ReferralSignup = () => {
                     </Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', py: { xs: 1, sm: 1.2 }, borderBottom: '1px solid #e2e8f0' }}>
-                    <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>Level 0 (Your first - 5%):</Typography>
+                    <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>Level 0 (Self-bonus - 5%):</Typography>
                     <Typography variant="body2" fontWeight="600" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>GHS {(500 * percentages.referral_pool_percent / 100 * 0.05).toFixed(2)}</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', py: { xs: 1, sm: 1.2 }, borderBottom: '1px solid #e2e8f0' }}>
-                    <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>Level 1 (Direct - 20%):</Typography>
+                    <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>Level 1 (Direct referral - 20%):</Typography>
                     <Typography variant="body2" fontWeight="600" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>GHS {(500 * percentages.referral_pool_percent / 100 * 0.2).toFixed(2)}</Typography>
                   </Box>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', py: { xs: 1, sm: 1.2 }, borderBottom: '1px solid #e2e8f0' }}>
@@ -765,22 +783,19 @@ const ReferralSignup = () => {
                 
                 <Divider sx={{ my: 2 }} />
                 
-                {/* Example Earnings */}
+                {/* Important Notes */}
                 <Box sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: '#f0fdf4', borderRadius: { xs: 2, sm: 3 }, mb: 2 }}>
                   <Typography variant="subtitle2" fontWeight="700" sx={{ color: '#10b981', mb: 1, fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
-                    💰 Example: You refer 5 friends
+                    📌 Important Notes:
                   </Typography>
                   <Typography variant="caption" display="block" sx={{ mb: 0.5, fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                    Each friend books GHS 500:
+                    • Self-bonus (5%) applies ONLY to customers on their first booking
                   </Typography>
-                  <Typography variant="caption" display="block" sx={{ color: '#10b981', fontWeight: 600, fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                    • 5 direct × GHS 10 = GHS 50
+                  <Typography variant="caption" display="block" sx={{ mb: 0.5, fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
+                    • Providers earn the same multi-level referral commissions as customers
                   </Typography>
-                  <Typography variant="caption" display="block" sx={{ color: '#10b981', fontWeight: 600, mb: 1, fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                    • Their referrals = GHS 25+
-                  </Typography>
-                  <Typography variant="body2" fontWeight="800" sx={{ color: '#10b981', fontSize: { xs: '0.8rem', sm: '0.85rem' } }}>
-                    Total: GHS 75+
+                  <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
+                    • Minimum withdrawal: GHS 20 to Mobile Money
                   </Typography>
                 </Box>
                 
@@ -794,7 +809,7 @@ const ReferralSignup = () => {
                       Withdraw to Mobile Money
                     </Typography>
                     <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                      Minimum: GHS 20
+                      MTN, Vodafone, AirtelTigo • Minimum GHS 20
                     </Typography>
                   </Box>
                 </Box>
