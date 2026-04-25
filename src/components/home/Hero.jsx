@@ -1,13 +1,32 @@
 import React from 'react'
-import { useAuth } from '../contexts/AuthContext'
 
 const Hero = ({ onGetQuote }) => {
-  const { user, logout } = useAuth()
+  // Helper to get user from sessionStorage
+  const getUser = () => {
+    const userData = sessionStorage.getItem('zivre_user')
+    if (userData) {
+      try {
+        return JSON.parse(userData)
+      } catch (e) {
+        return null
+      }
+    }
+    return null
+  }
 
+  // Handle logout
+  const handleLogout = () => {
+    sessionStorage.removeItem('zivre_token')
+    sessionStorage.removeItem('zivre_user')
+    window.location.href = '/'
+  }
+
+  // Handle Get Started / Go to Dashboard
   const handleGetStarted = () => {
-    // Check if user is logged in
+    const user = getUser()
+    
     if (user) {
-      // Redirect to appropriate dashboard based on role
+      // User is logged in - go to dashboard
       if (user.role === 'customer') {
         window.location.href = '/customer/dashboard'
       } else if (user.role === 'provider') {
@@ -17,14 +36,17 @@ const Hero = ({ onGetQuote }) => {
       }
       return
     }
-
-    // If not logged in, open role modal
+    
+    // User not logged in - open role modal
     window.dispatchEvent(new CustomEvent('open_get_started_modal'))
   }
 
+  // Handle Sign In / Go to Dashboard
   const handleSignIn = () => {
+    const user = getUser()
+    
     if (user) {
-      // If logged in, go to dashboard
+      // User is logged in - go to dashboard
       if (user.role === 'customer') {
         window.location.href = '/customer/dashboard'
       } else if (user.role === 'provider') {
@@ -34,15 +56,12 @@ const Hero = ({ onGetQuote }) => {
       }
       return
     }
-
-    // If not logged in, open sign in modal
+    
+    // User not logged in - open sign in modal
     window.dispatchEvent(new CustomEvent('open_signin_modal'))
   }
 
-  const handleLogout = async () => {
-    await logout()
-    window.location.href = '/'
-  }
+  const user = getUser()
 
   return (
     <section className="hero">
@@ -86,7 +105,6 @@ const Hero = ({ onGetQuote }) => {
           )}
         </div>
 
-        {/* Welcome message when logged in */}
         {user && (
           <div style={{ 
             marginTop: '20px', 
