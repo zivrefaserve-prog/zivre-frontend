@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import {
   Dialog, DialogContent, DialogActions,
   Button, Box, Typography, Step, StepLabel, Stepper,
@@ -15,16 +15,8 @@ const DemoTour = ({ open, onClose, onComplete, steps, title = "Guided Tour" }) =
   const [activeStep, setActiveStep] = useState(0)
   const isLastStep = activeStep === steps.length - 1
 
-  // Reset step when dialog opens
-  useEffect(() => {
-    if (open) {
-      setActiveStep(0)
-    }
-  }, [open])
-
   const handleNext = () => {
     if (isLastStep) {
-      // User COMPLETED the tour
       if (onComplete) onComplete()
       onClose()
       setActiveStep(0)
@@ -38,7 +30,6 @@ const DemoTour = ({ open, onClose, onComplete, steps, title = "Guided Tour" }) =
   }
 
   const handleSkip = () => {
-    // Skip does NOT mark as completed
     setActiveStep(0)
     onClose()
   }
@@ -116,7 +107,7 @@ const DemoTour = ({ open, onClose, onComplete, steps, title = "Guided Tour" }) =
 }
 
 // ============================================
-// HOMEPAGE TOUR (6 steps)
+// HOMEPAGE TOUR (8 steps) - Includes referrals & messaging
 // ============================================
 export const homepageTourSteps = [
   {
@@ -144,8 +135,20 @@ export const homepageTourSteps = [
     tip: '⚠️ IMPORTANT: Never pay before service is complete! Pay directly to the provider after they finish.'
   },
   {
+    title: '💰 Referral Program - Earn Money!',
+    description: 'When you sign up as a customer, you get a unique referral code. Share it with friends. When they complete their first service, YOU earn a commission! Referral earnings can be withdrawn to your Mobile Money.',
+    icon: '💰',
+    tip: 'The more friends you refer, the more you earn! Go to "Referrals" tab in your dashboard to see your code and earnings.'
+  },
+  {
+    title: '💬 Messaging System',
+    description: 'Once you have an active service request, you can message your assigned provider and admin directly through the Messages tab. Get real-time updates about your service.',
+    icon: '💬',
+    tip: 'Check your messages regularly for important updates from your provider.'
+  },
+  {
     title: 'For Service Providers',
-    description: 'Are you a professional? Sign up as a Provider, get verified by admin, and start getting assigned to jobs in your area.',
+    description: 'Are you a professional? Sign up as a Provider, get verified by admin, and start getting assigned to jobs in your area. You can message customers directly.',
     icon: '🔨',
     tip: 'Providers earn directly from customers. No online payment processing fees.'
   },
@@ -158,20 +161,26 @@ export const homepageTourSteps = [
 ]
 
 // ============================================
-// CUSTOMER TOUR (12 steps)
+// CUSTOMER TOUR (15 steps) - Full feature coverage
 // ============================================
 export const customerTourSteps = [
   {
     title: 'Welcome to Your Customer Dashboard!',
-    description: 'This is your command center. From here, you can request services, track your requests, and manage your account.',
+    description: 'This is your command center. From here, you can request services, track your requests, manage referrals, send messages, and more.',
     icon: '👋',
     tip: 'Use the sidebar menu on the left to navigate between different sections.'
   },
   {
     title: 'Dashboard Overview',
-    description: 'See your total spending, active requests, and completed jobs at a glance. You can also view how payments are distributed.',
+    description: 'See your total spending, active requests, and completed jobs at a glance.',
     icon: '📊',
     tip: 'Active requests show services that are currently being processed or in progress.'
+  },
+  {
+    title: '🔔 Notifications',
+    description: 'The bell icon at the top shows your notifications. You will be alerted when a provider is assigned, status changes, or when you receive messages.',
+    icon: '🔔',
+    tip: 'Red badge shows unread notifications. Click to view them.'
   },
   {
     title: 'Available Services',
@@ -184,6 +193,12 @@ export const customerTourSteps = [
     description: 'Click on any service card, then click "Request Service". Fill in your phone number and location details (address, city, region).',
     icon: '📝',
     tip: 'Double-check your phone number - providers will call you on this number!'
+  },
+  {
+    title: '💰 Payment Information',
+    description: 'The green payment banner shows how to pay. You pay the provider DIRECTLY after service completion via Mobile Money or Cash. Never pay before service is done.',
+    icon: '💰',
+    tip: 'Tap the banner to see full payment instructions and WhatsApp support number.'
   },
   {
     title: 'My Requests',
@@ -206,7 +221,7 @@ export const customerTourSteps = [
   {
     title: 'Confirm Completion & Pay',
     description: 'When provider marks job complete, click "Confirm Completion" to verify. Then pay the provider directly via Mobile Money or Cash.',
-    icon: '💰',
+    icon: '✅',
     tip: '⚠️ NEVER pay before service is complete! Pay only after you confirm completion.'
   },
   {
@@ -216,16 +231,22 @@ export const customerTourSteps = [
     tip: 'Honest ratings help maintain quality service standards.'
   },
   {
-    title: 'Messages',
-    description: 'Click "Messages" in the sidebar to communicate with your assigned provider or admin. Send text, images, and files.',
+    title: '💬 Messages',
+    description: 'Click "Messages" in the sidebar to communicate with your assigned provider or admin. Send text, images, and files. Get real-time updates.',
     icon: '💬',
-    tip: 'Check your messages regularly for updates from your provider.'
+    tip: 'Check your messages regularly - providers will message you about arrival times.'
   },
   {
-    title: 'Referral Program',
-    description: 'Go to "Referrals" tab to see your unique referral code and link. Share with friends. When they complete their first service, you earn commissions!',
+    title: '💰 Referral Program - Earn Money!',
+    description: 'Go to "Referrals" tab to see your unique referral code and link. Share with friends. When they complete their first service, YOU earn commissions!',
     icon: '💰',
-    tip: 'Minimum withdrawal is GHS 20. Request payout when you reach the threshold.'
+    tip: 'Minimum withdrawal is GHS 20. Request payout when you reach the threshold. You can also see your referral tree (who you invited).'
+  },
+  {
+    title: 'View Your Referral Tree',
+    description: 'In the Referrals tab, you can see your referral tree - a visual map of everyone you have invited and their earnings.',
+    icon: '🌳',
+    tip: 'See exactly who joined using your code and their commission balance.'
   },
   {
     title: 'Profile Settings',
@@ -236,14 +257,32 @@ export const customerTourSteps = [
 ]
 
 // ============================================
-// PROVIDER TOUR (10 steps)
+// PROVIDER TOUR (13 steps) - Full feature coverage
 // ============================================
 export const providerTourSteps = [
   {
     title: 'Welcome to Your Provider Dashboard!',
-    description: 'This is your workspace. View jobs assigned to you, update status, and track your earnings.',
+    description: 'This is your workspace. View jobs assigned to you, update status, track earnings, and message customers.',
     icon: '👋',
-    tip: 'Complete your profile and get verified by admin to start receiving job assignments.'
+    tip: 'You must be verified by admin before you can receive job assignments.'
+  },
+  {
+    title: 'Verification Status',
+    description: 'Look at your profile card in the sidebar. It shows whether you are verified or pending. Admin must verify you first.',
+    icon: '✅',
+    tip: 'Complete your profile to help admin verify you faster.'
+  },
+  {
+    title: '🔔 Notifications',
+    description: 'The bell icon shows notifications about new job assignments, status updates, and messages from customers.',
+    icon: '🔔',
+    tip: 'Check notifications regularly so you don\'t miss job assignments.'
+  },
+  {
+    title: 'Your Specialization',
+    description: 'Your profile shows your service specialization (e.g., HVAC, Electrical, Plumbing). You will only receive jobs matching your specialization.',
+    icon: '🔧',
+    tip: 'Contact admin if your specialization needs to be updated.'
   },
   {
     title: 'Available Jobs',
@@ -265,7 +304,7 @@ export const providerTourSteps = [
   },
   {
     title: 'Update Job Status',
-    description: 'Click "Start Job" when you begin working. Click "Mark Complete" when you finish. The customer must then confirm.',
+    description: 'Click "Start Job" when you begin working. Click "Mark Complete" when you finish. The customer must then confirm and pay you.',
     icon: '🔄',
     tip: 'Always update status so customers know your progress.'
   },
@@ -276,22 +315,22 @@ export const providerTourSteps = [
     tip: 'Only decline if absolutely necessary - it affects your reliability rating.'
   },
   {
+    title: '💬 Messages',
+    description: 'Use Messages to communicate with customers assigned to you. Keep them updated on your arrival and progress. You can also message admin.',
+    icon: '💬',
+    tip: 'Good communication leads to better ratings and more job assignments!'
+  },
+  {
     title: 'Getting Paid',
     description: 'After you mark complete, customer confirms and pays you DIRECTLY via Mobile Money or Cash. Collect payment when job is done.',
     icon: '💰',
-    tip: '⚠️ You are paid directly by the customer. No online payment processing.'
+    tip: '⚠️ You are paid directly by the customer. No online payment processing. Discuss payment method before starting.'
   },
   {
     title: 'Earnings Overview',
     description: 'Click "Earnings Overview" to see your total earnings, rating, and job history. You earn a percentage of each job (set by admin).',
     icon: '📊',
-    tip: 'Higher ratings lead to more job assignments!'
-  },
-  {
-    title: 'Messages',
-    description: 'Use Messages to communicate with customers assigned to you. Keep them updated on your arrival and progress.',
-    icon: '💬',
-    tip: 'Good communication leads to better ratings and more jobs!'
+    tip: 'Higher ratings lead to more job assignments from admin!'
   },
   {
     title: 'Profile Settings',
@@ -302,12 +341,12 @@ export const providerTourSteps = [
 ]
 
 // ============================================
-// ADMIN TOUR (14 steps)
+// ADMIN TOUR (16 steps) - Full feature coverage
 // ============================================
 export const adminTourSteps = [
   {
     title: 'Welcome to Admin Control Center!',
-    description: 'This is your complete management dashboard. Control services, users, requests, referrals, and system settings.',
+    description: 'This is your complete management dashboard. Control services, users, requests, referrals, messages, and system settings.',
     icon: '👑',
     tip: 'Use the sidebar to navigate between different management sections.'
   },
@@ -316,6 +355,18 @@ export const adminTourSteps = [
     description: 'View key metrics: Total Users, Total Revenue, Admin Fees, Site Fees, Provider Payouts, Pending Approvals, Active Services, and Comments.',
     icon: '📊',
     tip: 'Pending Approval shows requests waiting for provider assignment.'
+  },
+  {
+    title: '🔔 Notifications',
+    description: 'The bell icon shows system notifications about new requests, assignments, and withdrawals. Keep an eye on it.',
+    icon: '🔔',
+    tip: 'Red badge indicates unread notifications.'
+  },
+  {
+    title: '💬 Messages',
+    description: 'Click "Messages" in the sidebar to communicate with customers and providers. You can message any user on the platform.',
+    icon: '💬',
+    tip: 'Use messages to resolve disputes or provide support.'
   },
   {
     title: 'Service Management',
@@ -342,6 +393,12 @@ export const adminTourSteps = [
     tip: 'Only verify providers after confirming their credentials.'
   },
   {
+    title: 'View User Full Details',
+    description: 'Click "View Full Details" on any user to see their complete profile, service request history, comments, and more in a modal window.',
+    icon: '👁️',
+    tip: 'Use this to investigate issues or review provider performance.'
+  },
+  {
     title: 'Quote Requests',
     description: 'View and manage quote requests from the homepage contact form. Update status: Pending → Contacted → Closed.',
     icon: '📝',
@@ -349,7 +406,7 @@ export const adminTourSteps = [
   },
   {
     title: 'Assign Providers',
-    description: 'Match customer requests with verified providers. Select a provider from the dropdown and click "Assign Provider". Both parties are notified.',
+    description: 'Match customer requests with verified providers. Select a provider from the dropdown and click "Assign Provider". Provider and customer are both notified.',
     icon: '📌',
     tip: 'Only providers with matching specialization appear in the dropdown.'
   },
@@ -366,14 +423,14 @@ export const adminTourSteps = [
     tip: 'Approve genuine reviews quickly to build trust.'
   },
   {
-    title: 'Referral System',
-    description: 'Manage withdrawal requests, view pending bookings, see service shares (read-only from Percentage Settings), and view user referral trees.',
+    title: '💰 Referral System',
+    description: 'Manage withdrawal requests from users, view pending bookings awaiting confirmation, and view user referral trees.',
     icon: '💰',
     tip: 'Withdrawals must be marked as sent only after you actually send the money.'
   },
   {
-    title: 'Pending Withdrawals',
-    description: 'Review withdrawal requests from users. Verify details, then click "Mark as Sent" after you send the money. User will confirm receipt.',
+    title: 'Pending Withdrawals & Service Shares',
+    description: 'Review withdrawal requests. Verify details, then click "Mark as Sent" after you send the money. Service Shares are read-only from Percentage Settings.',
     icon: '💸',
     tip: 'Always verify account details before sending money.'
   },
@@ -382,17 +439,11 @@ export const adminTourSteps = [
     description: 'Update the payment numbers displayed on the payment banner. This includes Mobile Money numbers and WhatsApp support.',
     icon: '⚙️',
     tip: 'Keep these numbers updated - customers use them to pay providers.'
-  },
-  {
-    title: 'All Requests History',
-    description: 'View complete history of all service requests. You can reject pending requests or permanently delete any request.',
-    icon: '📜',
-    tip: 'Deleting a request is permanent - use with caution.'
   }
 ]
 
 // ============================================
-// TOUR BUTTON COMPONENT (Manual start button)
+// TOUR BUTTON COMPONENT
 // ============================================
 export const TourButton = ({ tourSteps, title = "Guided Tour" }) => {
   const [tourOpen, setTourOpen] = useState(false)
