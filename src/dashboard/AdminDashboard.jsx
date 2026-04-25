@@ -179,8 +179,16 @@ const AdminDashboard = () => {
     setAssigningRequest(requestId)
     try {
       await approveAndAssignRequest(requestId, providerId)
-      showToast('Provider assigned successfully! Both parties have been notified.', 'success')
-      // Clear the state for this request
+      showToast('Provider assigned successfully!', 'success')
+      
+      // ✅ Update local state instantly
+      const providerName = selectedProviderForRequest[requestId]
+      setRequests(prev => prev.map(req =>
+        req.id === requestId
+          ? { ...req, status: 'assigned', provider_id: providerId, provider_name: providerName }
+          : req
+      ))
+      
       setSelectedProviderForRequest(prev => {
         const newState = { ...prev }
         delete newState[requestId]
@@ -191,7 +199,10 @@ const AdminDashboard = () => {
         delete newState[requestId]
         return newState
       })
-      await loadData()
+      
+      // ✅ Background refresh (no spinner)
+      loadData(false)
+      
     } catch (err) {
       showToast(err.response?.data?.error || 'Error assigning provider', 'error')
     } finally {
@@ -200,18 +211,15 @@ const AdminDashboard = () => {
   }
 
   // Main data loading function
-  const loadData = useCallback(async () => {
-    if (user?.role !== 'admin') {
-      console.log('Not admin, skipping data load')
-      return
-    }
+
+  const loadData = useCallback(async (showSpinner = true) => {
+    if (user?.role !== 'admin') return
     
-    setRefreshing(true)
+    if (showSpinner) {
+      setRefreshing(true)  // ← Only show spinner on manual refresh
+    }
     try {
-      // Show dashboard shell immediately
       setLoading(false)
-      
-      // Load data in background (doesn't block UI)
       const [statsRes, servicesRes, quotesRes, requestsRes, usersRes, commentsRes] = await Promise.all([
         getAdminStats(),
         getServices(false),
@@ -228,12 +236,15 @@ const AdminDashboard = () => {
       setComments(commentsRes.data)
     } catch (err) {
       console.error(err)
-      showToast('Error loading data', 'error')
+      if (showSpinner) {
+        showToast('Error loading data', 'error')
+      }
     } finally {
-      setRefreshing(false)
+      if (showSpinner) {
+        setRefreshing(false)
+      }
     }
   }, [user])
-
   // Load unread counts
   const loadUnreadCounts = useCallback(async () => {
     if (user?.role !== 'admin') return
@@ -617,7 +628,17 @@ const handleDeleteRequestPermanently = async (requestId) => {
     try {
       const res = await toggleServiceActive(serviceId)
       showToast(res.data.message)
-      await loadData()
+      
+      // ✅ Update local state instantly - NO SPINNER
+      setServices(prev => prev.map(service =>
+        service.id === serviceId
+          ? { ...service, is_active: !service.is_active }
+          : service
+      ))
+      
+      // ✅ Background refresh (no spinner, keeps data in sync)
+      loadData(false)
+      
     } catch (err) {
       showToast(err.response?.data?.error || 'Error toggling service', 'error')
     } finally {
@@ -678,20 +699,39 @@ const handleDeleteRequestPermanently = async (requestId) => {
     try {
       await verifyUser(userId)
       showToast('Provider verified successfully', 'success')
-      await loadData()
+      
+      // ✅ Update local state instantly
+      setUsers(prev => prev.map(user =>
+        user.id === userId
+          ? { ...user, is_verified: true }
+          : user
+      ))
+      
+      // ✅ Background refresh
+      loadData(false)
+      
     } catch (err) {
       showToast(err.response?.data?.error || 'Error verifying user', 'error')
     } finally {
       setActionLoading(false)
     }
   }
-
   const handleSuspendUser = async (userId, currentStatus) => {
     setActionLoading(true)
     try {
       await suspendUser(userId)
       showToast(`User ${currentStatus ? 'suspended' : 'activated'} successfully`, 'success')
-      await loadData()
+      
+      // ✅ Update local state instantly
+      setUsers(prev => prev.map(user =>
+        user.id === userId
+          ? { ...user, is_active: !currentStatus }
+          : user
+      ))
+      
+      // ✅ Background refresh
+      loadData(false)
+      
     } catch (err) {
       console.error('Suspend error:', err)
       showToast(err.response?.data?.error || 'Error updating user status', 'error')
@@ -705,10 +745,17 @@ const handleDeleteRequestPermanently = async (requestId) => {
     try {
       await deleteUser(userId)
       showToast(`${userName} has been deleted`, 'success')
-      await loadData()
+      
+      // ✅ Update local state instantly
+      setUsers(prev => prev.filter(user => user.id !== userId))
+      
       setOpenUserModal(false)
       setSelectedUser(null)
       setSelectedUserDetails(null)
+      
+      // ✅ Background refresh
+      loadData(false)
+      
     } catch (err) {
       showToast(err.response?.data?.error || 'Error deleting user', 'error')
     } finally {
@@ -897,7 +944,7 @@ const handleDeleteRequestPermanently = async (requestId) => {
                   sx={{ width: isMobile ? 200 : 280, bgcolor: 'white', borderRadius: 2 }}
                 />
               )}
-              <IconButton onClick={loadData} disabled={refreshing} sx={{ bgcolor: 'white' }}>
+              <IconButton onClick={() => loadData(true)} disabled={refreshing} sx={{ bgcolor: 'white' }}>
                 {refreshing ? <CircularProgress size={24} sx={{ color: '#10b981' }} /> : <RefreshIcon />}
               </IconButton>
               <IconButton onClick={() => setMobileOpen(!mobileOpen)} sx={{ display: { xs: 'flex', md: 'none' } }}>
