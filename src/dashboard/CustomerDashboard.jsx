@@ -176,15 +176,14 @@ const CustomerDashboard = () => {
   }
 
   // Main data loading function
-  const loadData = useCallback(async () => {
+  const loadData = useCallback(async (showSpinner = true) => {
     if (!user?.id) return
     
-    setRefreshing(true)
+    if (showSpinner) {
+      setRefreshing(true)  // ← Only show spinner on manual refresh
+    }
     try {
-      // Show dashboard shell immediately
       setLoading(false)
-      
-      // Load data in background (doesn't block UI)
       const [servicesRes, requestsRes, notifRes] = await Promise.all([
         getServices(true),
         getUserRequests(user.id),
@@ -193,14 +192,17 @@ const CustomerDashboard = () => {
       setServices(servicesRes.data)
       setRequests(requestsRes.data)
       setNotifications(notifRes.data)
-      
       const totalSpentForUser = requestsRes.data.reduce((sum, r) => sum + r.amount, 0)
       setTotalSpent(totalSpentForUser)
     } catch (err) {
       console.error(err)
-      showToast('Error loading data', 'error')
+      if (showSpinner) {
+        showToast('Error loading data', 'error')
+      }
     } finally {
-      setRefreshing(false)
+      if (showSpinner) {
+        setRefreshing(false)
+      }
     }
   }, [user?.id])
 
@@ -335,7 +337,7 @@ const CustomerDashboard = () => {
 
   const handleRequest = async () => {
     if (!locationData.address || !locationData.city || !locationData.region) {
-      showToast('Please fill in your location details (Address, City, and Region)', 'error')
+      showToast('Please fill in your location details', 'error')
       return
     }
     if (!locationData.customer_phone) {
@@ -344,7 +346,7 @@ const CustomerDashboard = () => {
     }
     setActionLoading(true)
     try {
-      await createRequest({
+      const response = await createRequest({
         user_id: user.id,
         service_id: selectedService.id,
         location_address: locationData.address,
@@ -353,10 +355,27 @@ const CustomerDashboard = () => {
         location_landmark: locationData.landmark,
         customer_phone: locationData.customer_phone
       })
-      showToast(' Request submitted successfully! Admin will review and assign a provider. You will pay the provider directly after service completion.', 'success')
+      showToast('Request submitted successfully!', 'success')
+      
+      // ✅ Add to local state instantly
+      const newRequest = {
+        id: response.data.request_id,
+        service_name: selectedService.name,
+        amount: selectedService.total_price,
+        status: 'pending_approval',
+        created_at: new Date().toISOString(),
+        location_address: locationData.address,
+        location_city: locationData.city,
+        location_region: locationData.region
+      }
+      setRequests(prev => [newRequest, ...prev])
+      
       setOpenRequestModal(false)
       setSelectedService(null)
-      await loadData()
+      
+      // ✅ Background refresh
+      loadData(false)
+      
     } catch (err) {
       showToast(err.response?.data?.error || 'Error submitting request', 'error')
     } finally {
@@ -378,27 +397,43 @@ const CustomerDashboard = () => {
   }
 
 
-const handleCancelRequest = async (requestId) => {
-  if (!window.confirm('Are you sure you want to cancel this request? This cannot be undone.')) return
-  
-  setActionLoading(requestId)
-  try {
-    await cancelRequest(requestId)
-    showToast('Request cancelled successfully', 'success')
-    await loadData()
-  } catch (err) {
-    showToast(err.response?.data?.error || 'Error cancelling request', 'error')
-  } finally {
-    setActionLoading(null)
+  const handleCancelRequest = async (requestId) => {
+    if (!window.confirm('Are you sure you want to cancel this request?')) return
+    
+    setActionLoading(requestId)
+    try {
+      await cancelRequest(requestId)
+      showToast('Request cancelled successfully', 'success')
+      
+      // ✅ Update local state instantly
+      setRequests(prev => prev.filter(req => req.id !== requestId))
+      
+      // ✅ Background refresh
+      loadData(false)
+      
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Error cancelling request', 'error')
+    } finally {
+      setActionLoading(null)
+    }
   }
-}
   
   const handleConfirmCompletion = async (requestId) => {
     setActionLoading(true)
     try {
       await confirmRequestCompletion(requestId)
       showToast('✅ Completion confirmed! Thank you for using Zivre!', 'success')
-      await loadData()
+      
+      // ✅ Update local state instantly
+      setRequests(prev => prev.map(req =>
+        req.id === requestId
+          ? { ...req, status: 'confirmed', customer_confirmed: true }
+          : req
+      ))
+      
+      // ✅ Background refresh
+      loadData(false)
+      
     } catch (err) {
       showToast(err.response?.data?.error || 'Error confirming completion', 'error')
     } finally {
@@ -535,7 +570,7 @@ const handleCancelRequest = async (requestId) => {
                   sx={{ width: isMobile ? 200 : 280, bgcolor: 'white', borderRadius: 2 }}
                 />
               )}
-              <IconButton onClick={loadData} disabled={refreshing} sx={{ bgcolor: 'white' }}>
+              <IconButton onClick={() => loadData(true)} disabled={refreshing} sx={{ bgcolor: 'white' }}>
                 {refreshing ? <CircularProgress size={24} sx={{ color: '#10b981' }} /> : <RefreshIcon />}
               </IconButton>
             </Box>
