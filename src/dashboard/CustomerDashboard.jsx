@@ -861,6 +861,7 @@ const handleCancelRequest = async (requestId) => {
           </Dialog>
         </Box>
       </Box>
+      <RoleBasedTour />
     </>
   )
 }
