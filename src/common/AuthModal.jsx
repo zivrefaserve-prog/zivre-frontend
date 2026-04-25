@@ -281,11 +281,21 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
                 <TextField
                   fullWidth
                   size="small"
-                  label="Referral Code (Optional)"
+                  label="Referral Code or Link (Optional)"
                   value={formData.referral_code}
-                  onChange={(e) => setFormData({ ...formData, referral_code: e.target.value })}
+                  onChange={(e) => {
+                    let input = e.target.value;
+                    // Auto-extract referral code from full link if pasted
+                    if (input.includes('ref=')) {
+                      const match = input.match(/ref=([A-Za-z0-9]+)/);
+                      if (match && match[1]) {
+                        input = match[1];
+                      }
+                    }
+                    setFormData({ ...formData, referral_code: input });
+                  }}
                   margin="dense"
-                  helperText="If someone referred you, enter their code here"
+                  helperText="You can paste the referral link or just the code"
                   sx={{ mb: 1.5 }}
                 />
 
