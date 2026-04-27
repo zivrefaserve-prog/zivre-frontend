@@ -308,7 +308,7 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             {/* ✅ NOTIFICATION BELL - ALWAYS VISIBLE (Mobile + Desktop) */}
-            <NotificationDropdown />
+            {user && <NotificationDropdown />}
             
             {/* DESKTOP ONLY - Full navigation and user menu */}
             {!isMobile && (
