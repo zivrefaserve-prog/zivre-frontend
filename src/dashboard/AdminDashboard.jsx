@@ -665,33 +665,32 @@ const handleDeleteRequestPermanently = async (requestId) => {
   }
 
   const handleToggleService = async (serviceId) => {
-    // ✅ Get the current service state BEFORE changing
+    // ✅ Get current state BEFORE changing
     const currentService = services.find(s => s.id === serviceId)
     const newActiveState = !currentService?.is_active
     
-    // ✅ CHANGE THE SWITCH IMMEDIATELY (optimistic update)
+    // ✅ OPTIMISTIC UPDATE - Change UI immediately
     setServices(prev => prev.map(service =>
       service.id === serviceId
         ? { ...service, is_active: newActiveState }
         : service
     ))
     
-    // ✅ Disable the switch while API call runs (prevents double-click)
+    // ✅ Disable switch during API call
     setActionLoading(serviceId)
     
     try {
       const res = await toggleServiceActive(serviceId)
       showToast(res.data.message)
       
-      // ✅ If API succeeded, keep the new state (already updated)
-      // ✅ Background refresh to sync with server
+      // ✅ Background refresh to ensure consistency
       loadData(false)
       
     } catch (err) {
-      // ✅ If API FAILED, revert the switch back to original state
+      // ✅ REVERT on error - put the switch back
       setServices(prev => prev.map(service =>
         service.id === serviceId
-          ? { ...service, is_active: !newActiveState }  // Revert!
+          ? { ...service, is_active: !newActiveState }
           : service
       ))
       showToast(err.response?.data?.error || 'Error toggling service', 'error')
