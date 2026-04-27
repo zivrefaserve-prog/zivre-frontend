@@ -300,105 +300,116 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
             </Typography>
           </Box>
 
-          {!isMobile && (
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              {!hideNavLinks && navItems.map((item) => (
-                <Button key={item.label} color="inherit" onClick={() => {
-                  blurActiveElement()
-                  item.action()
-                }} sx={{ color: '#475569' }}>
-                  {item.label}
-                </Button>
-              ))}
-              {user ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  {/* FIXED: Referrals button - admin goes to /admin/referrals */}
-                  <Button 
-                    onClick={handleReferralsClick}
-                    sx={{ color: '#10b981', fontWeight: 500 }}
-                    startIcon={<ShareIcon />}
-                  >
-                    {getReferralsButtonText()}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {/* ✅ NOTIFICATION BELL - ALWAYS VISIBLE (Mobile + Desktop) */}
+            <NotificationDropdown />
+            
+            {/* DESKTOP ONLY - Full navigation and user menu */}
+            {!isMobile && (
+              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                {!hideNavLinks && navItems.map((item) => (
+                  <Button key={item.label} color="inherit" onClick={() => {
+                    blurActiveElement()
+                    item.action()
+                  }} sx={{ color: '#475569' }}>
+                    {item.label}
                   </Button>
-                  <NotificationDropdown />
-                  <Tooltip title="Account">
-                    <Avatar 
-                      sx={{ bgcolor: '#10b981', cursor: 'pointer', width: 40, height: 40 }} 
-                      onClick={handleMenuOpen}
+                ))}
+                {user ? (
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Button 
+                      onClick={handleReferralsClick}
+                      sx={{ color: '#10b981', fontWeight: 500 }}
+                      startIcon={<ShareIcon />}
                     >
-                      {user.full_name?.charAt(0).toUpperCase()}
-                    </Avatar>
-                  </Tooltip>
-                  <Menu
-                    anchorEl={anchorEl}
-                    open={Boolean(anchorEl)}
-                    onClose={handleMenuClose}
-                    transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                    anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-                  >
-                    <Box sx={{ px: 2, py: 1.5, minWidth: 200 }}>
-                      <Typography variant="subtitle2" fontWeight="bold">{user.full_name}</Typography>
-                      <Typography variant="caption" color="text.secondary">{user.email}</Typography>
-                    </Box>
-                    <Divider />
-                    <MenuItem onClick={() => { 
-                      blurActiveElement()
-                      handleMenuClose(); 
-                      window.location.href = '/'; 
-                    }}>
-                      <HomeIcon sx={{ mr: 1.5, fontSize: 20 }} /> Homepage
-                    </MenuItem>
-                    <MenuItem onClick={() => { 
-                      blurActiveElement()
-                      handleMenuClose(); 
-                      window.location.href = getDashboardUrl(); 
-                    }}>
-                      <DashboardIcon sx={{ mr: 1.5, fontSize: 20 }} /> Dashboard
-                    </MenuItem>
-                    {/* FIXED: Menu dropdown referrals link */}
-                    <MenuItem onClick={() => { 
-                      blurActiveElement()
-                      handleMenuClose(); 
-                      window.location.href = getReferralsUrl(); 
-                    }}>
-                      <ShareIcon sx={{ mr: 1.5, fontSize: 20 }} /> {getReferralsButtonText()}
-                    </MenuItem>
-                    <MenuItem onClick={() => { 
-                      blurActiveElement()
-                      handleMenuClose(); 
-                      window.location.href = '/messages'; 
-                    }}>
-                      <MessageIcon sx={{ mr: 1.5, fontSize: 20 }} /> Messages
-                    </MenuItem>
-                    <MenuItem onClick={() => { 
-                      blurActiveElement()
-                      handleMenuClose(); 
-                      window.location.href = '/profile'; 
-                    }}>
-                      <SettingsIcon sx={{ mr: 1.5, fontSize: 20 }} /> Profile Settings
-                    </MenuItem>
-                    <Divider />
-                    <MenuItem onClick={() => { 
-                      blurActiveElement()
-                      handleMenuClose(); 
-                      logout(); 
-                    }} sx={{ color: '#ef4444' }}>
-                      <LogoutIcon sx={{ mr: 1.5, fontSize: 20 }} /> Logout
-                    </MenuItem>
-                  </Menu>
-                </Box>
-              ) : (
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button variant="outlined" onClick={handleSignIn} sx={{ borderColor: '#10b981', color: '#10b981' }}>
-                    Sign In
-                  </Button>
-                  <Button variant="contained" onClick={handleBookService} sx={{ bgcolor: '#10b981' }}>
-                    Get Started
-                  </Button>
-                </Box>
-              )}
-            </Box>
-          )}
+                      {getReferralsButtonText()}
+                    </Button>
+                    {/* NotificationDropdown REMOVED from here - now outside */}
+                    <Tooltip title="Account">
+                      <Avatar 
+                        sx={{ bgcolor: '#10b981', cursor: 'pointer', width: 40, height: 40 }} 
+                        onClick={handleMenuOpen}
+                      >
+                        {user.full_name?.charAt(0).toUpperCase()}
+                      </Avatar>
+                    </Tooltip>
+                    <Menu
+                      anchorEl={anchorEl}
+                      open={Boolean(anchorEl)}
+                      onClose={handleMenuClose}
+                      transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                      anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                    >
+                      <Box sx={{ px: 2, py: 1.5, minWidth: 200 }}>
+                        <Typography variant="subtitle2" fontWeight="bold">{user.full_name}</Typography>
+                        <Typography variant="caption" color="text.secondary">{user.email}</Typography>
+                      </Box>
+                      <Divider />
+                      <MenuItem onClick={() => { 
+                        blurActiveElement()
+                        handleMenuClose(); 
+                        window.location.href = '/'; 
+                      }}>
+                        <HomeIcon sx={{ mr: 1.5, fontSize: 20 }} /> Homepage
+                      </MenuItem>
+                      <MenuItem onClick={() => { 
+                        blurActiveElement()
+                        handleMenuClose(); 
+                        window.location.href = getDashboardUrl(); 
+                      }}>
+                        <DashboardIcon sx={{ mr: 1.5, fontSize: 20 }} /> Dashboard
+                      </MenuItem>
+                      <MenuItem onClick={() => { 
+                        blurActiveElement()
+                        handleMenuClose(); 
+                        window.location.href = getReferralsUrl(); 
+                      }}>
+                        <ShareIcon sx={{ mr: 1.5, fontSize: 20 }} /> {getReferralsButtonText()}
+                      </MenuItem>
+                      <MenuItem onClick={() => { 
+                        blurActiveElement()
+                        handleMenuClose(); 
+                        window.location.href = '/messages'; 
+                      }}>
+                        <MessageIcon sx={{ mr: 1.5, fontSize: 20 }} /> Messages
+                      </MenuItem>
+                      <MenuItem onClick={() => { 
+                        blurActiveElement()
+                        handleMenuClose(); 
+                        window.location.href = '/profile'; 
+                      }}>
+                        <SettingsIcon sx={{ mr: 1.5, fontSize: 20 }} /> Profile Settings
+                      </MenuItem>
+                      <Divider />
+                      <MenuItem onClick={() => { 
+                        blurActiveElement()
+                        handleMenuClose(); 
+                        logout(); 
+                      }} sx={{ color: '#ef4444' }}>
+                        <LogoutIcon sx={{ mr: 1.5, fontSize: 20 }} /> Logout
+                      </MenuItem>
+                    </Menu>
+                  </Box>
+                ) : (
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button variant="outlined" onClick={handleSignIn} sx={{ borderColor: '#10b981', color: '#10b981' }}>
+                      Sign In
+                    </Button>
+                    <Button variant="contained" onClick={handleBookService} sx={{ bgcolor: '#10b981' }}>
+                      Get Started
+                    </Button>
+                  </Box>
+                )}
+              </Box>
+            )}
+            
+            {/* MOBILE ONLY - Hamburger menu button */}
+            {isMobile && (
+              <IconButton onClick={handleDrawerToggle} sx={{ color: '#10b981' }}>
+                <MenuIcon />
+              </IconButton>
+            )}
+          </Box>
         </Toolbar>
       </AppBar>
       
