@@ -152,24 +152,13 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         const res = await signup(userData)
         
         // ✅ CHECK IF EMAIL VERIFICATION IS REQUIRED
-        if (res.data && res.data.requires_verification) {
-          // Show verification message instead of auto-login
-          setVerificationMessage(`Verification email sent to ${res.data.email}. Please check your inbox and spam folder to verify your account before logging in.`)
-          // Clear form
-          setFormData({
-            full_name: '',
-            email: '',
-            phone: '',
-            password: '',
-            confirm_password: '',
-            service_specialization: '',
-            referral_code: ''
-          })
-          setLoading(false)
-          // Don't close modal - show message
-          return
-        }
-        
+      if (res.data && res.data.requires_verification) {
+        // Close the modal
+        onClose()
+        // Navigate to verification sent page with email
+        window.location.href = `/verification-sent?email=${encodeURIComponent(res.data.email)}`
+        return
+      }
         // If no verification required (old flow or existing users)
         onSuccess(res.user)
         onClose()
