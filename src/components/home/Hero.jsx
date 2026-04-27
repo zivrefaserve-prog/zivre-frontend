@@ -80,7 +80,7 @@ const Hero = ({ onGetQuote }) => {
               ZIVRE
             </span>
             <br />
-            giving life to facilities
+            Giving Life to Facilities
             <br />
             <span className="hero-highlight">Across Ghana</span>
           </h1>
