@@ -27,6 +27,7 @@ import { keepAlive } from './api/client'
 import LoadingOverlay from './common/LoadingOverlay'
 import UserReferralDashboard from './pages/UserReferralDashboard'
 import AdminReferralDashboard from './pages/AdminReferralDashboard'
+import VerifyEmail from './pages/VerifyEmail'
 import './App.css'
 
 // Force mobile breakpoints in theme
@@ -222,6 +223,7 @@ const AppRoutes = () => {
       <LoadingOverlay open={authLoading} message={authLoading ? "Logging out..." : ""} />
       
       <Routes>
+        <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/signup" element={<ReferralSignup />} />
         <Route path="/profile" element={
