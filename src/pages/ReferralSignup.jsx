@@ -177,10 +177,18 @@ const ReferralSignup = () => {
         return
       }
       
+      // Check if email verification is required
+      if (res.data && res.data.requires_verification) {
+        // Redirect to verification sent page
+        navigate(`/verification-sent?email=${encodeURIComponent(res.data.email)}`)
+        return
+      }
+      
       setSuccess('Account created successfully! Redirecting to dashboard...')
       setTimeout(() => {
         navigate('/customer/dashboard')
       }, 2000)
+      
     } catch (err) {
       const errorMsg = err.response?.data?.error
       if (errorMsg === 'Email already exists') {
