@@ -30,8 +30,18 @@ const VerificationSent = () => {
     setResendSuccess('')
     
     try {
-      await resendVerification({ email: resendEmail })
+      // ✅ Pass BOTH the new email AND the original email from URL
+      await resendVerification({ 
+        email: resendEmail,
+        original_email: initialEmail   // ← THIS IS THE KEY FIX
+      })
+      
       setResendSuccess(`✓ Verification email sent to ${resendEmail}! Please check your inbox.`)
+      
+      // ✅ After successful email change, update the displayed email
+      // and close the change email mode
+      setShowChangeEmail(false)
+      
     } catch (err) {
       setResendError(err.response?.data?.error || 'Failed to resend verification email')
     } finally {
