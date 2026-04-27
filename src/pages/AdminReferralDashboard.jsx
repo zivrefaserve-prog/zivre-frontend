@@ -15,7 +15,8 @@ import {
   TrendingUp as TrendingUpIcon,
   Receipt as ReceiptIcon,
   Search as SearchIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Download as DownloadIcon
 } from '@mui/icons-material'
 import Header from '../layout/Header'
 import Footer from '../layout/Footer'
@@ -27,7 +28,8 @@ import {
   getServices,
   updateServiceShares,
   getUserTreeForAdmin,
-  getPercentages   // ← ADD THIS
+  getPercentages,
+  downloadWithdrawalReceipt
 } from '../api/client'
 
 const AdminReferralDashboard = () => {
@@ -61,6 +63,24 @@ const AdminReferralDashboard = () => {
     setTimeout(() => setToast(null), 3000)
   }
 
+  // NEW: Download receipt handler for admin
+  const handleDownloadReceipt = async (withdrawalId) => {
+    try {
+      const response = await downloadWithdrawalReceipt(withdrawalId)
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `Zivre_Receipt_${withdrawalId}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+      showToast('Receipt downloaded!', 'success')
+    } catch (err) {
+      showToast('Error downloading receipt', 'error')
+    }
+  }
+
   const loadPercentages = async () => {
     try {
         const res = await getPercentages()
@@ -69,6 +89,7 @@ const AdminReferralDashboard = () => {
         console.error('Error loading percentages:', err)
     }
   }
+  
   const loadData = async () => {
       setRefreshing(true)
       try {
@@ -82,7 +103,7 @@ const AdminReferralDashboard = () => {
         setOwnerNet(ownerNetRes.data)
         setPendingBookings(bookingsRes.data)
         setServices(servicesRes.data)
-        await loadPercentages()  // ← ADD THIS LINE
+        await loadPercentages()
       } catch (err) {
         console.error('Error loading admin referral data:', err)
         showToast('Error loading data', 'error')
@@ -100,41 +121,34 @@ const AdminReferralDashboard = () => {
     }
   }, [user])
 
-    // ========== REALTIME WEBSOCKET UPDATES ==========
   useEffect(() => {
-    // Handle new withdrawal request
     const handleNewWithdrawal = (event) => {
       console.log('💰 New withdrawal request:', event.detail)
       showToast(`New withdrawal request from ${event.detail.user_name} for GHS${event.detail.amount}`, 'info')
       loadData()
     }
     
-    // Handle withdrawal status change
     const handleWithdrawalUpdated = (event) => {
       console.log('🔄 Withdrawal updated:', event.detail)
       loadData()
     }
     
-    // Handle booking confirmed (triggers commissions)
     const handleBookingConfirmed = (event) => {
       console.log('✅ Booking confirmed:', event.detail)
       showToast(`Booking #${event.detail.booking_id} confirmed. Commissions processed.`, 'success')
       loadData()
     }
     
-    // Handle percentage update
     const handlePercentagesUpdated = (event) => {
       console.log('📊 Percentages updated:', event.detail)
       loadData()
     }
     
-    // Handle service shares update
     const handleServiceSharesUpdated = (event) => {
       console.log('🔄 Service shares updated:', event.detail)
       loadData()
     }
     
-    // Add event listeners
     window.addEventListener('new_withdrawal_request', handleNewWithdrawal)
     window.addEventListener('withdrawal_updated', handleWithdrawalUpdated)
     window.addEventListener('booking_confirmed', handleBookingConfirmed)
@@ -150,7 +164,6 @@ const AdminReferralDashboard = () => {
     }
   }, [loadData, showToast])
 
-  
   const handleMarkAsSent = async () => {
     if (!selectedWithdrawal) return
     
@@ -274,7 +287,6 @@ const AdminReferralDashboard = () => {
           </IconButton>
         </Box>
 
-        {/* Owner Net Summary Cards */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid size={{ xs: 12, md: 4 }}>
             <Card sx={{ bgcolor: '#e8f5e9' }}>
@@ -325,7 +337,7 @@ const AdminReferralDashboard = () => {
           <Tab label="User Tree Viewer" icon={<SearchIcon />} iconPosition="start" />
         </Tabs>
 
-        {/* Tab 0: Pending Withdrawals */}
+        {/* Tab 0: Pending Withdrawals - MODIFIED: Added Receipt column and download button */}
         {tabValue === 0 && (
           <Card>
             <CardContent>
@@ -333,20 +345,20 @@ const AdminReferralDashboard = () => {
               <TableContainer component={Paper}>
                 <Table>
                   <TableHead sx={{ bgcolor: '#f8fafc' }}>
-                      <TableRow>
-                          <TableCell>Service</TableCell>
-                          <TableCell align="center">Admin Share (%)</TableCell>
-                          <TableCell align="center">Website Share (%)</TableCell>
-                          <TableCell align="center">Provider Share (%)</TableCell>
-                          <TableCell align="center">Referral Pool (%)</TableCell>
-                          <TableCell align="center">Total</TableCell>
-                          <TableCell>Actions</TableCell>
-                      </TableRow>
+                    <TableRow>
+                      <TableCell>User</TableCell>
+                      <TableCell>Amount</TableCell>
+                      <TableCell>Method</TableCell>
+                      <TableCell>Account Details</TableCell>
+                      <TableCell>Date</TableCell>
+                      <TableCell>Receipt</TableCell>
+                      <TableCell>Actions</TableCell>
+                    </TableRow>
                   </TableHead>
                   <TableBody>
                     {pendingWithdrawals.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={6} align="center">No pending withdrawals</TableCell>
+                        <TableCell colSpan={7} align="center">No pending withdrawals</TableCell>
                       </TableRow>
                     ) : (
                       pendingWithdrawals.map((w) => (
@@ -369,18 +381,40 @@ const AdminReferralDashboard = () => {
                             <Typography variant="caption" color="text.secondary">{w.user_phone}</Typography>
                           </TableCell>
                           <TableCell>{new Date(w.requested_at).toLocaleDateString()}</TableCell>
+                          {/* NEW: Receipt column with download button (only for processed withdrawals) */}
                           <TableCell>
-                            <Button
-                              size="small"
-                              variant="contained"
-                              onClick={() => {
-                                setSelectedWithdrawal(w)
-                                setMarkSentModalOpen(true)
-                              }}
-                              sx={{ bgcolor: '#10b981' }}
-                            >
-                              Mark as Sent
-                            </Button>
+                            {(w.status === 'admin_sent' || w.status === 'user_confirmed') && (
+                              <Tooltip title="Download Receipt">
+                                <IconButton 
+                                  size="small" 
+                                  onClick={() => handleDownloadReceipt(w.id)}
+                                  sx={{ color: '#10b981' }}
+                                >
+                                  <DownloadIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {w.status === 'pending' && (
+                              <Button
+                                size="small"
+                                variant="contained"
+                                onClick={() => {
+                                  setSelectedWithdrawal(w)
+                                  setMarkSentModalOpen(true)
+                                }}
+                                sx={{ bgcolor: '#10b981' }}
+                              >
+                                Mark as Sent
+                              </Button>
+                            )}
+                            {w.status === 'admin_sent' && (
+                              <Chip label="Waiting Confirmation" size="small" sx={{ bgcolor: '#e3f2fd', color: '#2196f3' }} />
+                            )}
+                            {w.status === 'user_confirmed' && (
+                              <Chip label="Completed" size="small" sx={{ bgcolor: '#e8f5e9', color: '#4caf50' }} />
+                            )}
                           </TableCell>
                         </TableRow>
                       ))
@@ -392,7 +426,7 @@ const AdminReferralDashboard = () => {
           </Card>
         )}
 
-        {/* Tab 1: Pending Bookings */}
+        {/* Tab 1: Pending Bookings - UNCHANGED */}
         {tabValue === 1 && (
           <Card>
             <CardContent>
@@ -436,7 +470,7 @@ const AdminReferralDashboard = () => {
           </Card>
         )}
 
-        {/* Tab 2: Service Shares - READ-ONLY */}
+        {/* Tab 2: Service Shares - READ-ONLY - UNCHANGED */}
         {tabValue === 2 && (
             <Card>
                 <CardContent>
@@ -519,7 +553,8 @@ const AdminReferralDashboard = () => {
                 </CardContent>
             </Card>
         )}
-        {/* Tab 3: User Tree Viewer */}
+        
+        {/* Tab 3: User Tree Viewer - UNCHANGED */}
         {tabValue === 3 && (
           <Card>
             <CardContent>
@@ -556,7 +591,7 @@ const AdminReferralDashboard = () => {
         )}
       </Container>
 
-      {/* Mark as Sent Modal */}
+      {/* Mark as Sent Modal - UNCHANGED */}
       <Dialog open={markSentModalOpen} onClose={() => setMarkSentModalOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>
           Confirm Money Sent
@@ -593,7 +628,7 @@ const AdminReferralDashboard = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Edit Shares Modal */}
+      {/* Edit Shares Modal - UNCHANGED */}
       <Dialog open={editSharesOpen} onClose={() => setEditSharesOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>
           Edit Service Shares: {editingService?.name}
