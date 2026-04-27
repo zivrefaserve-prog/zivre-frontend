@@ -651,8 +651,10 @@ const handleDeleteRequestPermanently = async (requestId) => {
 
   const handleViewUserDetails = async (userObj) => {
     setSelectedUser(userObj)
+    setOpenUserModal(true)  // ← Modal opens immediately
+    
+    // ✅ Load in background - NO setActionLoading needed
     await loadUserFullDetails(userObj.id)
-    setOpenUserModal(true)
   }
 
   const handleUpdatePaymentSettings = async () => {
@@ -771,32 +773,30 @@ const handleDeleteRequestPermanently = async (requestId) => {
   }
 
   const handleVerifyUser = async (userId) => {
-    setActionLoading(true)
+    // ✅ REMOVED: setActionLoading(true)
     try {
       await verifyUser(userId)
       showToast('Provider verified successfully', 'success')
       
-      // ✅ Update local state instantly - UI changes immediately
+      // ✅ Update local state instantly
       setUsers(prev => prev.map(user =>
         user.id === userId ? { ...user, is_verified: true } : user
       ))
       
-      // ✅ REMOVED loadData(false) - No waiting!
-      
     } catch (err) {
       showToast(err.response?.data?.error || 'Error verifying user', 'error')
-    } finally {
-      setActionLoading(false)
     }
+    // ✅ REMOVED: setActionLoading(false)
   }
 
+  
   const handleSuspendUser = async (userId, currentStatus) => {
-    setActionLoading(true)
+    // ✅ REMOVED: setActionLoading(true)
     try {
       await suspendUser(userId)
       showToast(`User ${currentStatus ? 'suspended' : 'activated'} successfully`, 'success')
       
-      // ✅ Update local state instantly - UI changes immediately
+      // ✅ Update local state instantly
       setUsers(prev => prev.map(user =>
         user.id === userId ? { ...user, is_active: !currentStatus } : user
       ))
@@ -804,9 +804,8 @@ const handleDeleteRequestPermanently = async (requestId) => {
     } catch (err) {
       console.error('Suspend error:', err)
       showToast(err.response?.data?.error || 'Error updating user status', 'error')
-    } finally {
-      setActionLoading(false)
     }
+    // ✅ REMOVED: setActionLoading(false)
   }
  
 
