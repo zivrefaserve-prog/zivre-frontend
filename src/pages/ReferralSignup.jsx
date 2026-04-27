@@ -104,11 +104,11 @@ const ReferralSignup = () => {
   }
 
   const getPasswordErrorMessage = () => {
-    if (!passwordStrength.length) return "Password must be at least 8 characters"
-    if (!passwordStrength.uppercase) return "Password must contain at least one uppercase letter (A-Z)"
-    if (!passwordStrength.lowercase) return "Password must contain at least one lowercase letter (a-z)"
-    if (!passwordStrength.number) return "Password must contain at least one number (0-9)"
-    if (!passwordStrength.special) return "Password must contain at least one special character (!@#$%^&*)"
+    if (!passwordStrength.length) return "8+ characters"
+    if (!passwordStrength.uppercase) return "Uppercase letter"
+    if (!passwordStrength.lowercase) return "Lowercase letter"
+    if (!passwordStrength.number) return "Number"
+    if (!passwordStrength.special) return "Special character"
     return ""
   }
 
@@ -147,7 +147,7 @@ const ReferralSignup = () => {
     }
 
     if (!isPasswordValid()) {
-      setError(getPasswordErrorMessage())
+      setError('Password must have: 8+ chars, uppercase, lowercase, number, special character')
       return
     }
 
@@ -237,7 +237,7 @@ const ReferralSignup = () => {
           {/* Hero Banner - COMPACT */}
           <Paper sx={{ 
             mb: { xs: 2, md: 3 }, 
-            p: { xs: 2, md: 3 }, 
+            p: { xs: 2, md: 2.5 }, 
             background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 
             color: 'white', 
             borderRadius: { xs: 2, md: 3 },
@@ -246,19 +246,19 @@ const ReferralSignup = () => {
             <Avatar sx={{ 
               bgcolor: 'white', 
               color: '#10b981', 
-              width: { xs: 50, md: 60 }, 
-              height: { xs: 50, md: 60 }, 
+              width: { xs: 50, md: 55 }, 
+              height: { xs: 50, md: 55 }, 
               mx: 'auto', 
-              mb: 1.5
+              mb: 1
             }}>
-              <EmojiEvents sx={{ fontSize: { xs: 28, md: 32 } }} />
+              <EmojiEvents sx={{ fontSize: { xs: 28, md: 30 } }} />
             </Avatar>
             
-            <Typography variant="h5" fontWeight="800" sx={{ fontSize: { xs: '1.3rem', md: '1.5rem' } }}>
+            <Typography variant="h5" fontWeight="800" sx={{ fontSize: { xs: '1.2rem', md: '1.3rem' } }}>
               {referralCodeFromUrl ? '🎉 You Were Referred!' : 'Join Zivre'}
             </Typography>
             
-            <Typography variant="body2" sx={{ opacity: 0.95, maxWidth: 500, mx: 'auto', mt: 1 }}>
+            <Typography variant="body2" sx={{ opacity: 0.95, maxWidth: 500, mx: 'auto', mt: 0.5 }}>
               {referralCodeFromUrl 
                 ? 'Your referral code is applied. Sign up and start earning!'
                 : 'Get premium services and earn by referring friends.'}
@@ -266,24 +266,20 @@ const ReferralSignup = () => {
             
             {referralCodeFromUrl && (
               <Box sx={{ 
-                mt: 2, 
+                mt: 1.5, 
                 display: 'inline-flex', 
                 alignItems: 'center', 
-                gap: 1, 
+                gap: 0.5, 
                 bgcolor: 'rgba(255,255,255,0.2)', 
                 px: 1.5, 
                 py: 0.5, 
                 borderRadius: 2 
               }}>
-                <Verified sx={{ fontSize: 16 }} />
+                <Verified sx={{ fontSize: 14 }} />
                 <Typography variant="caption" fontWeight="600">
-                  Code: {referralCodeFromUrl}
+                  {referralCodeFromUrl}
                 </Typography>
-                <IconButton 
-                  size="small" 
-                  onClick={handleCopyReferralCode}
-                  sx={{ color: 'white', p: 0.5 }}
-                >
+                <IconButton size="small" onClick={handleCopyReferralCode} sx={{ color: 'white', p: 0.5 }}>
                   <ContentCopy sx={{ fontSize: 14 }} />
                 </IconButton>
                 {copied && <Typography variant="caption">✓</Typography>}
@@ -291,7 +287,7 @@ const ReferralSignup = () => {
             )}
           </Paper>
 
-          <Grid container spacing={{ xs: 2, md: 3 }}>
+          <Grid container spacing={{ xs: 2, md: 2.5 }}>
             
             {/* LEFT COLUMN - Signup Form */}
             <Grid size={{ xs: 12, md: 7 }}>
@@ -302,8 +298,10 @@ const ReferralSignup = () => {
                   color: 'white',
                   textAlign: 'center'
                 }}>
-                  <Person sx={{ fontSize: { xs: 28, md: 32 }, mb: 0.5 }} />
-                  <Typography variant="h6" fontWeight="700">Customer Account</Typography>
+                  <Person sx={{ fontSize: { xs: 26, md: 30 }, mb: 0.5 }} />
+                  <Typography variant="h6" fontWeight="700" sx={{ fontSize: { xs: '1rem', md: '1.1rem' } }}>
+                    Customer Account
+                  </Typography>
                   <Typography variant="caption" sx={{ opacity: 0.9 }}>Sign up & earn commissions</Typography>
                 </Box>
                 
@@ -392,17 +390,49 @@ const ReferralSignup = () => {
                       }}
                     />
                     
+                    {/* ✅ PASSWORD REQUIREMENTS - VISIBLE */}
                     {formData.password && (
-                      <Box sx={{ mt: 1, mb: 1 }}>
+                      <Box sx={{ mt: 1, mb: 1.5, p: 1, bgcolor: '#f8fafc', borderRadius: 1 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                          <Typography variant="caption" color="text.secondary">Strength:</Typography>
-                          <Chip label={getPasswordStrengthText()} size="small" sx={{ height: 20, fontSize: '0.65rem' }} />
+                          <Typography variant="caption" color="text.secondary">Password Strength:</Typography>
+                          <Chip 
+                            label={getPasswordStrengthText()} 
+                            size="small" 
+                            sx={{ 
+                              height: 20, 
+                              fontSize: '0.6rem',
+                              bgcolor: `${getPasswordStrengthColor()}15`,
+                              color: getPasswordStrengthColor()
+                            }} 
+                          />
                         </Box>
                         <LinearProgress 
                           variant="determinate" 
                           value={Object.values(passwordStrength).filter(Boolean).length * 20} 
-                          sx={{ height: 4, borderRadius: 2 }} 
+                          sx={{ height: 3, borderRadius: 2, mb: 1 }} 
                         />
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                          <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.3, color: passwordStrength.length ? '#10b981' : '#64748b', fontSize: '0.65rem' }}>
+                            {passwordStrength.length ? <CheckCircle sx={{ fontSize: 11 }} /> : <Cancel sx={{ fontSize: 11 }} />}
+                            8+ chars
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.3, color: passwordStrength.uppercase ? '#10b981' : '#64748b', fontSize: '0.65rem' }}>
+                            {passwordStrength.uppercase ? <CheckCircle sx={{ fontSize: 11 }} /> : <Cancel sx={{ fontSize: 11 }} />}
+                            A-Z
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.3, color: passwordStrength.lowercase ? '#10b981' : '#64748b', fontSize: '0.65rem' }}>
+                            {passwordStrength.lowercase ? <CheckCircle sx={{ fontSize: 11 }} /> : <Cancel sx={{ fontSize: 11 }} />}
+                            a-z
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.3, color: passwordStrength.number ? '#10b981' : '#64748b', fontSize: '0.65rem' }}>
+                            {passwordStrength.number ? <CheckCircle sx={{ fontSize: 11 }} /> : <Cancel sx={{ fontSize: 11 }} />}
+                            0-9
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.3, color: passwordStrength.special ? '#10b981' : '#64748b', fontSize: '0.65rem' }}>
+                            {passwordStrength.special ? <CheckCircle sx={{ fontSize: 11 }} /> : <Cancel sx={{ fontSize: 11 }} />}
+                            !@#$%
+                          </Typography>
+                        </Box>
                       </Box>
                     )}
 
@@ -440,7 +470,7 @@ const ReferralSignup = () => {
                     </Button>
                   </form>
 
-                  <Box sx={{ textAlign: 'center', mt: 2 }}>
+                  <Box sx={{ textAlign: 'center', mt: 1.5 }}>
                     <Typography variant="caption" color="text.secondary">
                       Already have an account?{' '}
                       <Button onClick={handleSignInClick} sx={{ textTransform: 'none', color: '#10b981', p: 0, minWidth: 'auto' }}>
@@ -468,8 +498,8 @@ const ReferralSignup = () => {
                 
                 <Divider sx={{ mb: 1.5 }} />
                 
-                <Box sx={{ mb: 2, p: 1, bgcolor: '#e0f2fe', borderRadius: 1 }}>
-                  <Typography variant="body2" fontWeight="700" sx={{ color: '#0284c7' }}>
+                <Box sx={{ mb: 1.5, p: 1, bgcolor: '#e0f2fe', borderRadius: 1 }}>
+                  <Typography variant="body2" fontWeight="700" sx={{ color: '#0284c7', fontSize: '0.8rem' }}>
                     Referral Pool: {referralPoolPercent}%
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
@@ -477,8 +507,8 @@ const ReferralSignup = () => {
                   </Typography>
                 </Box>
                 
-                <Box sx={{ mb: 2 }}>
-                  <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 1 }}>On GHS {exampleBookingAmount}:</Typography>
+                <Box sx={{ mb: 1.5 }}>
+                  <Typography variant="caption" fontWeight="700">On GHS {exampleBookingAmount}:</Typography>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 0.5, borderBottom: '1px solid #e2e8f0' }}>
                     <Typography variant="caption">Referral Pool:</Typography>
                     <Typography variant="caption" fontWeight="700">GHS {referralPoolAmount.toFixed(2)}</Typography>
@@ -504,7 +534,9 @@ const ReferralSignup = () => {
                 <Divider sx={{ my: 1 }} />
                 
                 <Box sx={{ p: 1, bgcolor: '#f0fdf4', borderRadius: 1, mb: 1 }}>
-                  <Typography variant="caption" fontWeight="700" sx={{ color: '#10b981' }}>💰 Refer 5 friends → Earn GHS {(level1Earning * 5 + level2Earning * 5).toFixed(2)}+</Typography>
+                  <Typography variant="caption" fontWeight="700" sx={{ color: '#10b981' }}>
+                    💰 Refer 5 friends → Earn GHS {(level1Earning * 5 + level2Earning * 5).toFixed(2)}+
+                  </Typography>
                 </Box>
                 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, p: 0.5 }}>
