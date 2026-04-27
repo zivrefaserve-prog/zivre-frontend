@@ -546,16 +546,29 @@ const CustomerDashboard = () => {
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               {isMobile && (
-                <IconButton 
-                  onClick={() => setMobileOpen(true)}
-                  sx={{ 
-                    bgcolor: '#10b981', 
-                    color: 'white',
-                    '&:hover': { bgcolor: '#059669' }
-                  }}
-                >
-                  <MenuIcon />
-                </IconButton>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <IconButton 
+                    onClick={() => setMobileOpen(true)}
+                    sx={{ 
+                      bgcolor: '#10b981', 
+                      color: 'white',
+                      '&:hover': { bgcolor: '#059669' }
+                    }}
+                  >
+                    <MenuIcon />
+                  </IconButton>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      fontWeight: 600, 
+                      color: '#10b981',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => setMobileOpen(true)}
+                  >
+                    MENU
+                  </Typography>
+                </Box>
               )}
               <Typography variant="h4" fontWeight="800" sx={{ color: '#0f172a' }}>Customer Dashboard</Typography>
             </Box>
