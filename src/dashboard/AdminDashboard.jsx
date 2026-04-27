@@ -299,10 +299,29 @@ const AdminDashboard = () => {
 
   // Load user full details
   const loadUserFullDetails = async (userId) => {
+    // ✅ Check cache first
+    const cacheKey = `user_details_${userId}`
+    const cached = localStorage.getItem(cacheKey)
+    const cachedTime = localStorage.getItem(`${cacheKey}_time`)
+    
+    // Use cache if less than 1 minute old
+    if (cached && cachedTime && Date.now() - parseInt(cachedTime) < 60000) {
+      try {
+        setSelectedUserDetails(JSON.parse(cached))
+        setUserDetailsLoading(false)
+        return
+      } catch(e) {}
+    }
+    
     setUserDetailsLoading(true)
     try {
       const res = await getUserFullDetails(userId)
       setSelectedUserDetails(res.data)
+      
+      // ✅ Save to cache
+      localStorage.setItem(cacheKey, JSON.stringify(res.data))
+      localStorage.setItem(`${cacheKey}_time`, Date.now().toString())
+      
     } catch (err) {
       console.error('Error loading user details:', err)
       showToast('Error loading user details', 'error')
@@ -757,15 +776,12 @@ const handleDeleteRequestPermanently = async (requestId) => {
       await verifyUser(userId)
       showToast('Provider verified successfully', 'success')
       
-      // ✅ Update local state instantly
+      // ✅ Update local state instantly - UI changes immediately
       setUsers(prev => prev.map(user =>
-        user.id === userId
-          ? { ...user, is_verified: true }
-          : user
+        user.id === userId ? { ...user, is_verified: true } : user
       ))
       
-      // ✅ Background refresh
-      loadData(false)
+      // ✅ REMOVED loadData(false) - No waiting!
       
     } catch (err) {
       showToast(err.response?.data?.error || 'Error verifying user', 'error')
@@ -773,18 +789,28 @@ const handleDeleteRequestPermanently = async (requestId) => {
       setActionLoading(false)
     }
   }
+
+  
   const handleSuspendUser = async (userId, currentStatus) => {
     setActionLoading(true)
     try {
       await suspendUser(userId)
       showToast(`User ${currentStatus ? 'suspended' : 'activated'} successfully`, 'success')
       
-      // ✅ Update local state instantly
+      // ✅ Update local state instantly - UI changes immediately
       setUsers(prev => prev.map(user =>
-        user.id === userId
-          ? { ...user, is_active: !currentStatus }
-          : user
+        user.id === userId ? { ...user, is_active: !currentStatus } : user
       ))
+      
+      // ✅ REMOVED loadData(false) - No waiting!
+      
+    } catch (err) {
+      console.error('Suspend error:', err)
+      showToast(err.response?.data?.error || 'Error updating user status', 'error')
+    } finally {
+      setActionLoading(false)
+    }
+  }
       
       // ✅ Background refresh
       loadData(false)
