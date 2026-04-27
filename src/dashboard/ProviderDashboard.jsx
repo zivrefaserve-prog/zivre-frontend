@@ -446,7 +446,7 @@ const ProviderDashboard = () => {
             <Typography variant="subtitle2" fontWeight="600">{user?.full_name}</Typography>
             <Typography variant="caption" color="text.secondary">Provider</Typography>
             {user?.is_verified ? (
-              <Chip label="✅ Verified" size="small" sx={{ mt: 0.5, bgcolor: '#10b98115', color: '#10b981', height: 18, fontSize: '0.6rem' }} />
+              <Chip label=" Verified" size="small" sx={{ mt: 0.5, bgcolor: '#10b98115', color: '#10b981', height: 18, fontSize: '0.6rem' }} />
             ) : (
               <Chip label="⏳ Pending Verification" size="small" sx={{ mt: 0.5, bgcolor: '#f59e0b15', color: '#f59e0b', height: 18, fontSize: '0.6rem' }} />
             )}
