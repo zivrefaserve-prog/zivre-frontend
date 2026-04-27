@@ -85,6 +85,8 @@ export const AuthProvider = ({ children }) => {
       return res.data
     } catch (err) {
       setAuthLoading(false)
+      // ✅ IMPORTANT: Do NOT change user state here
+      // ✅ Just re-throw the error for AuthModal to handle
       throw err
     }
   }
