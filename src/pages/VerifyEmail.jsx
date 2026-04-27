@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { Container, Paper, Typography, Button, Alert, CircularProgress, Box } from '@mui/material'
+import { 
+  Container, Paper, Typography, Button, Box, Alert, 
+  CircularProgress, Divider, IconButton,
+  TextField   // ← ADD THIS
+} from '@mui/material'
 import { CheckCircle, Error, Email } from '@mui/icons-material'
 import Header from '../layout/Header'
 import Footer from '../layout/Footer'
