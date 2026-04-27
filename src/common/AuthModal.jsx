@@ -13,6 +13,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [services, setServices] = useState([])
   const [loadingServices, setLoadingServices] = useState(false)
+  const [verificationMessage, setVerificationMessage] = useState('')
   
   const [passwordStrength, setPasswordStrength] = useState({
     length: false,
@@ -46,15 +47,15 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     }
   }, [isSignUp, role])
 
-// Check for referral code from sessionStorage when modal opens
-useEffect(() => {
-  const referralCode = sessionStorage.getItem('zivre_referral_code');
-  if (referralCode && !formData.referral_code) {
-    setFormData(prev => ({ ...prev, referral_code: referralCode }));
-    // Clear it after using
-    sessionStorage.removeItem('zivre_referral_code');
-  }
-}, []);
+  // Check for referral code from sessionStorage when modal opens
+  useEffect(() => {
+    const referralCode = sessionStorage.getItem('zivre_referral_code');
+    if (referralCode && !formData.referral_code) {
+      setFormData(prev => ({ ...prev, referral_code: referralCode }));
+      // Clear it after using
+      sessionStorage.removeItem('zivre_referral_code');
+    }
+  }, []);
   
   const validateEmail = (email) => {
     const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -102,6 +103,7 @@ useEffect(() => {
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+    setVerificationMessage('')
   
     if (!validateEmail(formData.email)) {
       setError('Please enter a valid email address (e.g., name@example.com)')
@@ -148,6 +150,27 @@ useEffect(() => {
           referral_code: formData.referral_code
         }
         const res = await signup(userData)
+        
+        // ✅ CHECK IF EMAIL VERIFICATION IS REQUIRED
+        if (res.data && res.data.requires_verification) {
+          // Show verification message instead of auto-login
+          setVerificationMessage(`Verification email sent to ${res.data.email}. Please check your inbox and spam folder to verify your account before logging in.`)
+          // Clear form
+          setFormData({
+            full_name: '',
+            email: '',
+            phone: '',
+            password: '',
+            confirm_password: '',
+            service_specialization: '',
+            referral_code: ''
+          })
+          setLoading(false)
+          // Don't close modal - show message
+          return
+        }
+        
+        // If no verification required (old flow or existing users)
         onSuccess(res.user)
         onClose()
       } catch (err) {
@@ -172,6 +195,14 @@ useEffect(() => {
       setError('')
       try {
         const res = await login(formData.email, formData.password)
+        
+        // ✅ CHECK IF EMAIL NOT VERIFIED
+        if (res.data && res.data.requires_verification) {
+          setError('Please verify your email address before logging in. Check your inbox for the verification link.')
+          setLoading(false)
+          return
+        }
+        
         onSuccess(res.user)
         onClose()  // Only close on success
       } catch (err) {
@@ -181,6 +212,8 @@ useEffect(() => {
           setError('Your account has been suspended. Please contact support.')
         } else if (err.response?.data?.error === 'Invalid email or password') {
           setError('Incorrect email or password. Please try again.')
+        } else if (err.response?.data?.requires_verification) {
+          setError('Please verify your email address before logging in. Check your inbox for the verification link.')
         } else {
           setError(err.response?.data?.error || 'Login failed. Please try again.')
         }
@@ -190,6 +223,7 @@ useEffect(() => {
       }
     }
   }
+
   const getPasswordStrengthColor = () => {
     const passed = Object.values(passwordStrength).filter(Boolean).length
     if (passed <= 2) return '#ef4444'
@@ -210,6 +244,14 @@ useEffect(() => {
     onClose()
     setTimeout(() => {
       window.dispatchEvent(new CustomEvent('open_forgot_password'))
+    }, 100)
+  }
+
+  // Handle resend verification
+  const handleResendVerification = () => {
+    onClose()
+    setTimeout(() => {
+      window.location.href = '/verify-email'
     }, 100)
   }
 
@@ -241,8 +283,33 @@ useEffect(() => {
         </DialogTitle>
 
         <DialogContent sx={{ pb: 4 }}>
+          {/* ✅ SHOW VERIFICATION MESSAGE IF APPLICABLE */}
+          {verificationMessage && (
+            <Alert 
+              severity="info" 
+              sx={{ mb: 2, borderRadius: 2 }}
+              action={
+                <Button color="inherit" size="small" onClick={handleResendVerification}>
+                  Resend
+                </Button>
+              }
+            >
+              {verificationMessage}
+            </Alert>
+          )}
+
           {error && (
-            <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+            <Alert 
+              severity="error" 
+              sx={{ mb: 2, borderRadius: 2 }}
+              action={
+                error.includes('verify your email') ? (
+                  <Button color="inherit" size="small" onClick={handleResendVerification}>
+                    Resend
+                  </Button>
+                ) : null
+              }
+            >
               {error}
             </Alert>
           )}
