@@ -68,10 +68,10 @@ const Hero = ({ onGetQuote }) => {
       <section className="hero">
         <div className="container">
           <div className="hero-badge">✓ Premium Facility Management</div>
-          <h1 className="hero-title">
-            Total Facility Solutions<br />
-            <span className="hero-highlight">Across Ghana</span>
-          </h1>
+            <h1 className="hero-title">
+              Zivre giving life to facilities<br />
+              <span className="hero-highlight">Across Ghana</span>
+            </h1>
           <p className="hero-subtitle">
             Reliable, professional, and affordable facility management for homes and businesses across Ghana.
           </p>
