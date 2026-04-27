@@ -197,8 +197,6 @@ export const getUserTreeForAdmin = (userId) => api.get(`/admin/referrals/user-tr
 export const verifyEmail = (data) => api.post('/auth/verify-email', data)
 export const resendVerification = (data) => api.post('/auth/resend-verification', data)
 
-export const resendVerification = (data) => api.post('/auth/resend-verification', data)
-
 // ========== BOOKING DETAILS WITH OWNER NET ==========
 export const getBookingDetails = (requestId) => api.get(`/admin/requests/${requestId}`)
 export default api
