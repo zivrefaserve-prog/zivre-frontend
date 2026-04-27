@@ -6,7 +6,7 @@ import {
   Alert, Snackbar, CircularProgress, Chip, Divider, IconButton,
   Tooltip, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Paper, Accordion, AccordionSummary, AccordionDetails,
-  Avatar  // ← ADDED Avatar import
+  Avatar
 } from '@mui/material'
 import {
   ContentCopy as CopyIcon,
@@ -16,7 +16,9 @@ import {
   People as PeopleIcon,
   History as HistoryIcon,
   Refresh as RefreshIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Download as DownloadIcon,
+  QrCodeScanner as ScanIcon
 } from '@mui/icons-material'
 import Header from '../layout/Header'
 import Footer from '../layout/Footer'
@@ -27,7 +29,9 @@ import {
   requestWithdrawal, 
   getWithdrawalHistory, 
   getReferralKPIs,
-  confirmWithdrawalReceipt
+  confirmWithdrawalReceipt,
+  downloadWithdrawalReceipt,
+  verifyTransaction
 } from '../api/client'
 
 const UserReferralDashboard = () => {
@@ -45,6 +49,12 @@ const UserReferralDashboard = () => {
   const [paymentMethod, setPaymentMethod] = useState('mobile_money')
   const [accountDetails, setAccountDetails] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  
+  // NEW STATE FOR RECEIPT VERIFICATION
+  const [verifyModalOpen, setVerifyModalOpen] = useState(false)
+  const [verifyTransactionId, setVerifyTransactionId] = useState('')
+  const [verificationResult, setVerificationResult] = useState(null)
+  const [verifying, setVerifying] = useState(false)
 
   const showToast = (message, type = 'success') => {
     setToast({ message, type })
@@ -83,33 +93,28 @@ const UserReferralDashboard = () => {
 
   // ========== REALTIME WEBSOCKET UPDATES ==========
   useEffect(() => {
-    // Handle new commission earned
     const handleNewCommission = (event) => {
       console.log('💰 New commission received:', event.detail)
       showToast('You earned a new commission!', 'success')
       loadData()
     }
     
-    // Handle withdrawal status change
     const handleWithdrawalUpdated = (event) => {
       console.log('🔄 Withdrawal status changed:', event.detail)
       showToast(`Withdrawal ${event.detail.status === 'admin_sent' ? 'has been sent! Please confirm receipt.' : 'status updated'}`, 'info')
       loadData()
     }
     
-    // Handle referral tree update
     const handleReferralTreeUpdated = (event) => {
       console.log('🌳 Referral tree updated:', event.detail)
       loadData()
     }
     
-    // Handle percentage update (affects commission calculations)
     const handlePercentagesUpdated = (event) => {
       console.log('📊 Percentages updated:', event.detail)
       loadData()
     }
     
-    // Add event listeners
     window.addEventListener('new_commission', handleNewCommission)
     window.addEventListener('withdrawal_updated', handleWithdrawalUpdated)
     window.addEventListener('referral_tree_updated', handleReferralTreeUpdated)
@@ -122,6 +127,7 @@ const UserReferralDashboard = () => {
       window.removeEventListener('percentages_updated', handlePercentagesUpdated)
     }
   }, [loadData, showToast])
+
   const handleCopyLink = () => {
     if (myInfo?.referral_link) {
       navigator.clipboard.writeText(myInfo.referral_link)
@@ -176,7 +182,45 @@ const UserReferralDashboard = () => {
     }
   }
 
-  // ========== NEW VERTICAL TREE VIEW (Like your friend's) ==========
+  // NEW: Download receipt handler
+  const handleDownloadReceipt = async (withdrawalId) => {
+    try {
+      const response = await downloadWithdrawalReceipt(withdrawalId)
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      link.setAttribute('download', `Zivre_Receipt_${withdrawalId}.pdf`)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+      showToast('Receipt downloaded!', 'success')
+    } catch (err) {
+      showToast('Error downloading receipt', 'error')
+    }
+  }
+
+  // NEW: Verify transaction handler
+  const handleVerifyTransaction = async () => {
+    if (!verifyTransactionId.trim()) {
+      showToast('Please enter a Transaction ID', 'error')
+      return
+    }
+    setVerifying(true)
+    setVerificationResult(null)
+    try {
+      const res = await verifyTransaction(verifyTransactionId)
+      setVerificationResult(res.data)
+    } catch (err) {
+      setVerificationResult({
+        valid: false,
+        message: err.response?.data?.message || 'Transaction not found'
+      })
+    } finally {
+      setVerifying(false)
+    }
+  }
+
   const getPositionColor = (position) => {
     if (position === 'left') return '#2196f3'
     if (position === 'center') return '#9c27b0'
@@ -188,9 +232,6 @@ const UserReferralDashboard = () => {
     return name?.charAt(0).toUpperCase() || '?'
   }
 
-
-
-  
   const TreeView = ({ node, level = 0 }) => {
     if (!node) return null
     
@@ -204,7 +245,6 @@ const UserReferralDashboard = () => {
       return () => window.removeEventListener('resize', checkMobile)
     }, [])
     
-    // CARD SIZES: Smaller on both mobile AND desktop
     const cardPadding = isMobile ? 0.75 : 1
     const cardMinWidth = isMobile ? 90 : 110
     const avatarSize = isMobile ? 32 : 40
@@ -222,7 +262,6 @@ const UserReferralDashboard = () => {
         width: '100%',
         position: 'relative'
       }}>
-        {/* Current Node Card */}
         <Box sx={{ 
           textAlign: 'center', 
           mb: hasChildren ? (isMobile ? 1.5 : 2) : 0,
@@ -284,14 +323,12 @@ const UserReferralDashboard = () => {
           </Paper>
         </Box>
   
-        {/* Children Section */}
         {hasChildren && (
           <Box sx={{ 
             position: 'relative',
             width: '100%',
             mt: 0.5
           }}>
-            {/* Connecting line */}
             <Box sx={{ 
               display: 'flex', 
               justifyContent: 'center',
@@ -322,7 +359,6 @@ const UserReferralDashboard = () => {
               }} />
             </Box>
   
-            {/* Children nodes - NO WRAP ON MOBILE, WRAP ON DESKTOP */}
             <Box sx={{ 
               display: 'flex', 
               justifyContent: 'center', 
@@ -374,9 +410,6 @@ const UserReferralDashboard = () => {
     )
   }
 
-
-
-  
   if (loading) {
     return (
       <>
@@ -398,16 +431,27 @@ const UserReferralDashboard = () => {
           <Alert severity={toast?.type} sx={{ borderRadius: 2 }}>{toast?.message}</Alert>
         </Snackbar>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        {/* MODIFIED: Added Verify Receipt button */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
           <Typography variant="h4" fontWeight="800" sx={{ color: '#0f172a' }}>
             My Referrals
           </Typography>
-          <IconButton onClick={loadData} disabled={refreshing}>
-            {refreshing ? <CircularProgress size={24} /> : <RefreshIcon />}
-          </IconButton>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
+            <Button
+              variant="outlined"
+              startIcon={<ScanIcon />}
+              onClick={() => setVerifyModalOpen(true)}
+              sx={{ borderColor: '#10b981', color: '#10b981', textTransform: 'none' }}
+            >
+              Verify Receipt
+            </Button>
+            <IconButton onClick={loadData} disabled={refreshing}>
+              {refreshing ? <CircularProgress size={24} /> : <RefreshIcon />}
+            </IconButton>
+          </Box>
         </Box>
 
-        {/* Balance Card */}
+        {/* Balance Card - UNCHANGED */}
         <Card sx={{ mb: 4, bgcolor: '#10b981', color: 'white' }}>
           <CardContent>
             <Grid container alignItems="center" spacing={2}>
@@ -443,7 +487,7 @@ const UserReferralDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Referral Link Card */}
+        {/* Referral Link Card - UNCHANGED */}
         <Card sx={{ mb: 4 }}>
           <CardContent>
             <Typography variant="h6" fontWeight="600" sx={{ mb: 2 }}>Your Referral Link</Typography>
@@ -465,7 +509,7 @@ const UserReferralDashboard = () => {
           </CardContent>
         </Card>
 
-        {/* KPI Cards */}
+        {/* KPI Cards - UNCHANGED */}
         <Grid container spacing={3} sx={{ mb: 4 }}>
           <Grid size={{ xs: 6, md: 3 }}>
             <Card>
@@ -505,7 +549,7 @@ const UserReferralDashboard = () => {
           </Grid>
         </Grid>
 
-        {/* Referral Tree - NEW VERTICAL LAYOUT */}
+        {/* Referral Tree - UNCHANGED */}
         <Card sx={{ mb: 4 }}>
           <Accordion defaultExpanded>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -525,7 +569,7 @@ const UserReferralDashboard = () => {
           </Accordion>
         </Card>
 
-        {/* Commission History */}
+        {/* Commission History - UNCHANGED */}
         <Card sx={{ mb: 4 }}>
           <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -568,7 +612,7 @@ const UserReferralDashboard = () => {
           </Accordion>
         </Card>
 
-        {/* Withdrawal History */}
+        {/* Withdrawal History - MODIFIED: Added Receipt column and download button */}
         <Card>
           <Accordion>
             <AccordionSummary expandIcon={<ExpandMoreIcon />}>
@@ -583,13 +627,14 @@ const UserReferralDashboard = () => {
                       <TableCell>Amount</TableCell>
                       <TableCell>Method</TableCell>
                       <TableCell>Status</TableCell>
+                      <TableCell>Receipt</TableCell>
                       <TableCell>Action</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
                     {withdrawals.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={5} align="center">No withdrawal requests yet</TableCell>
+                        <TableCell colSpan={6} align="center">No withdrawal requests yet</TableCell>
                       </TableRow>
                     ) : (
                       withdrawals.map((w) => (
@@ -610,6 +655,20 @@ const UserReferralDashboard = () => {
                                 color: w.status === 'pending' ? '#ff9800' : w.status === 'admin_sent' ? '#2196f3' : '#4caf50'
                               }}
                             />
+                          </TableCell>
+                          {/* NEW: Receipt column with download button */}
+                          <TableCell>
+                            {(w.status === 'admin_sent' || w.status === 'user_confirmed') && w.transaction_id && (
+                              <Tooltip title="Download Receipt">
+                                <IconButton 
+                                  size="small" 
+                                  onClick={() => handleDownloadReceipt(w.id)}
+                                  sx={{ color: '#10b981' }}
+                                >
+                                  <DownloadIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
                           </TableCell>
                           <TableCell>
                             {w.status === 'admin_sent' && (
@@ -638,7 +697,7 @@ const UserReferralDashboard = () => {
         </Card>
       </Container>
 
-      {/* Withdrawal Modal */}
+      {/* Withdrawal Modal - UNCHANGED */}
       <Dialog open={withdrawModalOpen} onClose={() => setWithdrawModalOpen(false)} maxWidth="sm" fullWidth>
         <DialogTitle>
           Request Withdrawal
@@ -694,6 +753,67 @@ const UserReferralDashboard = () => {
             sx={{ bgcolor: '#10b981' }}
           >
             {submitting ? <CircularProgress size={24} /> : 'Submit Request'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* NEW: Verify Receipt Modal */}
+      <Dialog open={verifyModalOpen} onClose={() => {
+        setVerifyModalOpen(false)
+        setVerifyTransactionId('')
+        setVerificationResult(null)
+      }} maxWidth="sm" fullWidth>
+        <DialogTitle>
+          Verify Withdrawal Receipt
+          <IconButton sx={{ position: 'absolute', right: 8, top: 8 }} onClick={() => setVerifyModalOpen(false)}>
+            <CloseIcon />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Enter the Transaction ID from your receipt to verify it's legitimate.
+          </Typography>
+          
+          <TextField
+            fullWidth
+            label="Transaction ID"
+            placeholder="e.g., ZIV-WD-XXXXXXXX"
+            value={verifyTransactionId}
+            onChange={(e) => setVerifyTransactionId(e.target.value.toUpperCase())}
+            margin="normal"
+            helperText="Format: ZIV-WD-XXXXXXXX (8 characters after WD)"
+          />
+          
+          {verificationResult && (
+            <Alert 
+              severity={verificationResult.valid ? 'success' : 'error'} 
+              sx={{ mt: 2, borderRadius: 2 }}
+            >
+              {verificationResult.valid ? (
+                <Box>
+                  <Typography variant="subtitle2" fontWeight="700">✓ Valid Receipt</Typography>
+                  <Typography variant="body2">Amount: GHS{verificationResult.transaction.amount}</Typography>
+                  <Typography variant="body2">Recipient: {verificationResult.transaction.recipient_name}</Typography>
+                  <Typography variant="body2">Status: {verificationResult.transaction.status}</Typography>
+                  <Typography variant="caption" color="text.secondary" display="block" sx={{ mt: 1 }}>
+                    Processed on: {verificationResult.transaction.processed_at && new Date(verificationResult.transaction.processed_at).toLocaleDateString()}
+                  </Typography>
+                </Box>
+              ) : (
+                <Typography>{verificationResult.message}</Typography>
+              )}
+            </Alert>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setVerifyModalOpen(false)}>Close</Button>
+          <Button 
+            variant="contained" 
+            onClick={handleVerifyTransaction}
+            disabled={verifying}
+            sx={{ bgcolor: '#10b981' }}
+          >
+            {verifying ? <CircularProgress size={24} /> : 'Verify'}
           </Button>
         </DialogActions>
       </Dialog>
