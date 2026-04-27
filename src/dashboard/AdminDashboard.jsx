@@ -810,8 +810,8 @@ const handleDeleteRequestPermanently = async (requestId) => {
     }
     // ✅ REMOVED: setActionLoading(false)
   }
- 
-
+   
+  
   const handleDeleteUser = async (userId, userName) => {
     setActionLoading(true)
     try {
@@ -825,15 +825,23 @@ const handleDeleteRequestPermanently = async (requestId) => {
       setSelectedUser(null)
       setSelectedUserDetails(null)
       
-      // ✅ Background refresh
-      loadData(false)
+      // ✅ DON'T reload all data - just update users list locally
+      // Remove this line: loadData(false)
+      
+      // ✅ Instead, just refresh users list in background (1 API call, not 6)
+      try {
+        const usersRes = await getAllUsers()
+        setUsers(usersRes.data)
+      } catch (err) {
+        console.error('Error refreshing users:', err)
+      }
       
     } catch (err) {
       showToast(err.response?.data?.error || 'Error deleting user', 'error')
     } finally {
       setActionLoading(false)
-      setDeleteConfirmOpen(false)  // ✅ ADD THIS LINE
-      setUserToDelete(null)         // ✅ ADD THIS LINE
+      setDeleteConfirmOpen(false)
+      setUserToDelete(null)
     }
   }
 
