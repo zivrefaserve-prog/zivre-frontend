@@ -13,7 +13,8 @@ import {
   Visibility, VisibilityOff, CheckCircle, Cancel,
   Person, ArrowBack, Phone, Email, Lock,
   AccountBalanceWallet, TrendingUp, Login, HowToReg,
-  WhatsApp, ContentCopy, Star, Verified, Share, EmojiEvents
+  WhatsApp, ContentCopy, Star, Verified, Share, EmojiEvents,
+  Security  // ← ADD THIS
 } from '@mui/icons-material'
 import Header from '../layout/Header'
 import Footer from '../layout/Footer'
