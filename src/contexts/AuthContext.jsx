@@ -93,21 +93,29 @@ export const AuthProvider = ({ children }) => {
     setAuthLoading(true)
     try {
       const res = await apiSignup(userData)
-      const { token, user: newUser } = res.data
+      const { token, user: newUser, requires_verification, email } = res.data
+      
+      // ✅ IMPORTANT: If verification required, DON'T auto-login
+      if (requires_verification) {
+        setAuthLoading(false)
+        // Return the full response so AuthModal can redirect
+        return { data: { requires_verification, email } }
+      }
+      
+      // Only auto-login if no verification required
       if (token) {
         setStoredToken(token)
       }
       setUser(newUser)
       setStoredUser(newUser)
       setAuthLoading(false)
-      return res.data
+      return { data: { user: newUser } }
     } catch (err) {
       setAuthLoading(false)
       throw err
     }
   }
 
-  
   const logout = async () => {
     setAuthLoading(true)
     
@@ -120,7 +128,6 @@ export const AuthProvider = ({ children }) => {
       window.location.href = '/'
     }, 200)
   }
-
 
   const hideAuthLoading = () => {
     setAuthLoading(false)
