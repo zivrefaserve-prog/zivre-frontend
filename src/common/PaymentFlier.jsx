@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { Box, Card, CardContent, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, IconButton, CircularProgress, Alert, Divider } from '@mui/material'
-import { WhatsApp, ContentCopy, Close, Warning, PhoneAndroid, AccountBalance } from '@mui/icons-material'
+import { Box, Card, CardContent, Typography, Dialog, DialogTitle, DialogContent, DialogActions, Button, Stack, IconButton, Alert } from '@mui/material'
+import { WhatsApp, ContentCopy, Close, Warning } from '@mui/icons-material'
 import { getPaymentSettings } from '../api/client'
 import { useAuth } from '../contexts/AuthContext'
 
@@ -8,54 +8,75 @@ const PaymentFlier = () => {
   const { user } = useAuth()
   const [open, setOpen] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [settings, setSettings] = useState({
-    payment_number: '024 000 0000',
-    momopay_number: '024 000 0000',
-    support_number: '050 000 0000',
-    whatsapp_number: '233500000000'
+  
+  // ✅ Load from localStorage IMMEDIATELY (synchronous, no delay, no spinner)
+  const [settings, setSettings] = useState(() => {
+    const cached = localStorage.getItem('payment_settings')
+    if (cached) {
+      try {
+        return JSON.parse(cached)
+      } catch (e) {
+        return {
+          payment_number: '024 000 0000',
+          momopay_number: '024 000 0000',
+          support_number: '050 000 0000',
+          whatsapp_number: '233500000000'
+        }
+      }
+    }
+    return {
+      payment_number: '024 000 0000',
+      momopay_number: '024 000 0000',
+      support_number: '050 000 0000',
+      whatsapp_number: '233500000000'
+    }
   })
-  const [loading, setLoading] = useState(true)
+  
+  // ✅ Start with loading = false - NO SPINNER EVER
+  // ✅ Removed loading state entirely - no need for it!
 
   const loadSettings = useCallback(async () => {
+    // ✅ Check cache age - only fetch if older than 5 minutes
+    const lastFetched = localStorage.getItem('payment_settings_fetched')
+    if (lastFetched && Date.now() - parseInt(lastFetched) < 300000) {
+      console.log('Using cached payment settings')
+      return  // Use cached data, no API call, no spinner
+    }
+    
+    // ✅ Silent background fetch - NO SPINNER
     try {
-      setLoading(true)
       const res = await getPaymentSettings()
       setSettings(res.data)
+      // Save to cache
+      localStorage.setItem('payment_settings', JSON.stringify(res.data))
+      localStorage.setItem('payment_settings_fetched', Date.now().toString())
     } catch (err) {
       console.error('Failed to load payment settings:', err)
-    } finally {
-      setLoading(false)
     }
   }, [])
 
-  // Initial load
+  // ✅ Load once on mount - NO SPINNER
   useEffect(() => {
     loadSettings()
   }, [loadSettings])
 
-  // ========== REALTIME PAYMENT SETTINGS UPDATE LISTENER ==========
+  // ✅ WebSocket real-time updates (KEEPS real-time functionality)
   useEffect(() => {
     const handlePaymentSettingsUpdated = (event) => {
       console.log('💰 Payment settings updated in realtime:', event.detail)
       setSettings(event.detail)
-      setLoading(false)
+      // Update cache
+      localStorage.setItem('payment_settings', JSON.stringify(event.detail))
+      localStorage.setItem('payment_settings_fetched', Date.now().toString())
     }
 
     window.addEventListener('payment_settings_updated', handlePaymentSettingsUpdated)
-
     return () => {
       window.removeEventListener('payment_settings_updated', handlePaymentSettingsUpdated)
     }
   }, [])
 
-  // Set up an interval to refresh settings every 30 seconds as fallback
-  useEffect(() => {
-    const interval = setInterval(() => {
-      loadSettings()
-    }, 30000)
-    
-    return () => clearInterval(interval)
-  }, [loadSettings])
+  // ✅ REMOVED the 30-second polling interval - WebSocket handles real-time updates!
 
   const handleCopy = (text) => {
     navigator.clipboard.writeText(text)
@@ -63,13 +84,8 @@ const PaymentFlier = () => {
     setTimeout(() => setCopied(false), 2000)
   }
 
-  if (loading) {
-    return (
-      <Card sx={{ mb: 2, borderRadius: 2, bgcolor: '#0f3b2c', p: 2 }}>
-        <CircularProgress size={24} sx={{ color: 'white' }} />
-      </Card>
-    )
-  }
+  // ✅ REMOVED the loading check - component ALWAYS renders immediately
+  // No if(loading) return spinner - the content is always visible!
 
   return (
     <>
