@@ -291,13 +291,19 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
                 <MenuIcon />
               </IconButton>
             )}
-            <Typography 
-              variant="h6" 
-              sx={{ fontWeight: 800, color: '#10b981', cursor: 'pointer' }} 
+            <Box 
+              sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }} 
               onClick={() => window.location.href = '/'}
             >
-              ZIVRE <span style={{ fontWeight: 400, color: '#64748b' }}>Facility Services</span>
-            </Typography>
+              <img 
+                src="/logo.jpg" 
+                alt="Zivre Logo" 
+                style={{ height: '40px', width: 'auto', objectFit: 'contain' }}
+              />
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#10b981' }}>
+                ZIVRE <span style={{ fontWeight: 400, color: '#64748b' }}>Facility Services</span>
+              </Typography>
+            </Box>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
