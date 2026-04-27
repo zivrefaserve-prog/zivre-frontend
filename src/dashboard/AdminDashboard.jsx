@@ -127,6 +127,16 @@ const AdminDashboard = () => {
     setActiveTab(tab)
     saveAdminState('activeTab', tab)
     setSearchTerm('')
+    
+    // ✅ Preload providers when switching to Assign Providers tab (tab 4)
+    if (tab === 4 && assignableRequests.length > 0) {
+      assignableRequests.forEach(request => {
+        if (!providersForRequest[request.id]) {
+          // Preload in background - NO SPINNER, user doesn't notice
+          loadProvidersForRequest(request.id, request.service_id)
+        }
+      })
+    }
   }
 
   // Show toast notification
@@ -157,17 +167,38 @@ const AdminDashboard = () => {
 
   // NEW: Load providers for a specific request
   const loadProvidersForRequest = async (requestId, serviceId) => {
-    setProvidersForRequest(prev => ({ ...prev, [requestId]: [] }))
-    setLoadingProviders(true)
+    // ✅ Check cache first - providers don't change often
+    const cacheKey = `providers_${serviceId}`
+    const cached = localStorage.getItem(cacheKey)
+    const cachedTime = localStorage.getItem(`${cacheKey}_time`)
+    
+    // Use cache if less than 5 minutes old
+    if (cached && cachedTime && Date.now() - parseInt(cachedTime) < 300000) {
+      try {
+        const providers = JSON.parse(cached)
+        setProvidersForRequest(prev => ({ ...prev, [requestId]: providers }))
+        return  // ✅ INSTANT! No API call, no spinner, no flicker
+      } catch (e) {
+        console.error('Cache parse error:', e)
+      }
+    }
+    
+    // ✅ REMOVED: setLoadingProviders(true) - NO SPINNER
+    // ✅ REMOVED: clearing providers - NO FLICKER
+    
     try {
       const res = await getAvailableProviders(serviceId)
       setProvidersForRequest(prev => ({ ...prev, [requestId]: res.data }))
+      
+      // ✅ Save to cache for next time
+      localStorage.setItem(cacheKey, JSON.stringify(res.data))
+      localStorage.setItem(`${cacheKey}_time`, Date.now().toString())
+      
     } catch (err) {
       console.error('Error loading providers for request:', err)
       setProvidersForRequest(prev => ({ ...prev, [requestId]: [] }))
-    } finally {
-      setLoadingProviders(false)
     }
+    // ✅ REMOVED: setLoadingProviders(false)
   }
 
   // NEW: Handle assign provider for a specific request
@@ -476,7 +507,17 @@ const handleDeleteRequestPermanently = async (requestId) => {
 
   const handleUsersUpdated = useCallback((event) => {
     console.log('👥 Users updated:', event.detail)
-    loadData()
+    
+    // ✅ Clear provider cache so new providers appear
+    const keys = Object.keys(localStorage)
+    keys.forEach(key => {
+      if (key.startsWith('providers_')) {
+        localStorage.removeItem(key)
+        localStorage.removeItem(`${key}_time`)
+      }
+    })
+    
+    loadData(false)  // Background refresh, NO SPINNER
   }, [loadData])
 
   const handleUserVerified = useCallback((event) => {
