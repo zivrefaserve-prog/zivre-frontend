@@ -801,26 +801,12 @@ const handleDeleteRequestPermanently = async (requestId) => {
         user.id === userId ? { ...user, is_active: !currentStatus } : user
       ))
       
-      // ✅ REMOVED loadData(false) - No waiting!
-      
     } catch (err) {
       console.error('Suspend error:', err)
       showToast(err.response?.data?.error || 'Error updating user status', 'error')
     } finally {
       setActionLoading(false)
     }
-  
-      // ❌ DUPLICATE CODE STARTS HERE (DELETE THESE LINES)
-      // ✅ Background refresh
-      loadData(false)
-      
-    } catch (err) {
-      console.error('Suspend error:', err)
-      showToast(err.response?.data?.error || 'Error updating user status', 'error')
-    } finally {
-      setActionLoading(false)
-    }
-    // ❌ DUPLICATE CODE ENDS HERE
   }
  
 
