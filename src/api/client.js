@@ -197,13 +197,6 @@ export const getUserTreeForAdmin = (userId) => api.get(`/admin/referrals/user-tr
 export const verifyEmail = (data) => api.post('/auth/verify-email', data)
 export const resendVerification = (data) => api.post('/auth/resend-verification', data)
 
-// ========== WITHDRAWAL RECEIPTS ==========
-export const downloadWithdrawalReceipt = (withdrawalId) => 
-  api.get(`/referrals/withdrawals/${withdrawalId}/receipt`, { responseType: 'blob' })
-
-export const verifyTransaction = (transactionId) => 
-  api.post('/referrals/verify-transaction', { transaction_id: transactionId })
-
 // ========== BOOKING DETAILS WITH OWNER NET ==========
 export const getBookingDetails = (requestId) => api.get(`/admin/requests/${requestId}`)
 export default api
