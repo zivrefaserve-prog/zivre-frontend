@@ -1,19 +1,19 @@
 import React, { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
-import { getPercentages, getServices } from '../api/client'
+import { getPercentages } from '../api/client'
 import LoadingOverlay from '../common/LoadingOverlay'
 import {
   Container, Paper, Box, Typography, TextField, Button,
   Alert, CircularProgress, IconButton, InputAdornment,
-  Chip, MenuItem, Select, FormControl, InputLabel,
-  Card, CardContent, Grid, Avatar,
-  Divider, LinearProgress, useMediaQuery
+  Chip, Grid, Avatar, Divider, LinearProgress,
+  useMediaQuery, Card, CardContent
 } from '@mui/material'
 import {
   Visibility, VisibilityOff, CheckCircle, Cancel,
-  Person, Build, ArrowBack, Phone,
-  AccountBalanceWallet, TrendingUp, Login, HowToReg
+  Person, ArrowBack, Phone, Email, Lock,
+  AccountBalanceWallet, TrendingUp, Login, HowToReg,
+  WhatsApp, ContentCopy, Star, Verified, Share, EmojiEvents
 } from '@mui/icons-material'
 import Header from '../layout/Header'
 import Footer from '../layout/Footer'
@@ -30,14 +30,11 @@ const ReferralSignup = () => {
   // Mobile detection
   const isMobile = useMediaQuery('(max-width:768px)')
   
-  const [selectedRole, setSelectedRole] = useState(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [success, setSuccess] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
-  const [services, setServices] = useState([])
-  const [loadingServices, setLoadingServices] = useState(false)
   const [percentages, setPercentages] = useState({
     provider_percent: 60,
     admin_percent: 20,
@@ -46,6 +43,7 @@ const ReferralSignup = () => {
   })
   const [loadingPercentages, setLoadingPercentages] = useState(true)
   const [isLoading, setIsLoading] = useState(true)
+  const [copied, setCopied] = useState(false)
   const [passwordStrength, setPasswordStrength] = useState({
     length: false,
     uppercase: false,
@@ -60,7 +58,6 @@ const ReferralSignup = () => {
     phone: '',
     password: '',
     confirm_password: '',
-    service_specialization: '',
     referral_code: referralCodeFromUrl
   })
 
@@ -79,20 +76,6 @@ const ReferralSignup = () => {
     }
     loadData()
   }, [])
-
-  // Load services for provider signup
-  useEffect(() => {
-    if (selectedRole === 'provider') {
-      setLoadingServices(true)
-      getServices(true).then(res => {
-        setServices(res.data)
-        setLoadingServices(false)
-      }).catch(err => {
-        console.error('Error loading services:', err)
-        setLoadingServices(false)
-      })
-    }
-  }, [selectedRole])
 
   const validateEmail = (email) => {
     const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -145,16 +128,6 @@ const ReferralSignup = () => {
     return 'Strong'
   }
 
-  const handleRoleSelect = (role) => {
-    setSelectedRole(role)
-    setError('')
-  }
-
-  const handleBackToRoles = () => {
-    setSelectedRole(null)
-    setError('')
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
@@ -185,11 +158,6 @@ const ReferralSignup = () => {
       return
     }
 
-    if (selectedRole === 'provider' && !formData.service_specialization) {
-      setError('Please select your service specialization')
-      return
-    }
-
     setLoading(true)
     try {
       const userData = {
@@ -197,20 +165,21 @@ const ReferralSignup = () => {
         email: formData.email,
         phone: formData.phone,
         password: formData.password,
-        role: selectedRole,
-        service_specialization: selectedRole === 'provider' ? parseInt(formData.service_specialization) : null,
+        role: 'customer',
+        service_specialization: null,
         referral_code: formData.referral_code
       }
       const res = await signup(userData)
+      
+      // Check if email verification is required
+      if (res.data && res.data.requires_verification) {
+        navigate(`/verification-sent?email=${encodeURIComponent(res.data.email)}`)
+        return
+      }
+      
       setSuccess('Account created successfully! Redirecting to dashboard...')
       setTimeout(() => {
-        if (res.user.role === 'customer') {
-          navigate('/customer/dashboard')
-        } else if (res.user.role === 'provider') {
-          navigate('/provider/dashboard')
-        } else {
-          navigate('/')
-        }
+        navigate('/customer/dashboard')
       }, 2000)
     } catch (err) {
       const errorMsg = err.response?.data?.error
@@ -224,14 +193,30 @@ const ReferralSignup = () => {
     }
   }
 
+  const handleCopyReferralCode = () => {
+    if (referralCodeFromUrl) {
+      navigator.clipboard.writeText(referralCodeFromUrl)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
+  const handleSignInClick = () => {
+    window.dispatchEvent(new CustomEvent('open_signin_modal'))
+  }
+
   const scrollToContact = () => {
     document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  // Handle Sign In click
-  const handleSignInClick = () => {
-    window.dispatchEvent(new CustomEvent('open_signin_modal'))
-  }
+  // Calculate example earnings
+  const referralPoolPercent = percentages.referral_pool_percent || 10
+  const exampleBookingAmount = 500
+  const referralPoolAmount = (exampleBookingAmount * referralPoolPercent) / 100
+  const level1Earning = referralPoolAmount * 0.20
+  const level2Earning = referralPoolAmount * 0.10
+  const level3Earning = referralPoolAmount * 0.05
+  const selfBonus = referralPoolAmount * 0.05
 
   if (loadingPercentages) {
     return (
@@ -239,6 +224,7 @@ const ReferralSignup = () => {
         <LoadingOverlay open={isLoading} message="Loading referral page..." />
         <Header onGetQuote={scrollToContact} />
         <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+          <CircularProgress sx={{ color: '#10b981' }} />
         </Box>
         <Footer />
       </>
@@ -252,550 +238,394 @@ const ReferralSignup = () => {
       <Box sx={{ 
         bgcolor: '#f8fafc', 
         minHeight: 'calc(100vh - 64px)', 
-        py: { xs: 2, sm: 3, md: 6 }
+        py: { xs: 3, sm: 4, md: 6 }
       }}>
-        <Container maxWidth="lg" sx={{ px: { xs: 1.5, sm: 2, md: 3 } }}>
+        <Container maxWidth="lg" sx={{ px: { xs: 2, sm: 3, md: 4 } }}>
           
           {/* Hero Banner */}
           <Paper sx={{ 
-            mb: { xs: 2, sm: 3, md: 5 }, 
-            p: { xs: 2, sm: 3, md: 4 }, 
+            mb: { xs: 3, sm: 4, md: 5 }, 
+            p: { xs: 3, sm: 4, md: 5 }, 
             background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', 
             color: 'white', 
-            borderRadius: { xs: 2, sm: 3, md: 4 },
+            borderRadius: { xs: 3, sm: 4, md: 5 },
             textAlign: 'center'
           }}>
             <Avatar sx={{ 
               bgcolor: 'white', 
               color: '#10b981', 
-              width: { xs: 50, sm: 60, md: 70 }, 
-              height: { xs: 50, sm: 60, md: 70 }, 
+              width: { xs: 60, sm: 70, md: 80 }, 
+              height: { xs: 60, sm: 70, md: 80 }, 
               mx: 'auto', 
-              mb: { xs: 1.5, sm: 2 },
-              boxShadow: '0 8px 20px rgba(0,0,0,0.1)'
+              mb: { xs: 2, sm: 3 },
+              boxShadow: '0 8px 20px rgba(0,0,0,0.15)'
             }}>
-              <TrendingUp sx={{ fontSize: { xs: 28, sm: 34, md: 40 } }} />
+              <EmojiEvents sx={{ fontSize: { xs: 36, sm: 42, md: 48 } }} />
             </Avatar>
-            <Typography variant="h4" fontWeight="800" sx={{ fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.1rem' } }}>
+            
+            <Typography variant="h4" fontWeight="800" sx={{ fontSize: { xs: '1.6rem', sm: '2rem', md: '2.2rem' } }}>
               {referralCodeFromUrl ? '🎉 You Were Referred!' : 'Join Zivre Today!'}
             </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.95, maxWidth: 600, mx: 'auto', mt: 1, fontSize: { xs: '0.8rem', sm: '0.9rem' } }}>
+            
+            <Typography variant="body1" sx={{ opacity: 0.95, maxWidth: 600, mx: 'auto', mt: 2, fontSize: { xs: '0.9rem', sm: '1rem' } }}>
               {referralCodeFromUrl 
-                ? 'Your referral code is already applied. Sign up now and start earning!'
-                : 'Get premium facility services or offer your skills and earn money.'}
+                ? 'Your referral code is already applied. Sign up now and start earning commissions when you refer friends!'
+                : 'Get premium facility services and earn money by referring friends to Zivre.'}
             </Typography>
+            
+            {referralCodeFromUrl && (
+              <Box sx={{ 
+                mt: 3, 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: 1, 
+                bgcolor: 'rgba(255,255,255,0.2)', 
+                px: 2, 
+                py: 1, 
+                borderRadius: 3 
+              }}>
+                <Verified sx={{ fontSize: 20 }} />
+                <Typography variant="body2" fontWeight="600">
+                  Referral Code: {referralCodeFromUrl}
+                </Typography>
+                <IconButton 
+                  size="small" 
+                  onClick={handleCopyReferralCode}
+                  sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.2)' }}
+                >
+                  <ContentCopy sx={{ fontSize: 18 }} />
+                </IconButton>
+                {copied && (
+                  <Typography variant="caption" sx={{ ml: 1 }}>✓ Copied!</Typography>
+                )}
+              </Box>
+            )}
           </Paper>
 
-          <Grid container spacing={{ xs: 2, sm: 3, md: 4 }}>
+          <Grid container spacing={{ xs: 3, sm: 4, md: 5 }}>
             
-            {/* LEFT COLUMN - Role Selection or Signup Form */}
+            {/* LEFT COLUMN - Signup Form */}
             <Grid size={{ xs: 12, md: 7 }}>
-              {!selectedRole ? (
-                // ROLE SELECTION CARDS
-                <Grid container spacing={{ xs: 2, sm: 3 }}>
+              <Paper sx={{ 
+                borderRadius: { xs: 3, sm: 4, md: 5 }, 
+                overflow: 'hidden',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.08)'
+              }}>
+                {/* Header */}
+                <Box sx={{ 
+                  p: { xs: 2.5, sm: 3, md: 4 }, 
+                  bgcolor: '#10b981', 
+                  color: 'white',
+                  textAlign: 'center'
+                }}>
+                  <Person sx={{ fontSize: { xs: 40, sm: 48 }, mb: 1 }} />
+                  <Typography variant="h5" fontWeight="700" sx={{ fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.5rem' } }}>
+                    Customer Account
+                  </Typography>
+                  <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>
+                    Sign up to request services and earn referral commissions
+                  </Typography>
+                </Box>
+                
+                <Box sx={{ p: { xs: 2.5, sm: 3, md: 4 } }}>
+                  {error && (
+                    <Alert severity="error" sx={{ mb: 3, borderRadius: 2 }}>
+                      {error}
+                    </Alert>
+                  )}
                   
-                  {/* ========== CUSTOMER CARD ========== */}
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Card sx={{ 
-                      height: '100%', 
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      borderRadius: { xs: 2, sm: 3, md: 4 },
-                      overflow: 'hidden',
-                      '&:hover': { transform: { xs: 'none', sm: 'translateY(-4px)', md: 'translateY(-8px)' }, boxShadow: { xs: 2, sm: 4, md: 8 } }
-                    }}>
-                      <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 }, textAlign: 'center' }}>
-                        <Avatar sx={{ 
-                          bgcolor: '#10b98120', 
-                          color: '#10b981', 
-                          width: { xs: 60, sm: 70, md: 80 }, 
-                          height: { xs: 60, sm: 70, md: 80 }, 
-                          mx: 'auto', 
-                          mb: { xs: 1.5, sm: 2 }
-                        }}>
-                          <Person sx={{ fontSize: { xs: 36, sm: 42, md: 48 } }} />
-                        </Avatar>
-                        <Typography variant="h5" fontWeight="800" sx={{ fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.5rem' } }}>
-                          Customer
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: { xs: 2, sm: 3 }, fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
-                          Request professional facility services
-                        </Typography>
-                        
-                        <Divider sx={{ my: { xs: 1.5, sm: 2 } }} />
-                        
-                        <Box sx={{ textAlign: 'left', mb: { xs: 2, sm: 3 } }}>
-                          <Typography variant="subtitle2" fontWeight="600" gutterBottom sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
-                            ✓ What you'll do:
-                          </Typography>
-                          <Typography variant="caption" display="block" sx={{ mb: 0.5, fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
-                            Request HVAC, Electrical, Plumbing & more
-                          </Typography>
-                          <Typography variant="caption" display="block" sx={{ mb: 0.5, fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
-                            Track your service requests
-                          </Typography>
-                          <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
-                            Rate providers after service
-                          </Typography>
-                        </Box>
-                        
-                        <Box sx={{ bgcolor: '#e0f2fe', p: { xs: 1, sm: 1.5, md: 2 }, borderRadius: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
-                          <Typography variant="subtitle2" fontWeight="600" sx={{ color: '#0284c7' }} gutterBottom fontSize={{ xs: '0.7rem', sm: '0.75rem' }}>
-                            💰 Customer Earnings
-                          </Typography>
-                          <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                            • Referral commissions: Multi-level (20%, 10%, 5%...)
-                          </Typography>
-                          <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                            • Self-bonus: 5% on your first booking
-                          </Typography>
-                          <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                            • Withdraw earnings from GHS 20
-                          </Typography>
-                        </Box>
-                        
-                        <Button 
-                          fullWidth 
-                          variant="contained"
-                          size={isMobile ? "medium" : "large"}
-                          startIcon={<HowToReg />}
-                          onClick={() => handleRoleSelect('customer')}
-                          sx={{ 
-                            bgcolor: '#10b981', 
-                            py: { xs: 1, sm: 1.5 },
-                            fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
-                            fontWeight: 700,
-                            '&:hover': { bgcolor: '#059669' }
-                          }}
-                        >
-                          {isMobile ? "Sign Up" : "Sign Up as Customer"}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </Grid>
+                  {success && (
+                    <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
+                      {success}
+                    </Alert>
+                  )}
 
-                  {/* ========== PROVIDER CARD - CORRECTED ========== */}
-                  <Grid size={{ xs: 12, sm: 6 }}>
-                    <Card sx={{ 
-                      height: '100%', 
-                      cursor: 'pointer',
-                      transition: 'all 0.3s ease',
-                      borderRadius: { xs: 2, sm: 3, md: 4 },
-                      overflow: 'hidden',
-                      '&:hover': { transform: { xs: 'none', sm: 'translateY(-4px)', md: 'translateY(-8px)' }, boxShadow: { xs: 2, sm: 4, md: 8 } }
-                    }}>
-                      <CardContent sx={{ p: { xs: 2, sm: 3, md: 4 }, textAlign: 'center' }}>
-                        <Avatar sx={{ 
-                          bgcolor: '#fef3c720', 
-                          color: '#f59e0b', 
-                          width: { xs: 60, sm: 70, md: 80 }, 
-                          height: { xs: 60, sm: 70, md: 80 }, 
-                          mx: 'auto', 
-                          mb: { xs: 1.5, sm: 2 }
-                        }}>
-                          <Build sx={{ fontSize: { xs: 36, sm: 42, md: 48 } }} />
-                        </Avatar>
-                        <Typography variant="h5" fontWeight="800" sx={{ fontSize: { xs: '1.2rem', sm: '1.3rem', md: '1.5rem' } }}>
-                          Service Provider
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: { xs: 2, sm: 3 }, fontSize: { xs: '0.7rem', sm: '0.8rem' } }}>
-                          Offer your skills and earn money
-                        </Typography>
-                        
-                        <Divider sx={{ my: { xs: 1.5, sm: 2 } }} />
-                        
-                        <Box sx={{ textAlign: 'left', mb: { xs: 2, sm: 3 } }}>
-                          <Typography variant="subtitle2" fontWeight="600" gutterBottom sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
-                            ✓ What you'll do:
-                          </Typography>
-                          <Typography variant="caption" display="block" sx={{ mb: 0.5, fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
-                            Get assigned to customer requests
-                          </Typography>
-                          <Typography variant="caption" display="block" sx={{ mb: 0.5, fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
-                            Complete jobs and update status
-                          </Typography>
-                          <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
-                            Get paid directly by customers
-                          </Typography>
-                        </Box>
-                        
-                        {/* ========== CORRECTED PROVIDER EARNINGS SECTION ========== */}
-                        <Box sx={{ bgcolor: '#fef3c7', p: { xs: 1, sm: 1.5, md: 2 }, borderRadius: { xs: 2, sm: 3 }, mb: { xs: 2, sm: 3 } }}>
-                          <Typography variant="subtitle2" fontWeight="600" sx={{ color: '#d97706' }} gutterBottom fontSize={{ xs: '0.7rem', sm: '0.75rem' }}>
-                            💰 Provider Earnings
-                          </Typography>
-                          <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                            • Service income: {percentages.provider_percent}% per job completed
-                          </Typography>
-                          <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                            • Customers pay you DIRECTLY after service
-                          </Typography>
-                          <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                            • Referral commissions: Same multi-level system (20%, 10%, 5%...)
-                          </Typography>
-                          <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' }, color: '#d97706', mt: 0.5 }}>
-                            ℹ️ Note: No self-bonus (you don't book your own services)
-                          </Typography>
-                          <Typography variant="caption" display="block" sx={{ mt: 0.5, fontWeight: 600, fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                            Example: GHS 500 job → You earn GHS {(500 * percentages.provider_percent / 100).toFixed(0)}!
-                          </Typography>
-                        </Box>
-                        
-                        <Button 
-                          fullWidth 
-                          variant="contained"
-                          size={isMobile ? "medium" : "large"}
-                          startIcon={<HowToReg />}
-                          onClick={() => handleRoleSelect('provider')}
-                          sx={{ 
-                            bgcolor: '#10b981', 
-                            py: { xs: 1, sm: 1.5 },
-                            fontSize: { xs: '0.8rem', sm: '0.9rem', md: '1rem' },
-                            fontWeight: 700,
-                            '&:hover': { bgcolor: '#059669' }
-                          }}
-                        >
-                          {isMobile ? "Sign Up" : "Sign Up as Provider"}
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </Grid>
-                  
-                  {/* Sign In Link below cards */}
-                  <Grid size={12}>
-                    <Box sx={{ textAlign: 'center', mt: { xs: 2, sm: 3 } }}>
-                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
-                        Already have an account?{' '}
-                        <Button 
-                          onClick={handleSignInClick}
-                          startIcon={<Login />}
-                          sx={{ 
-                            textTransform: 'none', 
-                            color: '#10b981', 
-                            fontWeight: 700,
-                            fontSize: { xs: '0.75rem', sm: '0.8rem' },
-                            '&:hover': { bgcolor: '#e6f7f0' }
-                          }}
-                        >
-                          Sign In Here
-                        </Button>
-                      </Typography>
-                    </Box>
-                  </Grid>
-                </Grid>
-              ) : (
-                // SIGNUP FORM (When role is selected)
-                <Paper sx={{ borderRadius: { xs: 2, sm: 3, md: 4 }, overflow: 'hidden' }}>
-                  {/* Header */}
-                  <Box sx={{ 
-                    p: { xs: 2, sm: 2.5, md: 3 }, 
-                    bgcolor: '#10b981', 
-                    color: 'white',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between'
-                  }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <IconButton onClick={handleBackToRoles} sx={{ color: 'white', bgcolor: 'rgba(255,255,255,0.1)', p: { xs: 0.8, sm: 1 } }}>
-                        <ArrowBack />
-                      </IconButton>
-                      <Typography variant="h6" fontWeight="700" sx={{ fontSize: { xs: '0.9rem', sm: '1rem', md: '1.2rem' } }}>
-                        Create {selectedRole === 'customer' ? 'Customer' : 'Provider'} Account
-                      </Typography>
-                    </Box>
-                    <Avatar sx={{ bgcolor: 'white', color: '#10b981', width: { xs: 32, sm: 36, md: 40 }, height: { xs: 32, sm: 36, md: 40 } }}>
-                      {selectedRole === 'customer' ? <Person /> : <Build />}
-                    </Avatar>
-                  </Box>
-                  
-                  <Box sx={{ p: { xs: 2, sm: 3, md: 4 } }}>
-                    {error && (
-                      <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
-                        {error}
-                      </Alert>
-                    )}
-                    {success && (
-                      <Alert severity="success" sx={{ mb: 2, borderRadius: 2 }}>
-                        {success}
-                      </Alert>
-                    )}
-
-                    <form onSubmit={handleSubmit}>
-                      <TextField
-                        fullWidth
-                        label="Full Name"
-                        size={isMobile ? "small" : "medium"}
-                        margin={isMobile ? "dense" : "normal"}
-                        value={formData.full_name}
-                        onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                        required
-                        placeholder="John Doe"
-                      />
-                      
-                      <TextField
-                        fullWidth
-                        label="Email Address"
-                        type="email"
-                        size={isMobile ? "small" : "medium"}
-                        margin={isMobile ? "dense" : "normal"}
-                        value={formData.email}
-                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        required
-                        placeholder="john@example.com"
-                      />
-                      
-                      <TextField
-                        fullWidth
-                        label="Phone Number"
-                        size={isMobile ? "small" : "medium"}
-                        margin={isMobile ? "dense" : "normal"}
-                        value={formData.phone}
-                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        required
-                        placeholder="024XXXXXXX"
-                      />
-                      
-                      {/* Referral Code Field - Different handling for customers vs providers */}
-                      {selectedRole === 'customer' ? (
-                        <TextField
-                          fullWidth
-                          label="Referral Code (Optional)"
-                          size={isMobile ? "small" : "medium"}
-                          margin={isMobile ? "dense" : "normal"}
-                          value={formData.referral_code}
-                          onChange={(e) => setFormData({ ...formData, referral_code: e.target.value })}
-                          helperText={referralCodeFromUrl ? "✓ Referral code applied from your link!" : "Enter a referral code if you have one"}
-                          sx={referralCodeFromUrl ? { '& .MuiInputBase-root': { bgcolor: '#f0fdf4' } } : {}}
-                        />
-                      ) : (
-                        <TextField
-                          fullWidth
-                          label="Referral Code (Optional)"
-                          size={isMobile ? "small" : "medium"}
-                          margin={isMobile ? "dense" : "normal"}
-                          value={formData.referral_code}
-                          onChange={(e) => setFormData({ ...formData, referral_code: e.target.value })}
-                          helperText="Providers can also refer customers and earn commissions!"
-                          sx={{ '& .MuiInputBase-root': { bgcolor: '#fef3c715' } }}
-                        />
-                      )}
-
-                      {selectedRole === 'provider' && (
-                        <FormControl fullWidth size={isMobile ? "small" : "medium"} margin={isMobile ? "dense" : "normal"} required>
-                          <InputLabel>Service Specialization</InputLabel>
-                          <Select
-                            value={formData.service_specialization}
-                            onChange={(e) => setFormData({ ...formData, service_specialization: e.target.value })}
-                            label="Service Specialization"
-                            disabled={loadingServices}
-                          >
-                            {loadingServices ? (
-                              <MenuItem disabled>Loading services...</MenuItem>
-                            ) : services.length === 0 ? (
-                              <MenuItem disabled>No active services available</MenuItem>
-                            ) : (
-                              services.map((service) => (
-                                <MenuItem key={service.id} value={service.id}>
-                                  {service.icon} {service.name}
-                                </MenuItem>
-                              ))
-                            )}
-                          </Select>
-                        </FormControl>
-                      )}
-
-                      <TextField
-                        fullWidth
-                        label="Password"
-                        type={showPassword ? 'text' : 'password'}
-                        size={isMobile ? "small" : "medium"}
-                        margin={isMobile ? "dense" : "normal"}
-                        value={formData.password}
-                        onChange={(e) => {
-                          setFormData({ ...formData, password: e.target.value })
-                          checkPasswordStrength(e.target.value)
-                        }}
-                        required
-                        slotProps={{
-                          input: {
-                            endAdornment: (
-                              <InputAdornment position="end">
-                                <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">
-                                  {showPassword ? <VisibilityOff /> : <Visibility />}
-                                </IconButton>
-                              </InputAdornment>
-                            )
+                  <form onSubmit={handleSubmit}>
+                    <TextField
+                      fullWidth
+                      label="Full Name"
+                      size={isMobile ? "small" : "medium"}
+                      margin={isMobile ? "dense" : "normal"}
+                      value={formData.full_name}
+                      onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                      required
+                      placeholder="John Doe"
+                      InputProps={{
+                        startAdornment: <Person sx={{ color: '#94a3b8', mr: 1, fontSize: 20 }} />
+                      }}
+                    />
+                    
+                    <TextField
+                      fullWidth
+                      label="Email Address"
+                      type="email"
+                      size={isMobile ? "small" : "medium"}
+                      margin={isMobile ? "dense" : "normal"}
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      required
+                      placeholder="john@example.com"
+                      InputProps={{
+                        startAdornment: <Email sx={{ color: '#94a3b8', mr: 1, fontSize: 20 }} />
+                      }}
+                    />
+                    
+                    <TextField
+                      fullWidth
+                      label="Phone Number"
+                      size={isMobile ? "small" : "medium"}
+                      margin={isMobile ? "dense" : "normal"}
+                      value={formData.phone}
+                      onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                      required
+                      placeholder="024XXXXXXX"
+                      InputProps={{
+                        startAdornment: <Phone sx={{ color: '#94a3b8', mr: 1, fontSize: 20 }} />
+                      }}
+                    />
+                    
+                    {/* Referral Code Field - Show always for customers */}
+                    <TextField
+                      fullWidth
+                      label="Referral Code"
+                      size={isMobile ? "small" : "medium"}
+                      margin={isMobile ? "dense" : "normal"}
+                      value={formData.referral_code}
+                      onChange={(e) => {
+                        let input = e.target.value;
+                        if (input.includes('ref=')) {
+                          const match = input.match(/ref=([A-Za-z0-9]+)/);
+                          if (match && match[1]) {
+                            input = match[1];
                           }
-                        }}
-                      />
-                      
-                      {formData.password && (
-                        <Box sx={{ mt: 1.5, mb: 1.5 }}>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                            <Typography variant="caption" color="text.secondary">Password Strength:</Typography>
-                            <Chip 
-                              label={getPasswordStrengthText()} 
-                              size="small" 
-                              sx={{ 
-                                bgcolor: `${getPasswordStrengthColor()}15`, 
-                                color: getPasswordStrengthColor(),
-                                fontWeight: 600,
-                                height: { xs: 20, sm: 24 }
-                              }} 
-                            />
-                          </Box>
-                          <LinearProgress 
-                            variant="determinate" 
-                            value={Object.values(passwordStrength).filter(Boolean).length * 20} 
+                        }
+                        setFormData({ ...formData, referral_code: input });
+                      }}
+                      helperText={referralCodeFromUrl ? "✓ Referral code applied from your link!" : "Enter a referral code if you have one (optional)"}
+                      InputProps={{
+                        readOnly: !!referralCodeFromUrl,
+                        startAdornment: <Share sx={{ color: '#94a3b8', mr: 1, fontSize: 20 }} />
+                      }}
+                      sx={{ 
+                        '& .MuiInputBase-root': referralCodeFromUrl ? { bgcolor: '#f0fdf4' } : {}
+                      }}
+                    />
+
+                    <TextField
+                      fullWidth
+                      label="Password"
+                      type={showPassword ? 'text' : 'password'}
+                      size={isMobile ? "small" : "medium"}
+                      margin={isMobile ? "dense" : "normal"}
+                      value={formData.password}
+                      onChange={(e) => {
+                        setFormData({ ...formData, password: e.target.value })
+                        checkPasswordStrength(e.target.value)
+                      }}
+                      required
+                      InputProps={{
+                        startAdornment: <Lock sx={{ color: '#94a3b8', mr: 1, fontSize: 20 }} />,
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">
+                              {showPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          </InputAdornment>
+                        )
+                      }}
+                    />
+                    
+                    {formData.password && (
+                      <Box sx={{ mt: 2, mb: 2 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                          <Typography variant="caption" color="text.secondary">Password Strength:</Typography>
+                          <Chip 
+                            label={getPasswordStrengthText()} 
+                            size="small" 
                             sx={{ 
-                              height: { xs: 4, sm: 6 }, 
-                              borderRadius: 3, 
-                              bgcolor: '#e2e8f0', 
-                              '& .MuiLinearProgress-bar': { bgcolor: getPasswordStrengthColor() } 
+                              bgcolor: `${getPasswordStrengthColor()}15`, 
+                              color: getPasswordStrengthColor(),
+                              fontWeight: 600,
+                              height: { xs: 20, sm: 24 }
                             }} 
                           />
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 0.5, sm: 1 }, mt: 1 }}>
-                            {Object.entries(passwordStrength).map(([key, valid]) => (
-                              <Typography key={key} variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: valid ? '#10b981' : '#64748b', fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                                {valid ? <CheckCircle sx={{ fontSize: { xs: 10, sm: 12 } }} /> : <Cancel sx={{ fontSize: { xs: 10, sm: 12 } }} />}
-                                {key === 'length' ? '8+ chars' : key}
-                              </Typography>
-                            ))}
-                          </Box>
                         </Box>
-                      )}
+                        <LinearProgress 
+                          variant="determinate" 
+                          value={Object.values(passwordStrength).filter(Boolean).length * 20} 
+                          sx={{ 
+                            height: { xs: 4, sm: 6 }, 
+                            borderRadius: 3, 
+                            bgcolor: '#e2e8f0', 
+                            '& .MuiLinearProgress-bar': { bgcolor: getPasswordStrengthColor() } 
+                          }} 
+                        />
+                        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: { xs: 0.5, sm: 1 }, mt: 1.5 }}>
+                          <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: passwordStrength.length ? '#10b981' : '#64748b', fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
+                            {passwordStrength.length ? <CheckCircle sx={{ fontSize: { xs: 10, sm: 12 } }} /> : <Cancel sx={{ fontSize: { xs: 10, sm: 12 } }} />}
+                            8+ characters
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: passwordStrength.uppercase ? '#10b981' : '#64748b' }}>
+                            {passwordStrength.uppercase ? <CheckCircle sx={{ fontSize: { xs: 10, sm: 12 } }} /> : <Cancel sx={{ fontSize: { xs: 10, sm: 12 } }} />}
+                            Uppercase
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: passwordStrength.lowercase ? '#10b981' : '#64748b' }}>
+                            {passwordStrength.lowercase ? <CheckCircle sx={{ fontSize: { xs: 10, sm: 12 } }} /> : <Cancel sx={{ fontSize: { xs: 10, sm: 12 } }} />}
+                            Lowercase
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: passwordStrength.number ? '#10b981' : '#64748b' }}>
+                            {passwordStrength.number ? <CheckCircle sx={{ fontSize: { xs: 10, sm: 12 } }} /> : <Cancel sx={{ fontSize: { xs: 10, sm: 12 } }} />}
+                            Number
+                          </Typography>
+                          <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: passwordStrength.special ? '#10b981' : '#64748b' }}>
+                            {passwordStrength.special ? <CheckCircle sx={{ fontSize: { xs: 10, sm: 12 } }} /> : <Cancel sx={{ fontSize: { xs: 10, sm: 12 } }} />}
+                            Special char
+                          </Typography>
+                        </Box>
+                      </Box>
+                    )}
 
-                      <TextField
-                        fullWidth
-                        label="Confirm Password"
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        size={isMobile ? "small" : "medium"}
-                        margin={isMobile ? "dense" : "normal"}
-                        value={formData.confirm_password}
-                        onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })}
-                        error={!!(formData.confirm_password && formData.password !== formData.confirm_password)}
-                        helperText={formData.confirm_password && formData.password !== formData.confirm_password ? 'Passwords do not match' : ''}
-                        required
-                        slotProps={{
-                          input: {
-                            endAdornment: (
-                              <InputAdornment position="end">
-                                <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end" size="small">
-                                  {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                                </IconButton>
-                              </InputAdornment>
-                            )
-                          }
-                        }}
-                      />
+                    <TextField
+                      fullWidth
+                      label="Confirm Password"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      size={isMobile ? "small" : "medium"}
+                      margin={isMobile ? "dense" : "normal"}
+                      value={formData.confirm_password}
+                      onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })}
+                      error={!!(formData.confirm_password && formData.password !== formData.confirm_password)}
+                      helperText={formData.confirm_password && formData.password !== formData.confirm_password ? 'Passwords do not match' : ''}
+                      required
+                      InputProps={{
+                        startAdornment: <Lock sx={{ color: '#94a3b8', mr: 1, fontSize: 20 }} />,
+                        endAdornment: (
+                          <InputAdornment position="end">
+                            <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end" size="small">
+                              {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                            </IconButton>
+                          </InputAdornment>
+                        )
+                      }}
+                    />
 
-                      <Button
-                        type="submit"
-                        fullWidth
-                        variant="contained"
-                        size={isMobile ? "medium" : "large"}
-                        disabled={loading || (formData.password && !isPasswordValid())}
-                        sx={{ 
-                          mt: { xs: 2, sm: 3, md: 4 }, 
-                          py: { xs: 1.2, sm: 1.5, md: 1.8 }, 
-                          bgcolor: '#10b981',
-                          fontSize: { xs: '0.9rem', sm: '1rem', md: '1.1rem' },
-                          fontWeight: 800,
-                          '&:hover': { bgcolor: '#059669' }
-                        }}
+                    <Button
+                      type="submit"
+                      fullWidth
+                      variant="contained"
+                      size={isMobile ? "large" : "large"}
+                      disabled={loading || (formData.password && !isPasswordValid())}
+                      sx={{ 
+                        mt: { xs: 3, sm: 4 }, 
+                        py: { xs: 1.5, sm: 1.8 }, 
+                        bgcolor: '#10b981',
+                        fontSize: { xs: '1rem', sm: '1.1rem' },
+                        fontWeight: 700,
+                        '&:hover': { bgcolor: '#059669' }
+                      }}
+                    >
+                      {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Create Customer Account'}
+                    </Button>
+                  </form>
+
+                  <Box sx={{ textAlign: 'center', mt: 3 }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Already have an account?{' '}
+                      <Button 
+                        onClick={handleSignInClick}
+                        startIcon={<Login />}
+                        sx={{ textTransform: 'none', color: '#10b981', fontWeight: 600 }}
                       >
-                        {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : 'Create Account'}
+                        Sign In
                       </Button>
-                    </form>
-
-                    <Box sx={{ textAlign: 'center', mt: { xs: 2, sm: 2.5, md: 3 } }}>
-                      <Typography variant="body2" color="text.secondary" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem', md: '0.8rem' } }}>
-                        Already have an account?{' '}
-                        <Button 
-                          onClick={handleSignInClick}
-                          startIcon={<Login />}
-                          sx={{ textTransform: 'none', color: '#10b981', fontWeight: 700, fontSize: 'inherit' }}
-                        >
-                          Sign In
-                        </Button>
-                      </Typography>
-                    </Box>
+                    </Typography>
                   </Box>
-                </Paper>
-              )}
+                </Box>
+              </Paper>
             </Grid>
 
             {/* RIGHT COLUMN - Commission Info (Sticky) */}
             <Grid size={{ xs: 12, md: 5 }}>
               <Paper sx={{ 
-                p: { xs: 2, sm: 2.5, md: 3 }, 
-                borderRadius: { xs: 2, sm: 3, md: 4 }, 
+                p: { xs: 2.5, sm: 3, md: 4 }, 
+                borderRadius: { xs: 3, sm: 4, md: 5 }, 
                 position: { xs: 'relative', md: 'sticky' }, 
                 top: 20,
-                border: '1px solid #e2e8f0'
+                border: '1px solid #e2e8f0',
+                bgcolor: 'white'
               }}>
-                <Typography variant="h6" fontWeight="800" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, fontSize: { xs: '1rem', sm: '1.1rem', md: '1.2rem' } }}>
-                  <AccountBalanceWallet sx={{ color: '#10b981', fontSize: { xs: 22, sm: 24, md: 28 } }} />
+                <Typography variant="h6" fontWeight="800" sx={{ mb: 2, display: 'flex', alignItems: 'center', gap: 1, fontSize: { xs: '1.1rem', sm: '1.2rem' } }}>
+                  <AccountBalanceWallet sx={{ color: '#10b981', fontSize: { xs: 24, sm: 28 } }} />
                   How You Earn
                 </Typography>
                 
                 <Divider sx={{ mb: 2 }} />
                 
                 {/* Referral Pool Info */}
-                <Box sx={{ mb: 3, p: { xs: 1.5, sm: 2 }, bgcolor: '#e0f2fe', borderRadius: { xs: 2, sm: 3 } }}>
-                  <Typography variant="subtitle2" fontWeight="700" sx={{ color: '#0284c7', fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
-                    📊 Referral Pool: {percentages.referral_pool_percent}% of each booking
+                <Box sx={{ mb: 3, p: 2, bgcolor: '#e0f2fe', borderRadius: 2 }}>
+                  <Typography variant="subtitle2" fontWeight="700" sx={{ color: '#0284c7', mb: 1, fontSize: { xs: '0.8rem', sm: '0.85rem' } }}>
+                    📊 Referral Pool: {referralPoolPercent}% of each booking
                   </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                    When someone you refer completes a service, {percentages.referral_pool_percent}% goes to the referral pool for distribution.
+                  <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                    When someone you refer completes a service, {referralPoolPercent}% of the booking amount goes to the referral pool for distribution.
                   </Typography>
                 </Box>
                 
                 {/* Commission Table */}
-                <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 1.5, fontSize: { xs: '0.8rem', sm: '0.85rem', md: '0.9rem' } }}>
-                  Commission Distribution (Example: GHS 500 booking):
+                <Typography variant="subtitle2" fontWeight="700" sx={{ mb: 2, fontSize: { xs: '0.85rem', sm: '0.9rem' } }}>
+                  Commission Distribution (on GHS {exampleBookingAmount}):
                 </Typography>
                 
                 <Box sx={{ mb: 3 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: { xs: 1, sm: 1.2 }, borderBottom: '1px solid #e2e8f0' }}>
-                    <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>Referral Pool Amount:</Typography>
-                    <Typography variant="body2" fontWeight="700" sx={{ color: '#10b981', fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>
-                      GHS {(500 * percentages.referral_pool_percent / 100).toFixed(2)}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1.2, borderBottom: '1px solid #e2e8f0' }}>
+                    <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>Referral Pool Amount:</Typography>
+                    <Typography variant="body2" fontWeight="700" sx={{ color: '#0284c7', fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
+                      GHS {referralPoolAmount.toFixed(2)}
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: { xs: 1, sm: 1.2 }, borderBottom: '1px solid #e2e8f0' }}>
-                    <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>Level 0 (Self-bonus - 5%):</Typography>
-                    <Typography variant="body2" fontWeight="600" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>GHS {(500 * percentages.referral_pool_percent / 100 * 0.05).toFixed(2)}</Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1.2, borderBottom: '1px solid #e2e8f0', bgcolor: '#f0fdf4' }}>
+                    <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>🎁 Self-bonus (Your first booking):</Typography>
+                    <Typography variant="body2" fontWeight="700" sx={{ color: '#10b981', fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
+                      + GHS {selfBonus.toFixed(2)}
+                    </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: { xs: 1, sm: 1.2 }, borderBottom: '1px solid #e2e8f0' }}>
-                    <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>Level 1 (Direct referral - 20%):</Typography>
-                    <Typography variant="body2" fontWeight="600" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>GHS {(500 * percentages.referral_pool_percent / 100 * 0.2).toFixed(2)}</Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1.2, borderBottom: '1px solid #e2e8f0' }}>
+                    <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>Level 1 (Direct referral - 20%):</Typography>
+                    <Typography variant="body2" fontWeight="600" sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
+                      GHS {level1Earning.toFixed(2)}
+                    </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: { xs: 1, sm: 1.2 }, borderBottom: '1px solid #e2e8f0' }}>
-                    <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>Level 2 (Indirect - 10%):</Typography>
-                    <Typography variant="body2" fontWeight="600" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>GHS {(500 * percentages.referral_pool_percent / 100 * 0.1).toFixed(2)}</Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1.2, borderBottom: '1px solid #e2e8f0' }}>
+                    <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>Level 2 (Indirect - 10%):</Typography>
+                    <Typography variant="body2" fontWeight="600" sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
+                      GHS {level2Earning.toFixed(2)}
+                    </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: { xs: 1, sm: 1.2 } }}>
-                    <Typography variant="body2" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>Level 3+ (5% each):</Typography>
-                    <Typography variant="body2" fontWeight="600" sx={{ fontSize: { xs: '0.7rem', sm: '0.75rem' } }}>GHS {(500 * percentages.referral_pool_percent / 100 * 0.05).toFixed(2)}</Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', py: 1.2 }}>
+                    <Typography variant="body2" sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>Level 3+ (5% each):</Typography>
+                    <Typography variant="body2" fontWeight="600" sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
+                      GHS {level3Earning.toFixed(2)}
+                    </Typography>
                   </Box>
                 </Box>
                 
                 <Divider sx={{ my: 2 }} />
                 
-                {/* Important Notes */}
-                <Box sx={{ p: { xs: 1.5, sm: 2 }, bgcolor: '#f0fdf4', borderRadius: { xs: 2, sm: 3 }, mb: 2 }}>
-                  <Typography variant="subtitle2" fontWeight="700" sx={{ color: '#10b981', mb: 1, fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
-                    📌 Important Notes:
+                {/* Example Earnings */}
+                <Box sx={{ p: 2, bgcolor: '#f0fdf4', borderRadius: 2, mb: 2 }}>
+                  <Typography variant="subtitle2" fontWeight="700" sx={{ color: '#10b981', mb: 1.5, fontSize: { xs: '0.8rem', sm: '0.85rem' } }}>
+                    💰 Example: You refer 5 friends
                   </Typography>
-                  <Typography variant="caption" display="block" sx={{ mb: 0.5, fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                    • Self-bonus (5%) applies ONLY to customers on their first booking
+                  <Typography variant="caption" display="block" sx={{ mb: 0.5, fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                    Each friend books GHS {exampleBookingAmount}:
                   </Typography>
-                  <Typography variant="caption" display="block" sx={{ mb: 0.5, fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                    • Providers earn the same multi-level referral commissions as customers
+                  <Typography variant="caption" display="block" sx={{ color: '#10b981', fontWeight: 600, fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                    • 5 direct referrals × GHS {level1Earning.toFixed(2)} = GHS {(level1Earning * 5).toFixed(2)}
                   </Typography>
-                  <Typography variant="caption" display="block" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                    • Minimum withdrawal: GHS 20 to Mobile Money
+                  <Typography variant="caption" display="block" sx={{ color: '#10b981', fontWeight: 600, mb: 1, fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                    • Their referrals (indirect) = GHS {(level2Earning * 5).toFixed(2)}+
+                  </Typography>
+                  <Typography variant="body2" fontWeight="800" sx={{ color: '#10b981', fontSize: { xs: '0.85rem', sm: '0.9rem' }, mt: 1 }}>
+                    Total Potential Earnings: GHS {(level1Earning * 5 + level2Earning * 5).toFixed(2)}+
                   </Typography>
                 </Box>
                 
@@ -803,13 +633,37 @@ const ReferralSignup = () => {
                 
                 {/* Withdrawal Info */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, p: 1 }}>
-                  <Phone sx={{ color: '#25D366', fontSize: { xs: 24, sm: 28 } }} />
+                  <WhatsApp sx={{ color: '#25D366', fontSize: { xs: 28, sm: 32 } }} />
                   <Box>
-                    <Typography variant="body2" fontWeight="800" sx={{ fontSize: { xs: '0.75rem', sm: '0.8rem' } }}>
+                    <Typography variant="body2" fontWeight="800" sx={{ fontSize: { xs: '0.8rem', sm: '0.85rem' } }}>
                       Withdraw to Mobile Money
                     </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.6rem', sm: '0.65rem' } }}>
-                      MTN, Vodafone, AirtelTigo • Minimum GHS 20
+                    <Typography variant="caption" color="text.secondary" sx={{ fontSize: { xs: '0.65rem', sm: '0.7rem' } }}>
+                      Minimum withdrawal: GHS 20 • MTN • Vodafone • AirtelTigo
+                    </Typography>
+                  </Box>
+                </Box>
+                
+                <Divider sx={{ my: 2 }} />
+                
+                {/* Trust Badges */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-around', mt: 1 }}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Security sx={{ color: '#10b981', fontSize: 24 }} />
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.65rem' }}>
+                      Secure
+                    </Typography>
+                  </Box>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Verified sx={{ color: '#10b981', fontSize: 24 }} />
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.65rem' }}>
+                      Verified
+                    </Typography>
+                  </Box>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Star sx={{ color: '#fbbf24', fontSize: 24 }} />
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', fontSize: '0.65rem' }}>
+                      5-Star Service
                     </Typography>
                   </Box>
                 </Box>
