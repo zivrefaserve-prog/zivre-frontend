@@ -4,6 +4,7 @@ import { ThemeProvider, createTheme } from '@mui/material/styles'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { WebSocketProvider } from './contexts/WebSocketContext'
 import { TourButton, homepageTourSteps } from './common/DemoTour'
+import VerificationSent from './pages/VerificationSent'
 import DemoTour from './common/DemoTour'
 import Header from './layout/Header'
 import Footer from './layout/Footer'
@@ -226,6 +227,7 @@ const AppRoutes = () => {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/signup" element={<ReferralSignup />} />
+        <Route path="/verification-sent" element={<VerificationSent />} />
         <Route path="/profile" element={
           user ? <ProfileSettings /> : <Navigate to="/" />
         } />
