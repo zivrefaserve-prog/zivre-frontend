@@ -790,7 +790,6 @@ const handleDeleteRequestPermanently = async (requestId) => {
     }
   }
 
-  
   const handleSuspendUser = async (userId, currentStatus) => {
     setActionLoading(true)
     try {
@@ -811,7 +810,7 @@ const handleDeleteRequestPermanently = async (requestId) => {
       setActionLoading(false)
     }
   
-      
+      // ❌ DUPLICATE CODE STARTS HERE (DELETE THESE LINES)
       // ✅ Background refresh
       loadData(false)
       
@@ -821,7 +820,9 @@ const handleDeleteRequestPermanently = async (requestId) => {
     } finally {
       setActionLoading(false)
     }
+    // ❌ DUPLICATE CODE ENDS HERE
   }
+ 
 
   const handleDeleteUser = async (userId, userName) => {
     setActionLoading(true)
