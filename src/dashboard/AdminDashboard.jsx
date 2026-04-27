@@ -10,7 +10,7 @@ import {
   getAvailableProviders, getUnreadMessagesCount, getUnreadCount,
   getAdminComments, toggleCommentApproval, adminDeleteComment,
   getPaymentSettings, updatePaymentSettings,
-  getPercentages, updatePercentages,  // ← ADD THIS
+  getPercentages, updatePercentages,
   getUserFullDetails, rejectRequest, deleteRequestPermanently
 } from '../api/client'
 import {
@@ -625,14 +625,14 @@ const handleDeleteRequestPermanently = async (requestId) => {
     }
   }, [handleServiceCreated, handleServiceUpdated, handleServiceToggled, handleNewRequest, handleRequestStatusChanged, handleProviderAssigned, handleJobClaimed, handleJobStarted, handleJobCompleted, handleCustomerConfirmed, handleNewQuote, handleQuoteStatusUpdated, handleNewComment, handleCommentToggled, handleCommentDeleted, handleUsersUpdated, handleUserVerified, handleUserSuspended, handlePercentagesUpdated, handlePaymentSettingsUpdated, handleNewNotification, handleMessageReceived])
 
-  // Fallback polling interval (5 seconds for faster updates)
+  // ✅ FIXED: Fallback polling interval - changed from 5 seconds to 60 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       if (!document.hidden) {
         loadData()
         loadUnreadCounts()
       }
-    }, 5000)  // Changed from 15000 to 5000
+    }, 60000)  // ← CHANGED from 5000 to 60000 (60 seconds)
     return () => clearInterval(interval)
   }, [loadData, loadUnreadCounts])
 
@@ -669,6 +669,7 @@ const handleDeleteRequestPermanently = async (requestId) => {
     }
   }
 
+  // ✅ FIXED: handleUpdatePercentages - uses targeted refresh
   const handleUpdatePercentages = async () => {
       const total = percentages.provider_percent + percentages.admin_percent + percentages.site_fee_percent + (percentages.referral_pool_percent || 0)
       if (Math.abs(total - 100) > 0.01) {
@@ -681,7 +682,9 @@ const handleDeleteRequestPermanently = async (requestId) => {
         await updatePercentages(percentages)
         showToast('Percentages updated successfully!', 'success')
         await loadPercentages()
-        await loadData()
+        // ✅ FIXED: Refresh services only, not full loadData
+        const servicesRes = await getServices(false)
+        setServices(servicesRes.data)
       } catch (err) {
         showToast(err.response?.data?.error || 'Error updating percentages', 'error')
       } finally {
