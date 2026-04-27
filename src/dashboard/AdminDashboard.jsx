@@ -1036,9 +1036,22 @@ const handleDeleteRequestPermanently = async (requestId) => {
               <IconButton onClick={() => loadData(true)} disabled={refreshing} sx={{ bgcolor: 'white' }}>
                 {refreshing ? <CircularProgress size={24} sx={{ color: '#10b981' }} /> : <RefreshIcon />}
               </IconButton>
-              <IconButton onClick={() => setMobileOpen(!mobileOpen)} sx={{ display: { xs: 'flex', md: 'none' } }}>
-                <MenuIcon />
-              </IconButton>
+              <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', gap: 0.5 }}>
+                <IconButton onClick={() => setMobileOpen(!mobileOpen)}>
+                  <MenuIcon />
+                </IconButton>
+                <Typography 
+                  variant="body2" 
+                  sx={{ 
+                    fontWeight: 500, 
+                    color: '#10b981',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setMobileOpen(!mobileOpen)}
+                >
+                  MENU
+                </Typography>
+              </Box>
             </Box>
           </Box>
 
