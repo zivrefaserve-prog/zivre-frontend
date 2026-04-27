@@ -29,6 +29,7 @@ import LoadingOverlay from './common/LoadingOverlay'
 import UserReferralDashboard from './pages/UserReferralDashboard'
 import AdminReferralDashboard from './pages/AdminReferralDashboard'
 import VerifyEmail from './pages/VerifyEmail'
+import VerifyReceipt from './pages/VerifyReceipt'
 import './App.css'
 
 // Force mobile breakpoints in theme
@@ -225,6 +226,7 @@ const AppRoutes = () => {
       
       <Routes>
         <Route path="/verify-email" element={<VerifyEmail />} />
+        <Route path="/verify-receipt" element={<VerifyReceipt />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/signup" element={<ReferralSignup />} />
         <Route path="/verification-sent" element={<VerificationSent />} />
