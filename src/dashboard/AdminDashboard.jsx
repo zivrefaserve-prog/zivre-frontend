@@ -810,7 +810,7 @@ const handleDeleteRequestPermanently = async (requestId) => {
     } finally {
       setActionLoading(false)
     }
-  }
+  
       
       // ✅ Background refresh
       loadData(false)
