@@ -69,7 +69,10 @@ const Hero = ({ onGetQuote }) => {
         <div className="container">
           <div className="hero-badge">✓ Premium Facility Management</div>
             <h1 className="hero-title">
-              Zivre giving life to facilities<br />
+              <span style={{ color: '#10b981', fontSize: '3.5rem', display: 'inline-block' }}>Zivre</span>
+              <br />
+              giving life to facilities
+              <br />
               <span className="hero-highlight">Across Ghana</span>
             </h1>
           <p className="hero-subtitle">
