@@ -637,7 +637,7 @@ const ProviderDashboard = () => {
                             disabled={!user?.is_verified || actionLoading === job.id}
                             sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
                           >
-                            {actionLoading === job.id ? <CircularProgress size={24} sx={{ color: 'white' }} /> : '📌 Claim Job'}
+                            {actionLoading === job.id ? <CircularProgress size={24} sx={{ color: 'white' }} /> : ' Claim Job'}
                           </Button>
                         </Box>
                       </Card>
