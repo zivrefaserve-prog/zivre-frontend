@@ -13,7 +13,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [services, setServices] = useState([])
   const [loadingServices, setLoadingServices] = useState(false)
-  const [verificationMessage, setVerificationMessage] = useState('')
   
   const [passwordStrength, setPasswordStrength] = useState({
     length: false,
@@ -52,7 +51,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     const referralCode = sessionStorage.getItem('zivre_referral_code');
     if (referralCode && !formData.referral_code) {
       setFormData(prev => ({ ...prev, referral_code: referralCode }));
-      // Clear it after using
       sessionStorage.removeItem('zivre_referral_code');
     }
   }, []);
@@ -103,7 +101,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
-    setVerificationMessage('')
   
     if (!validateEmail(formData.email)) {
       setError('Please enter a valid email address (e.g., name@example.com)')
@@ -149,19 +146,23 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
           service_specialization: role === 'provider' ? parseInt(formData.service_specialization) : null,
           referral_code: formData.referral_code
         }
+        
         const res = await signup(userData)
         
         // ✅ CHECK IF EMAIL VERIFICATION IS REQUIRED
-      if (res.data && res.data.requires_verification) {
-        // Close the modal
-        onClose()
-        // Navigate to verification sent page with email
-        window.location.href = `/verification-sent?email=${encodeURIComponent(res.data.email)}`
-        return
-      }
-        // If no verification required (old flow or existing users)
-        onSuccess(res.user)
-        onClose()
+        if (res.data && res.data.requires_verification) {
+          // Close the modal
+          onClose()
+          // Navigate to verification sent page with email
+          window.location.href = `/verification-sent?email=${encodeURIComponent(res.data.email)}`
+          return
+        }
+        
+        // If no verification required (auto-login)
+        if (res.data && res.data.user) {
+          onSuccess(res.data.user)
+          onClose()
+        }
       } catch (err) {
         const errorMsg = err.response?.data?.error
         if (errorMsg === 'Email already exists') {
@@ -169,12 +170,11 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         } else {
           setError(errorMsg || 'Signup failed. Please try again.')
         }
-        // Modal stays open on error
       } finally {
         setLoading(false)
       }
     } else {
-      // SIGN IN - Modal stays open on error
+      // SIGN IN
       if (!formData.email || !formData.password) {
         setError('Please enter both email and password')
         return
@@ -186,17 +186,16 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         const res = await login(formData.email, formData.password)
         
         // ✅ CHECK IF EMAIL NOT VERIFIED
-        if (res.data && res.data.requires_verification) {
+        if (res && res.requires_verification) {
           setError('Please verify your email address before logging in. Check your inbox for the verification link.')
           setLoading(false)
           return
         }
         
         onSuccess(res.user)
-        onClose()  // Only close on success
+        onClose()
       } catch (err) {
         console.error('Login error:', err.response?.data)
-        // Keep modal open - show user-friendly error
         if (err.response?.data?.error === 'Account has been suspended') {
           setError('Your account has been suspended. Please contact support.')
         } else if (err.response?.data?.error === 'Invalid email or password') {
@@ -206,7 +205,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         } else {
           setError(err.response?.data?.error || 'Login failed. Please try again.')
         }
-        // DO NOT call onClose() - modal stays open
       } finally {
         setLoading(false)
       }
@@ -227,7 +225,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     return 'Strong'
   }
 
-  // Handle forgot password click
   const handleForgotPassword = () => {
     console.log('Opening forgot password modal')
     onClose()
@@ -236,17 +233,8 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     }, 100)
   }
 
-  // Handle resend verification
-  const handleResendVerification = () => {
-    onClose()
-    setTimeout(() => {
-      window.location.href = '/verify-email'
-    }, 100)
-  }
-
   return (
     <>
-      {/* Loading Overlay - shows during login/signup */}
       <LoadingOverlay 
         open={authLoading} 
         message={isSignUp ? "Creating your account..." : "Signing you in..."} 
@@ -272,33 +260,8 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         </DialogTitle>
 
         <DialogContent sx={{ pb: 4 }}>
-          {/* ✅ SHOW VERIFICATION MESSAGE IF APPLICABLE */}
-          {verificationMessage && (
-            <Alert 
-              severity="info" 
-              sx={{ mb: 2, borderRadius: 2 }}
-              action={
-                <Button color="inherit" size="small" onClick={handleResendVerification}>
-                  Resend
-                </Button>
-              }
-            >
-              {verificationMessage}
-            </Alert>
-          )}
-
           {error && (
-            <Alert 
-              severity="error" 
-              sx={{ mb: 2, borderRadius: 2 }}
-              action={
-                error.includes('verify your email') ? (
-                  <Button color="inherit" size="small" onClick={handleResendVerification}>
-                    Resend
-                  </Button>
-                ) : null
-              }
-            >
+            <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
               {error}
             </Alert>
           )}
@@ -343,7 +306,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
                   sx={{ mb: 1.5 }}
                 />
 
-                {/* REFERRAL CODE FIELD - ONLY FOR CUSTOMERS */}
                 {role !== 'provider' && (
                   <TextField
                     fullWidth
@@ -392,7 +354,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
               </>
             )}
 
-            {/* Email field for sign in */}
             {!isSignUp && (
               <TextField
                 fullWidth
@@ -430,7 +391,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
               sx={{ mb: 1.5 }}
             />
 
-            {/* FORGOT PASSWORD LINK - ONLY FOR SIGN IN MODE */}
             {!isSignUp && (
               <Box sx={{ textAlign: 'right', mb: 2 }}>
                 <Button
