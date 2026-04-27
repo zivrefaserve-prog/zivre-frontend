@@ -108,7 +108,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     }
   
     if (isSignUp) {
-      // SIGN UP
+      // ========== SIGN UP ==========
       if (!formData.full_name.trim()) {
         setError('Please enter your full name')
         return
@@ -149,11 +149,9 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         
         const res = await signup(userData)
         
-        // ✅ CHECK IF EMAIL VERIFICATION IS REQUIRED
+        // Check if email verification is required
         if (res.data && res.data.requires_verification) {
-          // Close the modal
-          onClose()
-          // Navigate to verification sent page with email
+          onClose()  // Close modal only after successful signup
           window.location.href = `/verification-sent?email=${encodeURIComponent(res.data.email)}`
           return
         }
@@ -161,7 +159,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         // If no verification required (auto-login)
         if (res.data && res.data.user) {
           onSuccess(res.data.user)
-          onClose()
+          onClose()  // Close modal only after successful signup
         }
       } catch (err) {
         const errorMsg = err.response?.data?.error
@@ -170,11 +168,12 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         } else {
           setError(errorMsg || 'Signup failed. Please try again.')
         }
+        // ✅ MODAL STAYS OPEN - DO NOT CALL onClose()
       } finally {
         setLoading(false)
       }
     } else {
-      // SIGN IN
+      // ========== SIGN IN ==========
       if (!formData.email || !formData.password) {
         setError('Please enter both email and password')
         return
@@ -185,26 +184,37 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
       try {
         const res = await login(formData.email, formData.password)
         
-        // ✅ CHECK IF EMAIL NOT VERIFIED
+        // Check if email not verified
         if (res && res.requires_verification) {
           setError('Please verify your email address before logging in. Check your inbox for the verification link.')
           setLoading(false)
+          // ✅ MODAL STAYS OPEN - DO NOT CALL onClose()
           return
         }
         
+        // Successful login
         onSuccess(res.user)
-        onClose()
+        onClose()  // ✅ Only close on SUCCESSFUL login
       } catch (err) {
         console.error('Login error:', err.response?.data)
+        
+        // ✅ HANDLE ALL ERRORS - MODAL STAYS OPEN
         if (err.response?.data?.error === 'Account has been suspended') {
           setError('Your account has been suspended. Please contact support.')
         } else if (err.response?.data?.error === 'Invalid email or password') {
           setError('Incorrect email or password. Please try again.')
+        } else if (err.response?.data?.error === 'Please verify your email address before logging in.') {
+          setError('Please verify your email address before logging in. Check your inbox for the verification link.')
         } else if (err.response?.data?.requires_verification) {
           setError('Please verify your email address before logging in. Check your inbox for the verification link.')
         } else {
           setError(err.response?.data?.error || 'Login failed. Please try again.')
         }
+        
+        // ✅ IMPORTANT: DO NOT CALL onClose() - Modal stays open
+        // ✅ Clear password field for security (optional but recommended)
+        setFormData(prev => ({ ...prev, password: '' }))
+        
       } finally {
         setLoading(false)
       }
@@ -225,6 +235,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     return 'Strong'
   }
 
+  // Handle forgot password click
   const handleForgotPassword = () => {
     console.log('Opening forgot password modal')
     onClose()
@@ -260,8 +271,14 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         </DialogTitle>
 
         <DialogContent sx={{ pb: 4 }}>
+          
+          {/* ✅ ERROR MESSAGE - Visible but modal stays open */}
           {error && (
-            <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }}>
+            <Alert 
+              severity="error" 
+              sx={{ mb: 2, borderRadius: 2 }}
+              onClose={() => setError('')}
+            >
               {error}
             </Alert>
           )}
@@ -306,6 +323,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
                   sx={{ mb: 1.5 }}
                 />
 
+                {/* REFERRAL CODE FIELD - ONLY FOR CUSTOMERS */}
                 {role !== 'provider' && (
                   <TextField
                     fullWidth
@@ -354,6 +372,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
               </>
             )}
 
+            {/* Email field for sign in */}
             {!isSignUp && (
               <TextField
                 fullWidth
@@ -391,6 +410,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
               sx={{ mb: 1.5 }}
             />
 
+            {/* FORGOT PASSWORD LINK - ONLY FOR SIGN IN MODE */}
             {!isSignUp && (
               <Box sx={{ textAlign: 'right', mb: 2 }}>
                 <Button
