@@ -193,6 +193,10 @@ export const getPendingBookingsForCommission = () => api.get('/admin/referrals/p
 export const updateServiceShares = (serviceId, data) => api.put(`/admin/services/${serviceId}/shares`, data)
 export const getUserTreeForAdmin = (userId) => api.get(`/admin/referrals/user-tree/${userId}`)
 
+// ========== EMAIL VERIFICATION ==========
+export const verifyEmail = (data) => api.post('/auth/verify-email', data)
+export const resendVerification = (data) => api.post('/auth/resend-verification', data)
+
 // ========== BOOKING DETAILS WITH OWNER NET ==========
 export const getBookingDetails = (requestId) => api.get(`/admin/requests/${requestId}`)
 export default api
