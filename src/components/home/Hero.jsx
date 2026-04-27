@@ -68,8 +68,15 @@ const Hero = ({ onGetQuote }) => {
       <section className="hero">
         <div className="container">
           <div className="hero-badge">✓ Premium Facility Management</div>
-           <h1 className="hero-title">
-            <span className="hero-highlight" style={{ fontSize: '3.5rem', display: 'inline-block' }}>
+          <h1 className="hero-title">
+            <span 
+              className="hero-highlight" 
+              style={{ 
+                fontSize: { xs: '2.5rem', sm: '3rem', md: '3.5rem' },
+                display: 'inline-block',
+                fontWeight: 800
+              }}
+            >
               ZIVRE
             </span>
             <br />
