@@ -149,17 +149,15 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         
         const res = await signup(userData)
         
-        // Check if email verification is required
         if (res.data && res.data.requires_verification) {
-          onClose()  // Close modal only after successful signup
+          onClose()
           window.location.href = `/verification-sent?email=${encodeURIComponent(res.data.email)}`
           return
         }
         
-        // If no verification required (auto-login)
         if (res.data && res.data.user) {
           onSuccess(res.data.user)
-          onClose()  // Close modal only after successful signup
+          onClose()
         }
       } catch (err) {
         const errorMsg = err.response?.data?.error
@@ -168,7 +166,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         } else {
           setError(errorMsg || 'Signup failed. Please try again.')
         }
-        // ✅ MODAL STAYS OPEN - DO NOT CALL onClose()
       } finally {
         setLoading(false)
       }
@@ -184,36 +181,42 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
       try {
         const res = await login(formData.email, formData.password)
         
-        // Check if email not verified
-        if (res && res.requires_verification) {
-          setError('Please verify your email address before logging in. Check your inbox for the verification link.')
-          setLoading(false)
-          // ✅ MODAL STAYS OPEN - DO NOT CALL onClose()
-          return
+        // ✅ SUCCESS - Only close modal on success
+        if (res && res.user) {
+          onSuccess(res.user)
+          onClose()
         }
-        
-        // Successful login
-        onSuccess(res.user)
-        onClose()  // ✅ Only close on SUCCESSFUL login
       } catch (err) {
-        console.error('Login error:', err.response?.data)
+        console.error('Login error:', err)
         
-        // ✅ HANDLE ALL ERRORS - MODAL STAYS OPEN
-        if (err.response?.data?.error === 'Account has been suspended') {
-          setError('Your account has been suspended. Please contact support.')
-        } else if (err.response?.data?.error === 'Invalid email or password') {
-          setError('Incorrect email or password. Please try again.')
-        } else if (err.response?.data?.error === 'Please verify your email address before logging in.') {
-          setError('Please verify your email address before logging in. Check your inbox for the verification link.')
-        } else if (err.response?.data?.requires_verification) {
-          setError('Please verify your email address before logging in. Check your inbox for the verification link.')
-        } else {
-          setError(err.response?.data?.error || 'Login failed. Please try again.')
+        // ✅ ERROR - Modal STAYS OPEN
+        // Extract error message from response
+        let errorMessage = 'Login failed. Please try again.'
+        
+        if (err.response?.data?.error) {
+          errorMessage = err.response.data.error
+        } else if (err.response?.data?.message) {
+          errorMessage = err.response.data.message
+        } else if (err.message) {
+          errorMessage = err.message
         }
         
-        // ✅ IMPORTANT: DO NOT CALL onClose() - Modal stays open
-        // ✅ Clear password field for security (optional but recommended)
+        // Customize message for specific errors
+        if (errorMessage.includes('verify')) {
+          errorMessage = 'Please verify your email address before logging in. Check your inbox for the verification link.'
+        } else if (errorMessage.includes('Invalid email or password')) {
+          errorMessage = 'Incorrect email or password. Please try again.'
+        } else if (errorMessage.includes('suspended')) {
+          errorMessage = 'Your account has been suspended. Please contact support.'
+        }
+        
+        setError(errorMessage)
+        
+        // ✅ Clear password field for security
         setFormData(prev => ({ ...prev, password: '' }))
+        
+        // ✅ IMPORTANT: Do NOT call onClose() here
+        // Modal stays open so user can try again
         
       } finally {
         setLoading(false)
@@ -235,7 +238,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     return 'Strong'
   }
 
-  // Handle forgot password click
   const handleForgotPassword = () => {
     console.log('Opening forgot password modal')
     onClose()
@@ -272,7 +274,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
 
         <DialogContent sx={{ pb: 4 }}>
           
-          {/* ✅ ERROR MESSAGE - Visible but modal stays open */}
+          {/* ✅ Error message - Modal stays open */}
           {error && (
             <Alert 
               severity="error" 
@@ -323,7 +325,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
                   sx={{ mb: 1.5 }}
                 />
 
-                {/* REFERRAL CODE FIELD - ONLY FOR CUSTOMERS */}
                 {role !== 'provider' && (
                   <TextField
                     fullWidth
@@ -372,7 +373,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
               </>
             )}
 
-            {/* Email field for sign in */}
             {!isSignUp && (
               <TextField
                 fullWidth
@@ -410,7 +410,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
               sx={{ mb: 1.5 }}
             />
 
-            {/* FORGOT PASSWORD LINK - ONLY FOR SIGN IN MODE */}
             {!isSignUp && (
               <Box sx={{ textAlign: 'right', mb: 2 }}>
                 <Button
