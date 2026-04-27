@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import RoleBasedTour from '../common/RoleBasedTour'
+import ConfirmModal from '../common/ConfirmModal'
 import { TourButton, adminTourSteps } from '../common/DemoTour'
 import {
   getAdminStats, getServices, toggleServiceActive, updateService, createService,
@@ -115,6 +116,9 @@ const AdminDashboard = () => {
   })
   const [paymentSettingsLoading, setPaymentSettingsLoading] = useState(false)
 
+    // ✅ ADD THESE TWO LINES BELOW
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false)
+  const [userToDelete, setUserToDelete] = useState(null)
   // Handle window resize for mobile detection
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768)
@@ -813,9 +817,18 @@ const handleDeleteRequestPermanently = async (requestId) => {
       showToast(err.response?.data?.error || 'Error deleting user', 'error')
     } finally {
       setActionLoading(false)
+      setDeleteConfirmOpen(false)  // ✅ ADD THIS LINE
+      setUserToDelete(null)         // ✅ ADD THIS LINE
     }
   }
 
+  // ✅ ADD THIS NEW FUNCTION RIGHT AFTER handleDeleteUser
+  const openDeleteConfirm = (user) => {
+    setUserToDelete(user)
+    setDeleteConfirmOpen(true)
+  }
+
+  
   const handleUpdateQuoteStatus = async (quoteId, status) => {
     setActionLoading(true)
     try {
@@ -1260,28 +1273,92 @@ const handleDeleteRequestPermanently = async (requestId) => {
                           )}
                         </TableCell>
                         <TableCell>
-                          <Tooltip title="View Full Details">
-                            <IconButton size="small" onClick={() => handleViewUserDetails(u)} sx={{ color: '#10b981' }}>
-                              <VisibilityIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
-                          {u.role === 'provider' && !u.is_verified && (
-                            <Tooltip title="Verify Provider">
-                              <IconButton size="small" onClick={() => handleVerifyUser(u.id)} sx={{ color: '#10b981' }}>
-                                <VerifiedIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          )}
-                          <Tooltip title={u.is_active ? 'Suspend' : 'Activate'}>
-                            <IconButton size="small" onClick={() => handleSuspendUser(u.id, u.is_active)} sx={{ color: u.is_active ? '#f59e0b' : '#10b981' }}>
-                              {u.is_active ? <CloseIcon fontSize="small" /> : <CheckIcon fontSize="small" />}
-                            </IconButton>
-                          </Tooltip>
-                          <Tooltip title="Delete">
-                            <IconButton size="small" onClick={() => handleDeleteUser(u.id, u.full_name)} sx={{ color: '#ef4444' }}>
-                              <DeleteIcon fontSize="small" />
-                            </IconButton>
-                          </Tooltip>
+                          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                            {/* VIEW Button */}
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              startIcon={<VisibilityIcon />}
+                              onClick={() => handleViewUserDetails(u)}
+                              sx={{
+                                color: '#10b981',
+                                borderColor: '#10b981',
+                                textTransform: 'none',
+                                fontSize: '0.7rem',
+                                py: 0.5,
+                                px: 1.5,
+                                minWidth: 'auto',
+                                '&:hover': { bgcolor: '#e6f7f0', borderColor: '#10b981' }
+                              }}
+                            >
+                              View
+                            </Button>
+                            
+                            {/* VERIFY Button - only for unverified providers */}
+                            {u.role === 'provider' && !u.is_verified && (
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                startIcon={<VerifiedIcon />}
+                                onClick={() => handleVerifyUser(u.id)}
+                                sx={{
+                                  color: '#3b82f6',
+                                  borderColor: '#3b82f6',
+                                  textTransform: 'none',
+                                  fontSize: '0.7rem',
+                                  py: 0.5,
+                                  px: 1.5,
+                                  minWidth: 'auto',
+                                  '&:hover': { bgcolor: '#eff6ff', borderColor: '#3b82f6' }
+                                }}
+                              >
+                                Verify
+                              </Button>
+                            )}
+                            
+                            {/* SUSPEND/ACTIVATE Button */}
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              startIcon={u.is_active ? <CloseIcon /> : <CheckIcon />}
+                              onClick={() => handleSuspendUser(u.id, u.is_active)}
+                              sx={{
+                                color: u.is_active ? '#f59e0b' : '#10b981',
+                                borderColor: u.is_active ? '#f59e0b' : '#10b981',
+                                textTransform: 'none',
+                                fontSize: '0.7rem',
+                                py: 0.5,
+                                px: 1.5,
+                                minWidth: 'auto',
+                                '&:hover': { 
+                                  bgcolor: u.is_active ? '#fef3c7' : '#e6f7f0',
+                                  borderColor: u.is_active ? '#f59e0b' : '#10b981'
+                                }
+                              }}
+                            >
+                              {u.is_active ? 'Suspend' : 'Activate'}
+                            </Button>
+                            
+                            {/* DELETE Button - opens confirmation modal */}
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              startIcon={<DeleteIcon />}
+                              onClick={() => openDeleteConfirm(u)}
+                              sx={{
+                                color: '#ef4444',
+                                borderColor: '#ef4444',
+                                textTransform: 'none',
+                                fontSize: '0.7rem',
+                                py: 0.5,
+                                px: 1.5,
+                                minWidth: 'auto',
+                                '&:hover': { bgcolor: '#fef2f2', borderColor: '#ef4444' }
+                              }}
+                            >
+                              Delete
+                            </Button>
+                          </Box>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -2081,6 +2158,23 @@ const handleDeleteRequestPermanently = async (requestId) => {
           </Dialog>
         </Box>
       </Box>
+      
+      {/* Delete User Confirmation Modal */}
+      <ConfirmModal
+        open={deleteConfirmOpen}
+        onClose={() => {
+          setDeleteConfirmOpen(false)
+          setUserToDelete(null)
+        }}
+        onConfirm={() => handleDeleteUser(userToDelete?.id, userToDelete?.full_name)}
+        title="Delete User"
+        message={`⚠️ Are you sure you want to delete "${userToDelete?.full_name || 'this user'}"?\n\nThis will permanently remove:\n• All service requests\n• All messages\n• All notifications\n• All comments\n\nThis action CANNOT be undone!`}
+        confirmText="Delete Permanently"
+        cancelText="Cancel"
+        confirmColor="#ef4444"
+        loading={actionLoading}
+      />
+      
       <RoleBasedTour />
       <TourButton tourSteps={adminTourSteps} title="Admin Dashboard Tour" />
     </>
