@@ -9,7 +9,6 @@ import DemoTour from './common/DemoTour'
 import Header from './layout/Header'
 import Footer from './layout/Footer'
 import Hero from './components/home/Hero'
-import ReferralSignup from './pages/ReferralSignup'
 import ServicesGrid from './components/home/ServicesGrid'
 import WhyChoose from './components/home/WhyChoose'
 import About from './components/home/About'
@@ -233,7 +232,6 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/signup" element={<ReferralSignup />} />
         <Route path="/verification-sent" element={<VerificationSent />} />
         <Route path="/profile" element={
           user ? <ProfileSettings /> : <Navigate to="/" />
