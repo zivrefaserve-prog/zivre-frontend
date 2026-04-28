@@ -95,8 +95,11 @@ const theme = createTheme({
 const AppRoutes = () => {
   const { user, authLoading, hideAuthLoading } = useAuth()
   const location = useLocation()
+  const navigate = useNavigate()
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showHomepageTour, setShowHomepageTour] = useState(false)
+  const [openReferralModal, setOpenReferralModal] = useState(false)
+  const [referralCode, setReferralCode] = useState(null)
 
   // FIX: Auto-hide loading overlay after max 2 seconds
   useEffect(() => {
@@ -159,7 +162,7 @@ const AppRoutes = () => {
     }
   }, [])
 
-  // Handle referral links - SAVE CODE, NO REDIRECT
+  // Handle referral link detection - NEW & IMPROVED
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const refCode = urlParams.get('ref');
@@ -167,13 +170,30 @@ const AppRoutes = () => {
     if (refCode) {
       // Save referral code to sessionStorage
       sessionStorage.setItem('zivre_referral_code', refCode);
+      setReferralCode(refCode);
       
-      // Remove the ref parameter from URL without page reload
+      // Clean URL - remove ?ref from address bar without reloading
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
       
-      console.log('✅ Referral code saved:', refCode);
+      // Open referral signup modal after a short delay (ensures page is loaded)
+      setTimeout(() => {
+        setOpenReferralModal(true);
+      }, 500);
     }
+  }, []);
+  
+  // Listen for custom event to open referral modal from Header
+  useEffect(() => {
+    const handleOpenReferralModal = () => {
+      setOpenReferralModal(true);
+    };
+    
+    window.addEventListener('open_referral_signup_modal', handleOpenReferralModal);
+    
+    return () => {
+      window.removeEventListener('open_referral_signup_modal', handleOpenReferralModal);
+    };
   }, []);
   
   // SESSION KEEP ALIVE
@@ -221,6 +241,25 @@ const AppRoutes = () => {
     document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  // Handle modal close
+  const handleReferralModalClose = () => {
+    setOpenReferralModal(false);
+    sessionStorage.removeItem('zivre_referral_code');
+    setReferralCode(null);
+  };
+
+  // Handle successful signup
+  const handleSignupSuccess = (loggedInUser) => {
+    setOpenReferralModal(false);
+    if (loggedInUser.role === 'customer') {
+      window.location.href = '/customer/dashboard'
+    } else if (loggedInUser.role === 'provider') {
+      window.location.href = '/provider/dashboard'
+    } else if (loggedInUser.role === 'admin') {
+      window.location.href = '/admin/dashboard'
+    }
+  };
+
   return (
     <>
       <LoadingOverlay open={authLoading} message={authLoading ? "Logging out..." : ""} />
@@ -228,7 +267,6 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/signup" element={<ReferralSignup />} />
         <Route path="/verification-sent" element={<VerificationSent />} />
         <Route path="/profile" element={
           user ? <ProfileSettings /> : <Navigate to="/" />
@@ -258,7 +296,13 @@ const AppRoutes = () => {
         
         <Route path="/" element={
           <>
-            <Header onGetQuote={scrollToContact} />
+            <Header 
+              onGetQuote={scrollToContact} 
+              openReferralModal={openReferralModal}
+              onReferralModalClose={handleReferralModalClose}
+              onSignupSuccess={handleSignupSuccess}
+              referralCode={referralCode}
+            />
             <main>
               <Hero onGetQuote={scrollToContact} />
               <ServicesGrid />
