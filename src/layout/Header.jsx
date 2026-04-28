@@ -94,10 +94,6 @@ const Header = ({ onGetQuote, hideNavLinks = false, openReferralModal = false, o
     blurActiveElement()
     setSelectedRole(role)
     setShowRoleModal(false)
-    
-    // Check for referral code in sessionStorage
-    const storedReferralCode = sessionStorage.getItem('zivre_referral_code');
-    
     setShowSignUpModal(true)
   }
 
@@ -333,10 +329,10 @@ const Header = ({ onGetQuote, hideNavLinks = false, openReferralModal = false, o
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {/* NOTIFICATION BELL - ALWAYS VISIBLE (Mobile + Desktop) */}
+            {/* NOTIFICATION BELL - ALWAYS VISIBLE */}
             {user && <NotificationDropdown />}
             
-            {/* DESKTOP ONLY - Full navigation and user menu */}
+            {/* DESKTOP ONLY */}
             {!isMobile && (
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 {!hideNavLinks && navItems.map((item) => (
@@ -434,7 +430,7 @@ const Header = ({ onGetQuote, hideNavLinks = false, openReferralModal = false, o
               </Box>
             )}
             
-            {/* MOBILE ONLY - Hamburger menu button */}
+            {/* MOBILE ONLY */}
             {isMobile && (
               <IconButton onClick={handleDrawerToggle} sx={{ color: '#10b981' }}>
                 <MenuIcon />
