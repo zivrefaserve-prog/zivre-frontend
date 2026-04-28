@@ -19,7 +19,7 @@ import QuoteIcon from '@mui/icons-material/FormatQuote'
 import PersonIcon from '@mui/icons-material/Person'
 import ShareIcon from '@mui/icons-material/Share'
 
-const Header = ({ onGetQuote, hideNavLinks = false }) => {
+const Header = ({ onGetQuote, hideNavLinks = false, openReferralModal = false, onReferralModalClose, onSignupSuccess, referralCode = null }) => {
   const { user, logout } = useAuth()
   const [showRoleModal, setShowRoleModal] = useState(false)
   const [showSignUpModal, setShowSignUpModal] = useState(false)
@@ -27,6 +27,7 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
   const [selectedRole, setSelectedRole] = useState(null)
   const [anchorEl, setAnchorEl] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [isReferralModalOpen, setIsReferralModalOpen] = useState(false)
   const isMobile = useMediaQuery('(max-width:768px)')
 
   const blurActiveElement = () => {
@@ -34,6 +35,13 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
       document.activeElement.blur()
     }
   }
+
+  // Handle external referral modal trigger from App.jsx
+  useEffect(() => {
+    if (openReferralModal && !user) {
+      setIsReferralModalOpen(true);
+    }
+  }, [openReferralModal, user]);
 
   // Helper function to get correct referrals URL based on role
   const getReferralsUrl = () => {
@@ -86,6 +94,10 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     blurActiveElement()
     setSelectedRole(role)
     setShowRoleModal(false)
+    
+    // Check for referral code in sessionStorage
+    const storedReferralCode = sessionStorage.getItem('zivre_referral_code');
+    
     setShowSignUpModal(true)
   }
 
@@ -93,20 +105,30 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     blurActiveElement()
     setShowSignUpModal(false)
     setShowSignInModal(false)
-    if (loggedInUser.role === 'customer') {
-      window.location.href = '/customer/dashboard'
-    } else if (loggedInUser.role === 'provider') {
-      window.location.href = '/provider/dashboard'
-    } else if (loggedInUser.role === 'admin') {
-      window.location.href = '/admin/dashboard'
+    setIsReferralModalOpen(false)
+    
+    // Clear referral code on successful signup
+    sessionStorage.removeItem('zivre_referral_code');
+    
+    if (onSignupSuccess) {
+      onSignupSuccess(loggedInUser);
     } else {
-      window.location.href = '/'
+      if (loggedInUser.role === 'customer') {
+        window.location.href = '/customer/dashboard'
+      } else if (loggedInUser.role === 'provider') {
+        window.location.href = '/provider/dashboard'
+      } else if (loggedInUser.role === 'admin') {
+        window.location.href = '/admin/dashboard'
+      } else {
+        window.location.href = '/'
+      }
     }
   }
 
   const handleSwitchToSignIn = () => {
     blurActiveElement()
     setShowSignUpModal(false)
+    setIsReferralModalOpen(false)
     setShowSignInModal(true)
   }
 
@@ -116,6 +138,15 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     setSelectedRole(role)
     setShowSignUpModal(true)
   }
+
+  const handleReferralModalClose = () => {
+    setIsReferralModalOpen(false);
+    if (onReferralModalClose) {
+      onReferralModalClose();
+    }
+    // Clear referral code from sessionStorage when modal is closed
+    sessionStorage.removeItem('zivre_referral_code');
+  };
 
   const getDashboardUrl = () => {
     if (!user) return '/'
@@ -160,19 +191,6 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
       window.removeEventListener('open_signin_modal', handleOpenSignIn)
     }
   }, [])
-
-  // ========== AUTO OPEN SIGNUP MODAL WHEN REFERRAL CODE EXISTS ==========
-  useEffect(() => {
-    const referralCode = sessionStorage.getItem('zivre_referral_code')
-    if (referralCode && !user) {
-      console.log('🎉 Referral code detected, opening signup modal automatically')
-      // Clear the code so it doesn't pop up again
-      sessionStorage.removeItem('zivre_referral_code')
-      // Open signup modal as customer
-      setSelectedRole('customer')
-      setShowSignUpModal(true)
-    }
-  }, [user])
 
   const drawer = (
     <Box sx={{ width: 250, p: 2 }} role="presentation">
@@ -315,10 +333,10 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {/* NOTIFICATION BELL */}
+            {/* NOTIFICATION BELL - ALWAYS VISIBLE (Mobile + Desktop) */}
             {user && <NotificationDropdown />}
             
-            {/* DESKTOP ONLY */}
+            {/* DESKTOP ONLY - Full navigation and user menu */}
             {!isMobile && (
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 {!hideNavLinks && navItems.map((item) => (
@@ -416,7 +434,7 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
               </Box>
             )}
             
-            {/* MOBILE ONLY */}
+            {/* MOBILE ONLY - Hamburger menu button */}
             {isMobile && (
               <IconButton onClick={handleDrawerToggle} sx={{ color: '#10b981' }}>
                 <MenuIcon />
@@ -439,7 +457,22 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
         blurActiveElement()
         setShowRoleModal(false)
       }} />}
-      {showSignUpModal && (
+      
+      {/* Referral Modal - Shows when referral link is clicked */}
+      {isReferralModalOpen && !user && (
+        <AuthModal 
+          isSignUp={true} 
+          role="customer"
+          isReferral={true}
+          referralCode={referralCode || sessionStorage.getItem('zivre_referral_code')}
+          onClose={handleReferralModalClose}
+          onSuccess={handleAuthSuccess}
+          onSwitchToSignIn={handleSwitchToSignIn}
+        />
+      )}
+      
+      {/* Regular Signup Modal */}
+      {showSignUpModal && !isReferralModalOpen && (
         <AuthModal 
           isSignUp={true} 
           role={selectedRole} 
@@ -451,6 +484,8 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
           onSwitchToSignIn={handleSwitchToSignIn}
         />
       )}
+      
+      {/* Sign In Modal */}
       {showSignInModal && (
         <AuthModal 
           isSignUp={false} 
