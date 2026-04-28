@@ -27,6 +27,7 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
   const [selectedRole, setSelectedRole] = useState(null)
   const [anchorEl, setAnchorEl] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [isReferralSignup, setIsReferralSignup] = useState(false)
   const isMobile = useMediaQuery('(max-width:768px)')
 
   const blurActiveElement = () => {
@@ -35,12 +36,14 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     }
   }
 
+  // Helper function to get correct referrals URL based on role
   const getReferralsUrl = () => {
     if (!user) return '/'
     if (user.role === 'admin') return '/admin/referrals'
     return '/referrals'
   }
 
+  // Helper function to get correct button text based on role
   const getReferralsButtonText = () => {
     if (!user) return 'Referrals'
     if (user.role === 'admin') return 'Referral Admin'
@@ -54,11 +57,13 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
 
   const handleGetStarted = () => {
     blurActiveElement()
+    setIsReferralSignup(false) // Regular signup
     setShowRoleModal(true)
   }
 
   const handleBookService = () => {
     blurActiveElement()
+    setIsReferralSignup(false)
     setShowRoleModal(true)
   }
 
@@ -87,10 +92,19 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     setShowSignUpModal(true)
   }
 
+  // ========== NEW: Open referral signup modal directly (no role selection) ==========
+  const openReferralSignupModal = () => {
+    blurActiveElement()
+    setIsReferralSignup(true)
+    setSelectedRole('customer')
+    setShowSignUpModal(true)
+  }
+
   const handleAuthSuccess = (loggedInUser) => {
     blurActiveElement()
     setShowSignUpModal(false)
     setShowSignInModal(false)
+    setIsReferralSignup(false)
     if (loggedInUser.role === 'customer') {
       window.location.href = '/customer/dashboard'
     } else if (loggedInUser.role === 'provider') {
@@ -105,6 +119,7 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
   const handleSwitchToSignIn = () => {
     blurActiveElement()
     setShowSignUpModal(false)
+    setIsReferralSignup(false)
     setShowSignInModal(true)
   }
 
@@ -112,6 +127,7 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     blurActiveElement()
     setShowSignInModal(false)
     setSelectedRole(role)
+    setIsReferralSignup(false)
     setShowSignUpModal(true)
   }
 
@@ -129,6 +145,7 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     { label: 'Get Quote', icon: <QuoteIcon />, action: onGetQuote },
   ]
 
+  // Listen for custom event from Hero button (Get Started)
   useEffect(() => {
     const handleOpenGetStarted = () => {
       setTimeout(() => {
@@ -143,6 +160,7 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     }
   }, [])
 
+  // Listen for custom event from Hero button (Sign In)
   useEffect(() => {
     const handleOpenSignIn = () => {
       setTimeout(() => {
@@ -157,22 +175,20 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     }
   }, [])
 
-  // ========== FIXED: REFERRAL SIGNUP MODAL EVENT LISTENER ==========
+  // ========== NEW: Listen for referral signup modal event from App.jsx ==========
   useEffect(() => {
     const handleOpenReferralSignup = () => {
-      console.log('🔔 Header received referral modal event - opening signup');
-      blurActiveElement();
-      setSelectedRole('customer');
-      setShowRoleModal(false);
-      setShowSignUpModal(true);
-    }
+      console.log('🎉 Opening referral signup modal');
+      setTimeout(() => {
+        openReferralSignupModal();
+      }, 100);
+    };
     
     window.addEventListener('open_referral_signup_modal', handleOpenReferralSignup);
-    console.log('✅ Header: Referral modal event listener registered');
     
     return () => {
       window.removeEventListener('open_referral_signup_modal', handleOpenReferralSignup);
-    }
+    };
   }, []);
 
   const drawer = (
@@ -316,8 +332,10 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            {/* ✅ NOTIFICATION BELL - ALWAYS VISIBLE (Mobile + Desktop) */}
             {user && <NotificationDropdown />}
             
+            {/* DESKTOP ONLY - Full navigation and user menu */}
             {!isMobile && (
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 {!hideNavLinks && navItems.map((item) => (
@@ -337,6 +355,7 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
                     >
                       {getReferralsButtonText()}
                     </Button>
+                    {/* NotificationDropdown REMOVED from here - now outside */}
                     <Tooltip title="Account">
                       <Avatar 
                         sx={{ bgcolor: '#10b981', cursor: 'pointer', width: 40, height: 40 }} 
@@ -415,6 +434,7 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
               </Box>
             )}
             
+            {/* MOBILE ONLY - Hamburger menu button */}
             {isMobile && (
               <IconButton onClick={handleDrawerToggle} sx={{ color: '#10b981' }}>
                 <MenuIcon />
@@ -441,9 +461,11 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
         <AuthModal 
           isSignUp={true} 
           role={selectedRole} 
+          isReferralSignup={isReferralSignup}
           onClose={() => {
             blurActiveElement()
             setShowSignUpModal(false)
+            setIsReferralSignup(false)
           }} 
           onSuccess={handleAuthSuccess}
           onSwitchToSignIn={handleSwitchToSignIn}
