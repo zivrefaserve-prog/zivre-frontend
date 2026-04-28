@@ -15,7 +15,6 @@ import About from './components/home/About'
 import ContactForm from './components/home/ContactForm'
 import TestimonialsCarousel from './components/home/TestimonialsCarousel'
 import CommentSection from './components/home/CommentSection'
-import PaymentFlier from './common/PaymentFlier'
 import CustomerDashboard from './dashboard/CustomerDashboard'
 import ProviderDashboard from './dashboard/ProviderDashboard'
 import AdminDashboard from './dashboard/AdminDashboard'
@@ -23,6 +22,7 @@ import ProfileSettings from './pages/ProfileSettings'
 import Messages from './pages/Messages'
 import ResetPassword from './pages/ResetPassword'
 import ForgotPasswordModal from './common/ForgotPasswordModal'
+import AuthModal from './common/AuthModal'
 import { keepAlive } from './api/client'
 import LoadingOverlay from './common/LoadingOverlay'
 import UserReferralDashboard from './pages/UserReferralDashboard'
@@ -31,62 +31,24 @@ import VerifyEmail from './pages/VerifyEmail'
 import './App.css'
 
 const theme = createTheme({
-  breakpoints: {
-    values: {
-      xs: 0,
-      sm: 600,
-      md: 900,
-      lg: 1200,
-      xl: 1536,
-    },
-  },
+  breakpoints: { values: { xs: 0, sm: 600, md: 900, lg: 1200, xl: 1536 } },
   palette: {
     primary: { main: '#10b981', light: '#34d399', dark: '#059669' },
     secondary: { main: '#8b5cf6', light: '#a78bfa', dark: '#7c3aed' },
-    success: { main: '#10b981', light: '#34d399', dark: '#059669' },
-    warning: { main: '#f59e0b', light: '#fbbf24', dark: '#d97706' },
-    error: { main: '#ef4444', light: '#f87171', dark: '#dc2626' },
-    info: { main: '#3b82f6', light: '#60a5fa', dark: '#2563eb' },
+    success: { main: '#10b981' }, warning: { main: '#f59e0b' }, error: { main: '#ef4444' }, info: { main: '#3b82f6' },
     background: { default: '#f8fafc', paper: '#ffffff' },
     text: { primary: '#0f172a', secondary: '#64748b' },
   },
   typography: {
     fontFamily: 'Inter, -apple-system, BlinkMacSystemFont, sans-serif',
-    h1: { fontSize: '2.5rem', fontWeight: 700, letterSpacing: '-0.02em' },
-    h2: { fontSize: '2rem', fontWeight: 700, letterSpacing: '-0.01em' },
-    h3: { fontSize: '1.5rem', fontWeight: 600 },
-    h4: { fontSize: '1.25rem', fontWeight: 600 },
-    h5: { fontSize: '1.125rem', fontWeight: 600 },
-    h6: { fontSize: '1rem', fontWeight: 600 },
-    body1: { fontSize: '0.875rem', lineHeight: 1.5 },
-    body2: { fontSize: '0.75rem', lineHeight: 1.5 },
+    h1: { fontSize: '2.5rem', fontWeight: 700 }, h2: { fontSize: '2rem', fontWeight: 700 },
+    h3: { fontSize: '1.5rem', fontWeight: 600 }, h4: { fontSize: '1.25rem', fontWeight: 600 },
+    body1: { fontSize: '0.875rem' }, body2: { fontSize: '0.75rem' },
   },
   shape: { borderRadius: 12 },
   components: {
-    MuiButton: {
-      styleOverrides: {
-        root: { textTransform: 'none', borderRadius: 8, fontWeight: 600, padding: '8px 16px' },
-        containedPrimary: { backgroundColor: '#10b981', '&:hover': { backgroundColor: '#059669' } },
-      },
-    },
-    MuiCard: {
-      styleOverrides: { 
-        root: { 
-          borderRadius: 16, 
-          boxShadow: '0px 1px 3px rgba(0,0,0,0.05)', 
-          transition: 'all 0.2s ease', 
-          '&:hover': { 
-            boxShadow: '0px 10px 25px -5px rgba(0,0,0,0.08)', 
-            transform: 'translateY(-2px)' 
-          } 
-        } 
-      },
-    },
-    MuiUseMediaQuery: {
-      defaultProps: {
-        noSsr: true,
-      },
-    },
+    MuiButton: { styleOverrides: { root: { textTransform: 'none', borderRadius: 8, fontWeight: 600 } } },
+    MuiCard: { styleOverrides: { root: { borderRadius: 16, boxShadow: '0px 1px 3px rgba(0,0,0,0.05)' } } },
   },
 })
 
@@ -95,16 +57,17 @@ const AppRoutes = () => {
   const location = useLocation()
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showHomepageTour, setShowHomepageTour] = useState(false)
+  const [showReferralModal, setShowReferralModal] = useState(false)
+  const [referralCode, setReferralCode] = useState('')
 
   useEffect(() => {
     if (authLoading) {
-      const timer = setTimeout(() => {
-        hideAuthLoading()
-      }, 2000)
+      const timer = setTimeout(() => hideAuthLoading(), 2000)
       return () => clearTimeout(timer)
     }
   }, [authLoading, hideAuthLoading])
 
+  // FORCE MOBILE LAYOUT
   useEffect(() => {
     const setViewport = () => {
       const viewport = document.querySelector('meta[name="viewport"]')
@@ -114,87 +77,58 @@ const AppRoutes = () => {
     }
     setViewport()
     window.addEventListener('resize', setViewport)
-    
     const forceMobileLayout = () => {
       if (window.innerWidth <= 768) {
         document.body.classList.add('mobile-device')
-        document.body.classList.remove('desktop-device')
         const allGrids = document.querySelectorAll('.MuiGrid-container')
-        allGrids.forEach(grid => {
-          grid.style.flexDirection = 'column'
-        })
+        allGrids.forEach(grid => { grid.style.flexDirection = 'column' })
       } else {
-        document.body.classList.add('desktop-device')
         document.body.classList.remove('mobile-device')
       }
     }
-    
     forceMobileLayout()
     window.addEventListener('resize', forceMobileLayout)
-    
-    const timer = setTimeout(forceMobileLayout, 100)
-    
     return () => {
       window.removeEventListener('resize', setViewport)
       window.removeEventListener('resize', forceMobileLayout)
-      clearTimeout(timer)
     }
   }, [])
 
   useEffect(() => {
-    const handleOpenForgotPassword = () => {
-      console.log('Opening forgot password modal from event')
-      setShowForgotPasswordModal(true)
-    }
-    
+    const handleOpenForgotPassword = () => setShowForgotPasswordModal(true)
     window.addEventListener('open_forgot_password', handleOpenForgotPassword)
-    
-    return () => {
-      window.removeEventListener('open_forgot_password', handleOpenForgotPassword)
-    }
+    return () => window.removeEventListener('open_forgot_password', handleOpenForgotPassword)
   }, [])
 
-  // ========== FIXED: REFERRAL CODE DETECTION AND MODAL TRIGGER ==========
+  // ========== SIMPLE FIX: DIRECT MODAL TRIGGER ==========
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const refCode = urlParams.get('ref');
+    const urlParams = new URLSearchParams(window.location.search)
+    const refCode = urlParams.get('ref')
     
     if (refCode) {
-      // Save referral code to sessionStorage
-      sessionStorage.setItem('zivre_referral_code', refCode);
-      
-      // Clean URL by removing ?ref parameter without page reload
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, '', newUrl);
-      
-      // Open modal after a short delay to ensure components are mounted
-      const timer = setTimeout(() => {
-        console.log('Triggering referral signup modal from App.jsx');
-        window.dispatchEvent(new CustomEvent('open_referral_signup_modal'));
-      }, 800);
-      
-      return () => clearTimeout(timer);
+      console.log('🔗 Referral code detected:', refCode)
+      // Save to sessionStorage for AuthModal
+      sessionStorage.setItem('zivre_referral_code', refCode)
+      setReferralCode(refCode)
+      // Open modal directly
+      setShowReferralModal(true)
+      // Clean URL
+      window.history.replaceState({}, '', window.location.pathname)
     }
-  }, []);
-  
+  }, [])
+
   useEffect(() => {
     if (!user) return
-    
     const interval = setInterval(() => {
-      keepAlive().catch((err) => {
-        console.log('Session ping failed:', err.response?.status)
-      })
+      keepAlive().catch(() => {})
     }, 5 * 60 * 1000)
-    
     return () => clearInterval(interval)
   }, [user])
 
   useEffect(() => {
     const tourCompleted = localStorage.getItem('zivre_tour_homepage_completed')
-    const isHomepage = location.pathname === '/'
-    if (!tourCompleted && isHomepage && !user) {
-      const timer = setTimeout(() => setShowHomepageTour(true), 1500)
-      return () => clearTimeout(timer)
+    if (!tourCompleted && location.pathname === '/' && !user) {
+      setTimeout(() => setShowHomepageTour(true), 1500)
     }
   }, [location, user])
 
@@ -203,57 +137,66 @@ const AppRoutes = () => {
     setShowHomepageTour(false)
   }
 
+  // Keep backend awake
   useEffect(() => {
-    fetch('https://zivre-backend.onrender.com/api/services')
-      .catch(() => console.log('Backend waking up...'))
-    
-    const keepAliveInterval = setInterval(() => {
-      fetch('https://zivre-backend.onrender.com/api/services')
-        .catch(() => {})
+    fetch('https://zivre-backend.onrender.com/api/services').catch(() => {})
+    const interval = setInterval(() => {
+      fetch('https://zivre-backend.onrender.com/api/services').catch(() => {})
     }, 2 * 60 * 1000)
-    
-    return () => clearInterval(keepAliveInterval)
+    return () => clearInterval(interval)
   }, [])
 
   const scrollToContact = () => {
     document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
   }
 
+  const handleCloseReferralModal = () => {
+    setShowReferralModal(false)
+    setReferralCode('')
+  }
+
   return (
     <>
       <LoadingOverlay open={authLoading} message={authLoading ? "Logging out..." : ""} />
+      
+      {/* Referral Modal - Rendered directly in App */}
+      {showReferralModal && !user && (
+        <AuthModal 
+          isSignUp={true} 
+          role="customer" 
+          onClose={handleCloseReferralModal}
+          onSuccess={(loggedInUser) => {
+            handleCloseReferralModal()
+            if (loggedInUser.role === 'customer') {
+              window.location.href = '/customer/dashboard'
+            } else if (loggedInUser.role === 'provider') {
+              window.location.href = '/provider/dashboard'
+            } else if (loggedInUser.role === 'admin') {
+              window.location.href = '/admin/dashboard'
+            }
+          }}
+          onSwitchToSignIn={() => {
+            handleCloseReferralModal()
+            // Trigger sign in modal via Header (will open separately)
+            window.dispatchEvent(new CustomEvent('open_signin_modal'))
+          }}
+        />
+      )}
       
       <Routes>
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/verification-sent" element={<VerificationSent />} />
-        <Route path="/profile" element={
-          user ? <ProfileSettings /> : <Navigate to="/" />
-        } />
-        <Route path="/messages" element={
-          user ? <Messages /> : <Navigate to="/" />
-        } />
-        <Route path="/customer/dashboard" element={
-          user ? <CustomerDashboard /> : <Navigate to="/" />
-        } />
-        <Route path="/provider/dashboard" element={
-          user ? <ProviderDashboard /> : <Navigate to="/" />
-        } />
-        <Route path="/admin/dashboard" element={
-          user && user.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />
-        } />
-        
-        <Route path="/referrals" element={
-          user ? <UserReferralDashboard /> : <Navigate to="/" />
-        } />
-        <Route path="/admin/referrals" element={
-          user && user.role === 'admin' ? <AdminReferralDashboard /> : <Navigate to="/" />
-        } />
-        
+        <Route path="/profile" element={user ? <ProfileSettings /> : <Navigate to="/" />} />
+        <Route path="/messages" element={user ? <Messages /> : <Navigate to="/" />} />
+        <Route path="/customer/dashboard" element={user ? <CustomerDashboard /> : <Navigate to="/" />} />
+        <Route path="/provider/dashboard" element={user ? <ProviderDashboard /> : <Navigate to="/" />} />
+        <Route path="/admin/dashboard" element={user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />} />
+        <Route path="/referrals" element={user ? <UserReferralDashboard /> : <Navigate to="/" />} />
+        <Route path="/admin/referrals" element={user?.role === 'admin' ? <AdminReferralDashboard /> : <Navigate to="/" />} />
         <Route path="/my-requests" element={<Navigate to="/customer/dashboard" replace />} />
         <Route path="/signup" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
-        
         <Route path="/" element={
           <>
             <Header onGetQuote={scrollToContact} />
@@ -267,7 +210,6 @@ const AppRoutes = () => {
               <CommentSection />
             </main>
             <Footer />
-            
             {!user && (
               <DemoTour 
                 open={showHomepageTour}
@@ -277,7 +219,6 @@ const AppRoutes = () => {
                 title="Welcome to Zivre!"
               />
             )}
-            
             {!user && <TourButton tourSteps={homepageTourSteps} title="Welcome to Zivre!" />}
           </>
         } />
