@@ -9,7 +9,6 @@ import DemoTour from './common/DemoTour'
 import Header from './layout/Header'
 import Footer from './layout/Footer'
 import Hero from './components/home/Hero'
-import ReferralSignup from './pages/ReferralSignup'
 import ServicesGrid from './components/home/ServicesGrid'
 import WhyChoose from './components/home/WhyChoose'
 import About from './components/home/About'
@@ -160,7 +159,7 @@ const AppRoutes = () => {
     }
   }, [])
 
-  // ========== FIXED: Handle referral links WITHOUT redirect ==========
+  // Handle referral links - SAVE CODE, NO REDIRECT
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const refCode = urlParams.get('ref');
@@ -173,8 +172,7 @@ const AppRoutes = () => {
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
       
-      // DO NOT redirect to /signup - stay on homepage
-      // The Header component will detect the referral code and open the modal
+      console.log('✅ Referral code saved:', refCode);
     }
   }, []);
   
