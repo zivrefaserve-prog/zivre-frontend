@@ -19,7 +19,7 @@ import QuoteIcon from '@mui/icons-material/FormatQuote'
 import PersonIcon from '@mui/icons-material/Person'
 import ShareIcon from '@mui/icons-material/Share'
 
-const Header = ({ onGetQuote, hideNavLinks = false, openReferralModal = false, onReferralModalClose, onSignupSuccess, referralCode = null }) => {
+const Header = ({ onGetQuote, hideNavLinks = false }) => {
   const { user, logout } = useAuth()
   const [showRoleModal, setShowRoleModal] = useState(false)
   const [showSignUpModal, setShowSignUpModal] = useState(false)
@@ -27,7 +27,6 @@ const Header = ({ onGetQuote, hideNavLinks = false, openReferralModal = false, o
   const [selectedRole, setSelectedRole] = useState(null)
   const [anchorEl, setAnchorEl] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [isReferralModalOpen, setIsReferralModalOpen] = useState(false)
   const isMobile = useMediaQuery('(max-width:768px)')
 
   const blurActiveElement = () => {
@@ -35,13 +34,6 @@ const Header = ({ onGetQuote, hideNavLinks = false, openReferralModal = false, o
       document.activeElement.blur()
     }
   }
-
-  // Handle external referral modal trigger from App.jsx
-  useEffect(() => {
-    if (openReferralModal && !user) {
-      setIsReferralModalOpen(true);
-    }
-  }, [openReferralModal, user]);
 
   // Helper function to get correct referrals URL based on role
   const getReferralsUrl = () => {
@@ -94,6 +86,10 @@ const Header = ({ onGetQuote, hideNavLinks = false, openReferralModal = false, o
     blurActiveElement()
     setSelectedRole(role)
     setShowRoleModal(false)
+    
+    // Check for referral code in sessionStorage
+    const referralCode = sessionStorage.getItem('zivre_referral_code');
+    
     setShowSignUpModal(true)
   }
 
@@ -101,30 +97,20 @@ const Header = ({ onGetQuote, hideNavLinks = false, openReferralModal = false, o
     blurActiveElement()
     setShowSignUpModal(false)
     setShowSignInModal(false)
-    setIsReferralModalOpen(false)
-    
-    // Clear referral code on successful signup
-    sessionStorage.removeItem('zivre_referral_code');
-    
-    if (onSignupSuccess) {
-      onSignupSuccess(loggedInUser);
+    if (loggedInUser.role === 'customer') {
+      window.location.href = '/customer/dashboard'
+    } else if (loggedInUser.role === 'provider') {
+      window.location.href = '/provider/dashboard'
+    } else if (loggedInUser.role === 'admin') {
+      window.location.href = '/admin/dashboard'
     } else {
-      if (loggedInUser.role === 'customer') {
-        window.location.href = '/customer/dashboard'
-      } else if (loggedInUser.role === 'provider') {
-        window.location.href = '/provider/dashboard'
-      } else if (loggedInUser.role === 'admin') {
-        window.location.href = '/admin/dashboard'
-      } else {
-        window.location.href = '/'
-      }
+      window.location.href = '/'
     }
   }
 
   const handleSwitchToSignIn = () => {
     blurActiveElement()
     setShowSignUpModal(false)
-    setIsReferralModalOpen(false)
     setShowSignInModal(true)
   }
 
@@ -134,15 +120,6 @@ const Header = ({ onGetQuote, hideNavLinks = false, openReferralModal = false, o
     setSelectedRole(role)
     setShowSignUpModal(true)
   }
-
-  const handleReferralModalClose = () => {
-    setIsReferralModalOpen(false);
-    if (onReferralModalClose) {
-      onReferralModalClose();
-    }
-    // Clear referral code from sessionStorage when modal is closed
-    sessionStorage.removeItem('zivre_referral_code');
-  };
 
   const getDashboardUrl = () => {
     if (!user) return '/'
@@ -230,6 +207,7 @@ const Header = ({ onGetQuote, hideNavLinks = false, openReferralModal = false, o
               <ListItemIcon><DashboardIcon /></ListItemIcon>
               <ListItemText primary="Dashboard" />
             </ListItem>
+            {/* FIXED: Referrals link - admin goes to /admin/referrals */}
             <ListItem 
               onClick={() => { 
                 blurActiveElement()
@@ -329,10 +307,10 @@ const Header = ({ onGetQuote, hideNavLinks = false, openReferralModal = false, o
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {/* NOTIFICATION BELL - ALWAYS VISIBLE */}
+            {/* ✅ NOTIFICATION BELL - ALWAYS VISIBLE (Mobile + Desktop) */}
             {user && <NotificationDropdown />}
             
-            {/* DESKTOP ONLY */}
+            {/* DESKTOP ONLY - Full navigation and user menu */}
             {!isMobile && (
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 {!hideNavLinks && navItems.map((item) => (
@@ -352,6 +330,7 @@ const Header = ({ onGetQuote, hideNavLinks = false, openReferralModal = false, o
                     >
                       {getReferralsButtonText()}
                     </Button>
+                    {/* NotificationDropdown REMOVED from here - now outside */}
                     <Tooltip title="Account">
                       <Avatar 
                         sx={{ bgcolor: '#10b981', cursor: 'pointer', width: 40, height: 40 }} 
@@ -430,7 +409,7 @@ const Header = ({ onGetQuote, hideNavLinks = false, openReferralModal = false, o
               </Box>
             )}
             
-            {/* MOBILE ONLY */}
+            {/* MOBILE ONLY - Hamburger menu button */}
             {isMobile && (
               <IconButton onClick={handleDrawerToggle} sx={{ color: '#10b981' }}>
                 <MenuIcon />
@@ -453,22 +432,7 @@ const Header = ({ onGetQuote, hideNavLinks = false, openReferralModal = false, o
         blurActiveElement()
         setShowRoleModal(false)
       }} />}
-      
-      {/* Referral Modal - Shows when referral link is clicked */}
-      {isReferralModalOpen && !user && (
-        <AuthModal 
-          isSignUp={true} 
-          role="customer"
-          isReferral={true}
-          referralCode={referralCode || sessionStorage.getItem('zivre_referral_code')}
-          onClose={handleReferralModalClose}
-          onSuccess={handleAuthSuccess}
-          onSwitchToSignIn={handleSwitchToSignIn}
-        />
-      )}
-      
-      {/* Regular Signup Modal */}
-      {showSignUpModal && !isReferralModalOpen && (
+      {showSignUpModal && (
         <AuthModal 
           isSignUp={true} 
           role={selectedRole} 
@@ -480,8 +444,6 @@ const Header = ({ onGetQuote, hideNavLinks = false, openReferralModal = false, o
           onSwitchToSignIn={handleSwitchToSignIn}
         />
       )}
-      
-      {/* Sign In Modal */}
       {showSignInModal && (
         <AuthModal 
           isSignUp={false} 
