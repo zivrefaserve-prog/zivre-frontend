@@ -86,10 +86,6 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     blurActiveElement()
     setSelectedRole(role)
     setShowRoleModal(false)
-    
-    // Check for referral code in sessionStorage
-    const referralCode = sessionStorage.getItem('zivre_referral_code');
-    
     setShowSignUpModal(true)
   }
 
@@ -165,6 +161,23 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     }
   }, [])
 
+  // NEW: Listen for referral signup modal event
+  useEffect(() => {
+    const handleOpenReferralSignup = () => {
+      blurActiveElement()
+      // Skip role selection, directly open signup modal as customer
+      setSelectedRole('customer')
+      setShowRoleModal(false)
+      setShowSignUpModal(true)
+    }
+    
+    window.addEventListener('open_referral_signup_modal', handleOpenReferralSignup)
+    
+    return () => {
+      window.removeEventListener('open_referral_signup_modal', handleOpenReferralSignup)
+    }
+  }, [])
+
   const drawer = (
     <Box sx={{ width: 250, p: 2 }} role="presentation">
       <Typography variant="h6" sx={{ fontWeight: 800, color: '#10b981', mb: 2 }}>ZIVRE</Typography>
@@ -207,7 +220,6 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
               <ListItemIcon><DashboardIcon /></ListItemIcon>
               <ListItemText primary="Dashboard" />
             </ListItem>
-            {/* FIXED: Referrals link - admin goes to /admin/referrals */}
             <ListItem 
               onClick={() => { 
                 blurActiveElement()
@@ -307,7 +319,7 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {/* ✅ NOTIFICATION BELL - ALWAYS VISIBLE (Mobile + Desktop) */}
+            {/* NOTIFICATION BELL - ALWAYS VISIBLE */}
             {user && <NotificationDropdown />}
             
             {/* DESKTOP ONLY - Full navigation and user menu */}
@@ -330,7 +342,6 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
                     >
                       {getReferralsButtonText()}
                     </Button>
-                    {/* NotificationDropdown REMOVED from here - now outside */}
                     <Tooltip title="Account">
                       <Avatar 
                         sx={{ bgcolor: '#10b981', cursor: 'pointer', width: 40, height: 40 }} 
