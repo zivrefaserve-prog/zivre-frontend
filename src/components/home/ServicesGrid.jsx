@@ -98,7 +98,7 @@ const ServicesGrid = () => {
                         {/* ADD YOUR IMAGE HERE - RIGHT BEFORE WHY CHOOSE SECTION STARTS */}
             <div style={{ textAlign: 'center', marginTop: '2rem', marginBottom: '2rem' }}>
                 <img 
-                    src="public/Adi.jpg"   // CHANGE THIS TO YOUR IMAGE FILE NAME
+                    src="zivre-frontend/public/Adi.jpg"   // CHANGE THIS TO YOUR IMAGE FILE NAME
                     alt="Zivre Facility Services"
                     style={{
                         maxWidth: '100%',
