@@ -9,6 +9,7 @@ import DemoTour from './common/DemoTour'
 import Header from './layout/Header'
 import Footer from './layout/Footer'
 import Hero from './components/home/Hero'
+import ReferralSignup from './pages/ReferralSignup'
 import ServicesGrid from './components/home/ServicesGrid'
 import WhyChoose from './components/home/WhyChoose'
 import About from './components/home/About'
@@ -97,8 +98,6 @@ const AppRoutes = () => {
   const location = useLocation()
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showHomepageTour, setShowHomepageTour] = useState(false)
-  const [openReferralModal, setOpenReferralModal] = useState(false)
-  const [referralCode, setReferralCode] = useState(null)
 
   // FIX: Auto-hide loading overlay after max 2 seconds
   useEffect(() => {
@@ -161,41 +160,18 @@ const AppRoutes = () => {
     }
   }, [])
 
-  // Handle referral link detection - HIGHEST PRIORITY (NO REDIRECT)
+
+    // Check URL for referral code and auto-open signup modal
+// Check URL for referral code and redirect to signup page
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const refCode = urlParams.get('ref');
     
-    if (refCode) {
-      // Save referral code to sessionStorage
+    if (refCode && window.location.pathname !== '/signup') {
+      // Save referral code and redirect to signup page
       sessionStorage.setItem('zivre_referral_code', refCode);
-      setReferralCode(refCode);
-      
-      // Clean URL - remove ?ref from address bar without reloading
-      const newUrl = window.location.pathname;
-      window.history.replaceState({}, '', newUrl);
-      
-      // Open referral signup modal after a short delay
-      setTimeout(() => {
-        setOpenReferralModal(true);
-      }, 500);
-      
-      // Prevent any other auto-open modals/tours
-      return;
+      window.location.href = `/signup?ref=${refCode}`;
     }
-  }, []);
-  
-  // Listen for custom event to open referral modal from Header
-  useEffect(() => {
-    const handleOpenReferralModal = () => {
-      setOpenReferralModal(true);
-    };
-    
-    window.addEventListener('open_referral_signup_modal', handleOpenReferralModal);
-    
-    return () => {
-      window.removeEventListener('open_referral_signup_modal', handleOpenReferralModal);
-    };
   }, []);
   
   // SESSION KEEP ALIVE
@@ -211,23 +187,15 @@ const AppRoutes = () => {
     return () => clearInterval(interval)
   }, [user])
 
-  // Homepage tour - ONLY show if NO referral code and modal not open
+  // Homepage tour auto-show on first visit
   useEffect(() => {
     const tourCompleted = localStorage.getItem('zivre_tour_homepage_completed')
     const isHomepage = location.pathname === '/'
-    const hasReferralCode = sessionStorage.getItem('zivre_referral_code');
-    
-    // ONLY show tour if:
-    // 1. Tour not completed
-    // 2. On homepage
-    // 3. No user logged in
-    // 4. NO referral code present
-    // 5. Referral modal NOT open
-    if (!tourCompleted && isHomepage && !user && !hasReferralCode && !openReferralModal) {
+    if (!tourCompleted && isHomepage && !user) {
       const timer = setTimeout(() => setShowHomepageTour(true), 1500)
       return () => clearTimeout(timer)
     }
-  }, [location, user, openReferralModal])
+  }, [location, user])
 
   const handleHomepageTourComplete = () => {
     localStorage.setItem('zivre_tour_homepage_completed', 'true')
@@ -251,26 +219,6 @@ const AppRoutes = () => {
     document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  // Handle modal close
-  const handleReferralModalClose = () => {
-    setOpenReferralModal(false);
-    sessionStorage.removeItem('zivre_referral_code');
-    setReferralCode(null);
-  };
-
-  // Handle successful signup
-  const handleSignupSuccess = (loggedInUser) => {
-    setOpenReferralModal(false);
-    sessionStorage.removeItem('zivre_referral_code');
-    if (loggedInUser.role === 'customer') {
-      window.location.href = '/customer/dashboard'
-    } else if (loggedInUser.role === 'provider') {
-      window.location.href = '/provider/dashboard'
-    } else if (loggedInUser.role === 'admin') {
-      window.location.href = '/admin/dashboard'
-    }
-  };
-
   return (
     <>
       <LoadingOverlay open={authLoading} message={authLoading ? "Logging out..." : ""} />
@@ -278,6 +226,7 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/signup" element={<ReferralSignup />} />
         <Route path="/verification-sent" element={<VerificationSent />} />
         <Route path="/profile" element={
           user ? <ProfileSettings /> : <Navigate to="/" />
@@ -307,13 +256,7 @@ const AppRoutes = () => {
         
         <Route path="/" element={
           <>
-            <Header 
-              onGetQuote={scrollToContact} 
-              openReferralModal={openReferralModal}
-              onReferralModalClose={handleReferralModalClose}
-              onSignupSuccess={handleSignupSuccess}
-              referralCode={referralCode}
-            />
+            <Header onGetQuote={scrollToContact} />
             <main>
               <Hero onGetQuote={scrollToContact} />
               <ServicesGrid />
@@ -325,8 +268,8 @@ const AppRoutes = () => {
             </main>
             <Footer />
             
-            {/* Homepage Tour - Only shows when NO referral */}
-            {!user && !openReferralModal && !sessionStorage.getItem('zivre_referral_code') && (
+            {/* Homepage Tour - Auto shows for visitors */}
+            {!user && (
               <DemoTour 
                 open={showHomepageTour}
                 onClose={() => setShowHomepageTour(false)}
@@ -336,8 +279,8 @@ const AppRoutes = () => {
               />
             )}
             
-            {/* Tour button - Only shows when NO referral */}
-            {!user && !sessionStorage.getItem('zivre_referral_code') && <TourButton tourSteps={homepageTourSteps} title="Welcome to Zivre!" />}
+            {/* Manual Start Tour button for homepage */}
+            {!user && <TourButton tourSteps={homepageTourSteps} title="Welcome to Zivre!" />}
           </>
         } />
       </Routes>
