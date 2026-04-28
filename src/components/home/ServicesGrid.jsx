@@ -95,6 +95,18 @@ const ServicesGrid = () => {
                     </div>
                 )}
             </div>
+                        {/* ADD YOUR IMAGE HERE - RIGHT BEFORE WHY CHOOSE SECTION STARTS */}
+            <div style={{ textAlign: 'center', marginTop: '2rem', marginBottom: '2rem' }}>
+                <img 
+                    src="/your-image.jpg"   // CHANGE THIS TO YOUR IMAGE FILE NAME
+                    alt="Zivre Facility Services"
+                    style={{
+                        maxWidth: '100%',
+                        height: 'auto',
+                        borderRadius: '16px'
+                    }}
+                />
+            </div>
         </section>
     )
 }
