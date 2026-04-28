@@ -34,7 +34,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     referral_code: ''
   })
 
-  // Load services for provider signup
   useEffect(() => {
     if (isSignUp && role === 'provider') {
       setLoadingServices(true)
@@ -48,14 +47,15 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     }
   }, [isSignUp, role])
 
-  // Check for referral code from sessionStorage when modal opens
+  // ========== FIXED: REFERRAL CODE DETECTION ==========
   useEffect(() => {
     const storedCode = sessionStorage.getItem('zivre_referral_code');
+    console.log('🔍 AuthModal checking for referral code:', storedCode);
     if (storedCode && isSignUp && role === 'customer') {
+      console.log('🎉 REFERRAL DETECTED! Showing special modal');
       setIsReferralSignup(true);
       setReferralCodeFromStorage(storedCode);
       setFormData(prev => ({ ...prev, referral_code: storedCode }));
-      // Clear it so it doesn't show again on next modal open
       sessionStorage.removeItem('zivre_referral_code');
     } else {
       setIsReferralSignup(false);
@@ -115,7 +115,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     }
   
     if (isSignUp) {
-      // ========== SIGN UP ==========
       if (!formData.full_name.trim()) {
         setError('Please enter your full name')
         return
@@ -177,7 +176,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         setLoading(false)
       }
     } else {
-      // ========== SIGN IN ==========
       if (!formData.email || !formData.password) {
         setError('Please enter both email and password')
         return
@@ -484,7 +482,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     )
   }
 
-  // ========== REGULAR SIGNUP MODAL (No referral) ==========
+  // ========== REGULAR SIGNUP MODAL ==========
   return (
     <>
       <LoadingOverlay 
