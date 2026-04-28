@@ -9,12 +9,14 @@ import DemoTour from './common/DemoTour'
 import Header from './layout/Header'
 import Footer from './layout/Footer'
 import Hero from './components/home/Hero'
+import ReferralSignup from './pages/ReferralSignup'
 import ServicesGrid from './components/home/ServicesGrid'
 import WhyChoose from './components/home/WhyChoose'
 import About from './components/home/About'
 import ContactForm from './components/home/ContactForm'
 import TestimonialsCarousel from './components/home/TestimonialsCarousel'
 import CommentSection from './components/home/CommentSection'
+import PaymentFlier from './common/PaymentFlier'
 import CustomerDashboard from './dashboard/CustomerDashboard'
 import ProviderDashboard from './dashboard/ProviderDashboard'
 import AdminDashboard from './dashboard/AdminDashboard'
@@ -27,9 +29,9 @@ import LoadingOverlay from './common/LoadingOverlay'
 import UserReferralDashboard from './pages/UserReferralDashboard'
 import AdminReferralDashboard from './pages/AdminReferralDashboard'
 import VerifyEmail from './pages/VerifyEmail'
-import AuthModal from './common/AuthModal'
 import './App.css'
 
+// Force mobile breakpoints in theme
 const theme = createTheme({
   breakpoints: {
     values: {
@@ -96,13 +98,13 @@ const AppRoutes = () => {
   const location = useLocation()
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showHomepageTour, setShowHomepageTour] = useState(false)
-  const [showReferralSignupModal, setShowReferralSignupModal] = useState(false)
-  const [referralCode, setReferralCode] = useState('')
 
-  // Auto-hide loading overlay
+  // FIX: Auto-hide loading overlay after max 2 seconds
   useEffect(() => {
     if (authLoading) {
-      const timer = setTimeout(() => hideAuthLoading(), 2000)
+      const timer = setTimeout(() => {
+        hideAuthLoading()
+      }, 2000)
       return () => clearTimeout(timer)
     }
   }, [authLoading, hideAuthLoading])
@@ -122,6 +124,10 @@ const AppRoutes = () => {
       if (window.innerWidth <= 768) {
         document.body.classList.add('mobile-device')
         document.body.classList.remove('desktop-device')
+        const allGrids = document.querySelectorAll('.MuiGrid-container')
+        allGrids.forEach(grid => {
+          grid.style.flexDirection = 'column'
+        })
       } else {
         document.body.classList.add('desktop-device')
         document.body.classList.remove('mobile-device')
@@ -131,123 +137,124 @@ const AppRoutes = () => {
     forceMobileLayout()
     window.addEventListener('resize', forceMobileLayout)
     
+    const timer = setTimeout(forceMobileLayout, 100)
+    
     return () => {
       window.removeEventListener('resize', setViewport)
       window.removeEventListener('resize', forceMobileLayout)
+      clearTimeout(timer)
     }
   }, [])
 
   // Listen for forgot password event
   useEffect(() => {
     const handleOpenForgotPassword = () => {
+      console.log('Opening forgot password modal from event')
       setShowForgotPasswordModal(true)
     }
-    window.addEventListener('open_forgot_password', handleOpenForgotPassword)
-    return () => window.removeEventListener('open_forgot_password', handleOpenForgotPassword)
-  }, [])
-
-  // ========== HANDLE REFERRAL LINK ==========
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const refCode = urlParams.get('ref')
     
-    if (refCode) {
-      // Save referral code
-      sessionStorage.setItem('zivre_referral_code', refCode)
-      setReferralCode(refCode)
-      
-      // Remove ref from URL
-      window.history.replaceState({}, '', window.location.pathname)
-      
-      // Show referral modal immediately
-      setShowReferralSignupModal(true)
+    window.addEventListener('open_forgot_password', handleOpenForgotPassword)
+    
+    return () => {
+      window.removeEventListener('open_forgot_password', handleOpenForgotPassword)
     }
   }, [])
 
-  // Session keep alive
+  // ========== FIXED: Handle referral links WITHOUT redirect ==========
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const refCode = urlParams.get('ref');
+    
+    if (refCode) {
+      // Save referral code to sessionStorage
+      sessionStorage.setItem('zivre_referral_code', refCode);
+      
+      // Remove the ref parameter from URL without page reload
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
+      
+      // DO NOT redirect to /signup - stay on homepage
+      // The Header component will detect the referral code and open the modal
+    }
+  }, []);
+  
+  // SESSION KEEP ALIVE
   useEffect(() => {
     if (!user) return
+    
     const interval = setInterval(() => {
-      keepAlive().catch(() => {})
+      keepAlive().catch((err) => {
+        console.log('Session ping failed:', err.response?.status)
+      })
     }, 5 * 60 * 1000)
+    
     return () => clearInterval(interval)
   }, [user])
 
-  // Homepage tour
+  // Homepage tour auto-show on first visit
   useEffect(() => {
     const tourCompleted = localStorage.getItem('zivre_tour_homepage_completed')
     const isHomepage = location.pathname === '/'
-    if (!tourCompleted && isHomepage && !user && !showReferralSignupModal) {
+    if (!tourCompleted && isHomepage && !user) {
       const timer = setTimeout(() => setShowHomepageTour(true), 1500)
       return () => clearTimeout(timer)
     }
-  }, [location, user, showReferralSignupModal])
+  }, [location, user])
 
   const handleHomepageTourComplete = () => {
     localStorage.setItem('zivre_tour_homepage_completed', 'true')
     setShowHomepageTour(false)
   }
 
-  // Keep backend awake
+  // KEEP BACKEND AWAKE
   useEffect(() => {
-    fetch('https://zivre-backend.onrender.com/api/services').catch(() => {})
-    const interval = setInterval(() => {
-      fetch('https://zivre-backend.onrender.com/api/services').catch(() => {})
+    fetch('https://zivre-backend.onrender.com/api/services')
+      .catch(() => console.log('Backend waking up...'))
+    
+    const keepAliveInterval = setInterval(() => {
+      fetch('https://zivre-backend.onrender.com/api/services')
+        .catch(() => {})
     }, 2 * 60 * 1000)
-    return () => clearInterval(interval)
+    
+    return () => clearInterval(keepAliveInterval)
   }, [])
 
   const scrollToContact = () => {
     document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })
   }
 
-  const handleReferralModalClose = () => {
-    setShowReferralSignupModal(false)
-    // Clear the referral code from storage so it doesn't show again
-    sessionStorage.removeItem('zivre_referral_code')
-  }
-
   return (
     <>
       <LoadingOverlay open={authLoading} message={authLoading ? "Logging out..." : ""} />
       
-      {/* Referral Signup Modal - Rendered directly here */}
-      {showReferralSignupModal && (
-        <AuthModal
-          isSignUp={true}
-          role="customer"
-          isReferralSignup={true}
-          referralCode={referralCode}
-          onClose={handleReferralModalClose}
-          onSuccess={(loggedInUser) => {
-            setShowReferralSignupModal(false)
-            if (loggedInUser.role === 'customer') {
-              window.location.href = '/customer/dashboard'
-            } else if (loggedInUser.role === 'provider') {
-              window.location.href = '/provider/dashboard'
-            } else if (loggedInUser.role === 'admin') {
-              window.location.href = '/admin/dashboard'
-            }
-          }}
-          onSwitchToSignIn={() => {
-            setShowReferralSignupModal(false)
-            // Open sign in modal
-            window.dispatchEvent(new CustomEvent('open_signin_modal'))
-          }}
-        />
-      )}
-      
       <Routes>
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/signup" element={<ReferralSignup />} />
         <Route path="/verification-sent" element={<VerificationSent />} />
-        <Route path="/profile" element={user ? <ProfileSettings /> : <Navigate to="/" />} />
-        <Route path="/messages" element={user ? <Messages /> : <Navigate to="/" />} />
-        <Route path="/customer/dashboard" element={user ? <CustomerDashboard /> : <Navigate to="/" />} />
-        <Route path="/provider/dashboard" element={user ? <ProviderDashboard /> : <Navigate to="/" />} />
-        <Route path="/admin/dashboard" element={user && user.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />} />
-        <Route path="/referrals" element={user ? <UserReferralDashboard /> : <Navigate to="/" />} />
-        <Route path="/admin/referrals" element={user && user.role === 'admin' ? <AdminReferralDashboard /> : <Navigate to="/" />} />
+        <Route path="/profile" element={
+          user ? <ProfileSettings /> : <Navigate to="/" />
+        } />
+        <Route path="/messages" element={
+          user ? <Messages /> : <Navigate to="/" />
+        } />
+        <Route path="/customer/dashboard" element={
+          user ? <CustomerDashboard /> : <Navigate to="/" />
+        } />
+        <Route path="/provider/dashboard" element={
+          user ? <ProviderDashboard /> : <Navigate to="/" />
+        } />
+        <Route path="/admin/dashboard" element={
+          user && user.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />
+        } />
+        
+        <Route path="/referrals" element={
+          user ? <UserReferralDashboard /> : <Navigate to="/" />
+        } />
+        <Route path="/admin/referrals" element={
+          user && user.role === 'admin' ? <AdminReferralDashboard /> : <Navigate to="/" />
+        } />
+        
         <Route path="/my-requests" element={<Navigate to="/customer/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
         
@@ -265,7 +272,8 @@ const AppRoutes = () => {
             </main>
             <Footer />
             
-            {!user && !showReferralSignupModal && (
+            {/* Homepage Tour - Auto shows for visitors */}
+            {!user && (
               <DemoTour 
                 open={showHomepageTour}
                 onClose={() => setShowHomepageTour(false)}
@@ -275,7 +283,8 @@ const AppRoutes = () => {
               />
             )}
             
-            {!user && !showReferralSignupModal && <TourButton tourSteps={homepageTourSteps} title="Welcome to Zivre!" />}
+            {/* Manual Start Tour button for homepage */}
+            {!user && <TourButton tourSteps={homepageTourSteps} title="Welcome to Zivre!" />}
           </>
         } />
       </Routes>
