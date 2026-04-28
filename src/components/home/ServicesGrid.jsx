@@ -101,7 +101,8 @@ const ServicesGrid = () => {
                     src="/Adi.jpg"
                     alt="Zivre Facility Services"
                     style={{
-                        maxWidth: '100%',
+                        maxWidth: '400px',      /* ← CHANGE THIS TO CONTROL SIZE */
+                        width: '100%',
                         height: 'auto',
                         borderRadius: '16px',
                         display: 'block',
