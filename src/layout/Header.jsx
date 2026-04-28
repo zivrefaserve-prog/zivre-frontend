@@ -35,14 +35,12 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     }
   }
 
-  // Helper function to get correct referrals URL based on role
   const getReferralsUrl = () => {
     if (!user) return '/'
     if (user.role === 'admin') return '/admin/referrals'
     return '/referrals'
   }
 
-  // Helper function to get correct button text based on role
   const getReferralsButtonText = () => {
     if (!user) return 'Referrals'
     if (user.role === 'admin') return 'Referral Admin'
@@ -131,7 +129,6 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     { label: 'Get Quote', icon: <QuoteIcon />, action: onGetQuote },
   ]
 
-  // Listen for custom event from Hero button (Get Started)
   useEffect(() => {
     const handleOpenGetStarted = () => {
       setTimeout(() => {
@@ -146,7 +143,6 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     }
   }, [])
 
-  // Listen for custom event from Hero button (Sign In)
   useEffect(() => {
     const handleOpenSignIn = () => {
       setTimeout(() => {
@@ -161,22 +157,23 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     }
   }, [])
 
-  // NEW: Listen for referral signup modal event
+  // ========== FIXED: REFERRAL SIGNUP MODAL EVENT LISTENER ==========
   useEffect(() => {
     const handleOpenReferralSignup = () => {
-      blurActiveElement()
-      // Skip role selection, directly open signup modal as customer
-      setSelectedRole('customer')
-      setShowRoleModal(false)
-      setShowSignUpModal(true)
+      console.log('🔔 Header received referral modal event - opening signup');
+      blurActiveElement();
+      setSelectedRole('customer');
+      setShowRoleModal(false);
+      setShowSignUpModal(true);
     }
     
-    window.addEventListener('open_referral_signup_modal', handleOpenReferralSignup)
+    window.addEventListener('open_referral_signup_modal', handleOpenReferralSignup);
+    console.log('✅ Header: Referral modal event listener registered');
     
     return () => {
-      window.removeEventListener('open_referral_signup_modal', handleOpenReferralSignup)
+      window.removeEventListener('open_referral_signup_modal', handleOpenReferralSignup);
     }
-  }, [])
+  }, []);
 
   const drawer = (
     <Box sx={{ width: 250, p: 2 }} role="presentation">
@@ -319,10 +316,8 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {/* NOTIFICATION BELL - ALWAYS VISIBLE */}
             {user && <NotificationDropdown />}
             
-            {/* DESKTOP ONLY - Full navigation and user menu */}
             {!isMobile && (
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 {!hideNavLinks && navItems.map((item) => (
@@ -420,7 +415,6 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
               </Box>
             )}
             
-            {/* MOBILE ONLY - Hamburger menu button */}
             {isMobile && (
               <IconButton onClick={handleDrawerToggle} sx={{ color: '#10b981' }}>
                 <MenuIcon />
