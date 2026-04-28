@@ -30,7 +30,6 @@ import AdminReferralDashboard from './pages/AdminReferralDashboard'
 import VerifyEmail from './pages/VerifyEmail'
 import './App.css'
 
-// Force mobile breakpoints in theme
 const theme = createTheme({
   breakpoints: {
     values: {
@@ -91,15 +90,12 @@ const theme = createTheme({
   },
 })
 
-// Component that uses routing hooks
 const AppRoutes = () => {
   const { user, authLoading, hideAuthLoading } = useAuth()
   const location = useLocation()
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showHomepageTour, setShowHomepageTour] = useState(false)
-  const [shouldOpenReferralModal, setShouldOpenReferralModal] = useState(false)
 
-  // FIX: Auto-hide loading overlay after max 2 seconds
   useEffect(() => {
     if (authLoading) {
       const timer = setTimeout(() => {
@@ -109,7 +105,6 @@ const AppRoutes = () => {
     }
   }, [authLoading, hideAuthLoading])
 
-  // FORCE MOBILE LAYOUT
   useEffect(() => {
     const setViewport = () => {
       const viewport = document.querySelector('meta[name="viewport"]')
@@ -146,7 +141,6 @@ const AppRoutes = () => {
     }
   }, [])
 
-  // Listen for forgot password event
   useEffect(() => {
     const handleOpenForgotPassword = () => {
       console.log('Opening forgot password modal from event')
@@ -160,7 +154,7 @@ const AppRoutes = () => {
     }
   }, [])
 
-  // CHECK URL FOR REFERRAL CODE AND TRIGGER MODAL (NO REDIRECT)
+  // ========== FIXED: REFERRAL CODE DETECTION AND MODAL TRIGGER ==========
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const refCode = urlParams.get('ref');
@@ -168,28 +162,21 @@ const AppRoutes = () => {
     if (refCode) {
       // Save referral code to sessionStorage
       sessionStorage.setItem('zivre_referral_code', refCode);
-      // Set flag to open modal after page loads
-      setShouldOpenReferralModal(true);
       
       // Clean URL by removing ?ref parameter without page reload
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
+      
+      // Open modal after a short delay to ensure components are mounted
+      const timer = setTimeout(() => {
+        console.log('Triggering referral signup modal from App.jsx');
+        window.dispatchEvent(new CustomEvent('open_referral_signup_modal'));
+      }, 800);
+      
+      return () => clearTimeout(timer);
     }
   }, []);
   
-  // Open referral modal after component mounts
-  useEffect(() => {
-    if (shouldOpenReferralModal) {
-      // Small delay to ensure everything is loaded
-      const timer = setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('open_referral_signup_modal'));
-        setShouldOpenReferralModal(false);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [shouldOpenReferralModal]);
-  
-  // SESSION KEEP ALIVE
   useEffect(() => {
     if (!user) return
     
@@ -202,7 +189,6 @@ const AppRoutes = () => {
     return () => clearInterval(interval)
   }, [user])
 
-  // Homepage tour auto-show on first visit
   useEffect(() => {
     const tourCompleted = localStorage.getItem('zivre_tour_homepage_completed')
     const isHomepage = location.pathname === '/'
@@ -217,7 +203,6 @@ const AppRoutes = () => {
     setShowHomepageTour(false)
   }
 
-  // KEEP BACKEND AWAKE
   useEffect(() => {
     fetch('https://zivre-backend.onrender.com/api/services')
       .catch(() => console.log('Backend waking up...'))
@@ -283,7 +268,6 @@ const AppRoutes = () => {
             </main>
             <Footer />
             
-            {/* Homepage Tour - Auto shows for visitors */}
             {!user && (
               <DemoTour 
                 open={showHomepageTour}
@@ -294,7 +278,6 @@ const AppRoutes = () => {
               />
             )}
             
-            {/* Manual Start Tour button for homepage */}
             {!user && <TourButton tourSteps={homepageTourSteps} title="Welcome to Zivre!" />}
           </>
         } />
@@ -307,7 +290,6 @@ const AppRoutes = () => {
   )
 }
 
-// Wrapper component for WebSocket
 const AppWithWebSocket = () => {
   const { user } = useAuth()
   return (
@@ -317,7 +299,6 @@ const AppWithWebSocket = () => {
   )
 }
 
-// Main App component
 function App() {
   return (
     <BrowserRouter>
