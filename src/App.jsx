@@ -9,7 +9,6 @@ import DemoTour from './common/DemoTour'
 import Header from './layout/Header'
 import Footer from './layout/Footer'
 import Hero from './components/home/Hero'
-import ReferralSignup from './pages/ReferralSignup'
 import ServicesGrid from './components/home/ServicesGrid'
 import WhyChoose from './components/home/WhyChoose'
 import About from './components/home/About'
@@ -98,6 +97,7 @@ const AppRoutes = () => {
   const location = useLocation()
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showHomepageTour, setShowHomepageTour] = useState(false)
+  const [shouldOpenReferralModal, setShouldOpenReferralModal] = useState(false)
 
   // FIX: Auto-hide loading overlay after max 2 seconds
   useEffect(() => {
@@ -160,19 +160,34 @@ const AppRoutes = () => {
     }
   }, [])
 
-
-    // Check URL for referral code and auto-open signup modal
-// Check URL for referral code and redirect to signup page
+  // CHECK URL FOR REFERRAL CODE AND TRIGGER MODAL (NO REDIRECT)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const refCode = urlParams.get('ref');
     
-    if (refCode && window.location.pathname !== '/signup') {
-      // Save referral code and redirect to signup page
+    if (refCode) {
+      // Save referral code to sessionStorage
       sessionStorage.setItem('zivre_referral_code', refCode);
-      window.location.href = `/signup?ref=${refCode}`;
+      // Set flag to open modal after page loads
+      setShouldOpenReferralModal(true);
+      
+      // Clean URL by removing ?ref parameter without page reload
+      const newUrl = window.location.pathname;
+      window.history.replaceState({}, '', newUrl);
     }
   }, []);
+  
+  // Open referral modal after component mounts
+  useEffect(() => {
+    if (shouldOpenReferralModal) {
+      // Small delay to ensure everything is loaded
+      const timer = setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('open_referral_signup_modal'));
+        setShouldOpenReferralModal(false);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [shouldOpenReferralModal]);
   
   // SESSION KEEP ALIVE
   useEffect(() => {
@@ -226,7 +241,6 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-        <Route path="/signup" element={<ReferralSignup />} />
         <Route path="/verification-sent" element={<VerificationSent />} />
         <Route path="/profile" element={
           user ? <ProfileSettings /> : <Navigate to="/" />
@@ -252,6 +266,7 @@ const AppRoutes = () => {
         } />
         
         <Route path="/my-requests" element={<Navigate to="/customer/dashboard" replace />} />
+        <Route path="/signup" element={<Navigate to="/" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
         
         <Route path="/" element={
