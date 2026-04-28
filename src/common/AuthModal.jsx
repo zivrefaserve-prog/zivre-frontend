@@ -13,7 +13,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [services, setServices] = useState([])
   const [loadingServices, setLoadingServices] = useState(false)
-  const [referrerName, setReferrerName] = useState('KOFI') // In production, fetch from backend
+  const [referrerName, setReferrerName] = useState('KOFI')
   
   const [passwordStrength, setPasswordStrength] = useState({
     length: false,
