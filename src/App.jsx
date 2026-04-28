@@ -58,7 +58,6 @@ const AppRoutes = () => {
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showHomepageTour, setShowHomepageTour] = useState(false)
   const [showReferralModal, setShowReferralModal] = useState(false)
-  const [referralCode, setReferralCode] = useState('')
 
   useEffect(() => {
     if (authLoading) {
@@ -100,22 +99,44 @@ const AppRoutes = () => {
     return () => window.removeEventListener('open_forgot_password', handleOpenForgotPassword)
   }, [])
 
-  // ========== SIMPLE FIX: DIRECT MODAL TRIGGER ==========
+  // ========== REFERRAL MODAL - HIGHEST PRIORITY ==========
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search)
     const refCode = urlParams.get('ref')
     
-    if (refCode) {
-      console.log('🔗 Referral code detected:', refCode)
+    console.log('🔍 Checking URL for referral code:', refCode)
+    
+    if (refCode && !user) {
       // Save to sessionStorage for AuthModal
       sessionStorage.setItem('zivre_referral_code', refCode)
-      setReferralCode(refCode)
-      // Open modal directly
+      console.log('✅ Referral code saved, opening modal NOW')
+      // Open modal immediately - NO DELAY
       setShowReferralModal(true)
       // Clean URL
       window.history.replaceState({}, '', window.location.pathname)
     }
-  }, [])
+  }, [user])
+
+  // Tour modal - only show if NO referral modal and user not logged in
+  useEffect(() => {
+    const tourCompleted = localStorage.getItem('zivre_tour_homepage_completed')
+    const hasReferralCode = sessionStorage.getItem('zivre_referral_code')
+    
+    // Only show tour if:
+    // 1. Tour not completed
+    // 2. On homepage
+    // 3. No user logged in
+    // 4. NO referral code active (so it doesn't conflict)
+    if (!tourCompleted && location.pathname === '/' && !user && !hasReferralCode) {
+      const timer = setTimeout(() => setShowHomepageTour(true), 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [location, user])
+
+  const handleHomepageTourComplete = () => {
+    localStorage.setItem('zivre_tour_homepage_completed', 'true')
+    setShowHomepageTour(false)
+  }
 
   useEffect(() => {
     if (!user) return
@@ -124,18 +145,6 @@ const AppRoutes = () => {
     }, 5 * 60 * 1000)
     return () => clearInterval(interval)
   }, [user])
-
-  useEffect(() => {
-    const tourCompleted = localStorage.getItem('zivre_tour_homepage_completed')
-    if (!tourCompleted && location.pathname === '/' && !user) {
-      setTimeout(() => setShowHomepageTour(true), 1500)
-    }
-  }, [location, user])
-
-  const handleHomepageTourComplete = () => {
-    localStorage.setItem('zivre_tour_homepage_completed', 'true')
-    setShowHomepageTour(false)
-  }
 
   // Keep backend awake
   useEffect(() => {
@@ -151,35 +160,43 @@ const AppRoutes = () => {
   }
 
   const handleCloseReferralModal = () => {
+    console.log('Closing referral modal')
     setShowReferralModal(false)
-    setReferralCode('')
+    // Clear the stored code
+    sessionStorage.removeItem('zivre_referral_code')
+  }
+
+  const handleReferralSuccess = (loggedInUser) => {
+    console.log('Referral signup success:', loggedInUser)
+    handleCloseReferralModal()
+    if (loggedInUser.role === 'customer') {
+      window.location.href = '/customer/dashboard'
+    } else if (loggedInUser.role === 'provider') {
+      window.location.href = '/provider/dashboard'
+    } else if (loggedInUser.role === 'admin') {
+      window.location.href = '/admin/dashboard'
+    }
+  }
+
+  const handleSwitchToSignIn = () => {
+    handleCloseReferralModal()
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('open_signin_modal'))
+    }, 100)
   }
 
   return (
     <>
       <LoadingOverlay open={authLoading} message={authLoading ? "Logging out..." : ""} />
       
-      {/* Referral Modal - Rendered directly in App */}
+      {/* REFERRAL MODAL - Shows IMMEDIATELY when URL has ?ref= */}
       {showReferralModal && !user && (
         <AuthModal 
           isSignUp={true} 
           role="customer" 
           onClose={handleCloseReferralModal}
-          onSuccess={(loggedInUser) => {
-            handleCloseReferralModal()
-            if (loggedInUser.role === 'customer') {
-              window.location.href = '/customer/dashboard'
-            } else if (loggedInUser.role === 'provider') {
-              window.location.href = '/provider/dashboard'
-            } else if (loggedInUser.role === 'admin') {
-              window.location.href = '/admin/dashboard'
-            }
-          }}
-          onSwitchToSignIn={() => {
-            handleCloseReferralModal()
-            // Trigger sign in modal via Header (will open separately)
-            window.dispatchEvent(new CustomEvent('open_signin_modal'))
-          }}
+          onSuccess={handleReferralSuccess}
+          onSwitchToSignIn={handleSwitchToSignIn}
         />
       )}
       
@@ -210,7 +227,9 @@ const AppRoutes = () => {
               <CommentSection />
             </main>
             <Footer />
-            {!user && (
+            
+            {/* TOUR MODAL - Only shows if NO referral modal is active */}
+            {!user && !showReferralModal && (
               <DemoTour 
                 open={showHomepageTour}
                 onClose={() => setShowHomepageTour(false)}
@@ -219,7 +238,9 @@ const AppRoutes = () => {
                 title="Welcome to Zivre!"
               />
             )}
-            {!user && <TourButton tourSteps={homepageTourSteps} title="Welcome to Zivre!" />}
+            
+            {/* Tour button - only show if no referral modal */}
+            {!user && !showReferralModal && <TourButton tourSteps={homepageTourSteps} title="Welcome to Zivre!" />}
           </>
         } />
       </Routes>
