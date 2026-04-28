@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { Dialog, DialogTitle, DialogContent, TextField, Button, Box, Typography, Alert, CircularProgress, IconButton, InputAdornment, Chip, MenuItem, Select, FormControl, InputLabel, Divider } from '@mui/material'
-import { Visibility, VisibilityOff, CheckCircle, Cancel, Person, Email, Phone, Lock, Share } from '@mui/icons-material'
+import { Visibility, VisibilityOff, CheckCircle, Cancel, EmojiEvents, AccountBalanceWallet, TrendingUp, WhatsApp } from '@mui/icons-material'
 import { getServices } from '../api/client'
 import LoadingOverlay from './LoadingOverlay'
 
-const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwitchToSignUp }) => {
+const AuthModal = ({ isSignUp, role, isReferralSignup = false, onClose, onSuccess, onSwitchToSignIn, onSwitchToSignUp }) => {
   const { login, signup, authLoading } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -13,7 +13,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [services, setServices] = useState([])
   const [loadingServices, setLoadingServices] = useState(false)
-  const [isReferralSignup, setIsReferralSignup] = useState(false)
   const [referralCodeFromStorage, setReferralCodeFromStorage] = useState('')
   
   const [passwordStrength, setPasswordStrength] = useState({
@@ -34,6 +33,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     referral_code: ''
   })
 
+  // Load services for provider signup
   useEffect(() => {
     if (isSignUp && role === 'provider') {
       setLoadingServices(true)
@@ -47,20 +47,15 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     }
   }, [isSignUp, role])
 
-  // ========== FIXED: REFERRAL CODE DETECTION ==========
+  // Check for referral code from sessionStorage when modal opens
   useEffect(() => {
-    const storedCode = sessionStorage.getItem('zivre_referral_code');
-    console.log('🔍 AuthModal checking for referral code:', storedCode);
-    if (storedCode && isSignUp && role === 'customer') {
-      console.log('🎉 REFERRAL DETECTED! Showing special modal');
-      setIsReferralSignup(true);
-      setReferralCodeFromStorage(storedCode);
-      setFormData(prev => ({ ...prev, referral_code: storedCode }));
-      sessionStorage.removeItem('zivre_referral_code');
-    } else {
-      setIsReferralSignup(false);
+    const referralCode = sessionStorage.getItem('zivre_referral_code');
+    if (referralCode && !formData.referral_code) {
+      setReferralCodeFromStorage(referralCode);
+      setFormData(prev => ({ ...prev, referral_code: referralCode }));
+      // Don't remove immediately - will remove after signup attempt
     }
-  }, [isSignUp, role]);
+  }, []);
   
   const validateEmail = (email) => {
     const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -115,6 +110,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     }
   
     if (isSignUp) {
+      // ========== SIGN UP ==========
       if (!formData.full_name.trim()) {
         setError('Please enter your full name')
         return
@@ -155,6 +151,9 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         
         const res = await signup(userData)
         
+        // Clear referral code from storage after successful signup
+        sessionStorage.removeItem('zivre_referral_code');
+        
         if (res.data && res.data.requires_verification) {
           onClose()
           window.location.href = `/verification-sent?email=${encodeURIComponent(res.data.email)}`
@@ -176,6 +175,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         setLoading(false)
       }
     } else {
+      // ========== SIGN IN ==========
       if (!formData.email || !formData.password) {
         setError('Please enter both email and password')
         return
@@ -242,11 +242,14 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     }, 100)
   }
 
-  // ========== SPECIAL REFERRAL SIGNUP MODAL ==========
-  if (isSignUp && role === 'customer' && isReferralSignup) {
+  // If this is a referral signup, show the special modal
+  if (isSignUp && isReferralSignup && role === 'customer') {
     return (
       <>
-        <LoadingOverlay open={authLoading} message="Creating your account..." />
+        <LoadingOverlay 
+          open={authLoading} 
+          message="Creating your account..." 
+        />
         
         <Dialog 
           open={true} 
@@ -254,227 +257,252 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
           maxWidth="md" 
           fullWidth
           disableEnforceFocus
-          sx={{ '& .MuiPaper-root': { borderRadius: 3 } }}
+          sx={{ '& .MuiPaper-root': { borderRadius: 3, maxWidth: 650 } }}
         >
-          <DialogTitle sx={{ textAlign: 'center', pt: 4, bgcolor: '#10b981', color: 'white' }}>
-            <Typography variant="h5" component="div" fontWeight="800">
+          {/* Special Referral Header */}
+          <Box sx={{ 
+            bgcolor: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+            textAlign: 'center',
+            py: 3,
+            borderTopLeftRadius: 12,
+            borderTopRightRadius: 12,
+            bgcolor: '#10b981'
+          }}>
+            <EmojiEvents sx={{ fontSize: 48, color: 'white', mb: 1 }} />
+            <Typography variant="h5" fontWeight="800" sx={{ color: 'white' }}>
               🎉 YOU'VE BEEN REFERRED! 🎉
             </Typography>
-            <Typography variant="body2" sx={{ opacity: 0.9, mt: 1 }}>
-              Join Zivre and start earning today
+            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)', mt: 0.5 }}>
+              Someone thinks you'll love Zivre!
             </Typography>
-          </DialogTitle>
+          </Box>
 
-          <DialogContent sx={{ pb: 4, pt: 3 }}>
-            
+          <DialogContent sx={{ pt: 3, pb: 3 }}>
             {error && (
               <Alert severity="error" sx={{ mb: 2, borderRadius: 2 }} onClose={() => setError('')}>
                 {error}
               </Alert>
             )}
 
-            <Box sx={{ mb: 3, p: 2, bgcolor: '#f0fdf4', borderRadius: 2, textAlign: 'center' }}>
+            {/* Referral Code Display */}
+            <Box sx={{ 
+              mb: 3, 
+              p: 1.5, 
+              bgcolor: '#f0fdf4', 
+              borderRadius: 2,
+              border: '1px solid #10b981',
+              textAlign: 'center'
+            }}>
               <Typography variant="body2" color="text.secondary">
-                Referred by: <strong>KOFI MENSAH</strong>
+                Referral code applied:
               </Typography>
-              <Typography variant="body2" color="text.secondary">
-                Your referral code: <strong>{referralCodeFromStorage}</strong> ✓ Applied
+              <Typography variant="h6" fontWeight="700" sx={{ color: '#10b981', fontFamily: 'monospace' }}>
+                {referralCodeFromStorage || formData.referral_code}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                Your friend will earn when you complete your first service
               </Typography>
             </Box>
 
-            <form onSubmit={handleSubmit}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Full Name"
-                margin="dense"
-                value={formData.full_name}
-                onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                required
-                InputProps={{ startAdornment: <InputAdornment position="start"><Person sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment> }}
-                sx={{ mb: 2 }}
-              />
-              
-              <TextField
-                fullWidth
-                size="small"
-                label="Email Address"
-                type="email"
-                margin="dense"
-                value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                error={!!(formData.email && !validateEmail(formData.email))}
-                helperText={formData.email && !validateEmail(formData.email) ? 'Enter a valid email' : ''}
-                required
-                InputProps={{ startAdornment: <InputAdornment position="start"><Email sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment> }}
-                sx={{ mb: 2 }}
-              />
-              
-              <TextField
-                fullWidth
-                size="small"
-                label="Phone Number"
-                margin="dense"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                error={!!(formData.phone && !validatePhone(formData.phone))}
-                helperText={formData.phone && !validatePhone(formData.phone) ? 'Enter valid phone number' : ''}
-                required
-                InputProps={{ startAdornment: <InputAdornment position="start"><Phone sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment> }}
-                sx={{ mb: 2 }}
-              />
-
-              <TextField
-                fullWidth
-                size="small"
-                label="Referral Code"
-                margin="dense"
-                value={formData.referral_code}
-                disabled
-                InputProps={{ 
-                  startAdornment: <InputAdornment position="start"><Share sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>,
-                  readOnly: true
-                }}
-                sx={{ mb: 2, '& .MuiInputBase-root': { bgcolor: '#f8fafc' } }}
-              />
-
-              <TextField
-                fullWidth
-                size="small"
-                label="Password"
-                type={showPassword ? 'text' : 'password'}
-                margin="dense"
-                value={formData.password}
-                onChange={handlePasswordChange}
-                required
-                InputProps={{
-                  startAdornment: <InputAdornment position="start"><Lock sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>,
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">
-                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }}
-                sx={{ mb: 2 }}
-              />
-
-              {formData.password && (
-                <Box sx={{ mb: 2, p: 1.5, bgcolor: '#f8fafc', borderRadius: 2 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
-                    <Typography variant="caption" color="text.secondary">Password Strength:</Typography>
-                    <Chip label={getPasswordStrengthText()} size="small" sx={{ bgcolor: `${getPasswordStrengthColor()}15`, color: getPasswordStrengthColor(), height: 20, fontSize: '0.6rem' }} />
-                  </Box>
-                  <Box sx={{ display: 'flex', gap: 0.5, mb: 1 }}>
-                    {Object.entries(passwordStrength).map(([key, valid]) => (
-                      <Box key={key} sx={{ flex: 1, height: 3, bgcolor: valid ? getPasswordStrengthColor() : '#e2e8f0', borderRadius: 3 }} />
-                    ))}
-                  </Box>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.3, color: passwordStrength.length ? '#10b981' : '#64748b', fontSize: '0.65rem' }}>
-                      {passwordStrength.length ? <CheckCircle sx={{ fontSize: 10 }} /> : <Cancel sx={{ fontSize: 10 }} />} 8+ chars
-                    </Typography>
-                    <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.3, color: passwordStrength.uppercase ? '#10b981' : '#64748b', fontSize: '0.65rem' }}>
-                      {passwordStrength.uppercase ? <CheckCircle sx={{ fontSize: 10 }} /> : <Cancel sx={{ fontSize: 10 }} />} A-Z
-                    </Typography>
-                    <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.3, color: passwordStrength.lowercase ? '#10b981' : '#64748b', fontSize: '0.65rem' }}>
-                      {passwordStrength.lowercase ? <CheckCircle sx={{ fontSize: 10 }} /> : <Cancel sx={{ fontSize: 10 }} />} a-z
-                    </Typography>
-                    <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.3, color: passwordStrength.number ? '#10b981' : '#64748b', fontSize: '0.65rem' }}>
-                      {passwordStrength.number ? <CheckCircle sx={{ fontSize: 10 }} /> : <Cancel sx={{ fontSize: 10 }} />} 0-9
-                    </Typography>
-                    <Typography variant="caption" sx={{ display: 'flex', alignItems: 'center', gap: 0.3, color: passwordStrength.special ? '#10b981' : '#64748b', fontSize: '0.65rem' }}>
-                      {passwordStrength.special ? <CheckCircle sx={{ fontSize: 10 }} /> : <Cancel sx={{ fontSize: 10 }} />} !@#$%
-                    </Typography>
-                  </Box>
-                </Box>
-              )}
-
-              <TextField
-                fullWidth
-                size="small"
-                label="Confirm Password"
-                type={showConfirmPassword ? 'text' : 'password'}
-                margin="dense"
-                value={formData.confirm_password}
-                onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })}
-                error={!!(formData.confirm_password && formData.password !== formData.confirm_password)}
-                helperText={formData.confirm_password && formData.password !== formData.confirm_password ? 'Passwords do not match' : ''}
-                required
-                InputProps={{
-                  startAdornment: <InputAdornment position="start"><Lock sx={{ fontSize: 18, color: '#94a3b8' }} /></InputAdornment>,
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end" size="small">
-                        {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
-                      </IconButton>
-                    </InputAdornment>
-                  )
-                }}
-                sx={{ mb: 2 }}
-              />
-
-              <Divider sx={{ my: 2 }} />
-
-              <Box sx={{ mb: 3, p: 2, bgcolor: '#e0f2fe', borderRadius: 2 }}>
-                <Typography variant="subtitle2" fontWeight="700" sx={{ color: '#0284c7', mb: 1.5 }}>
-                  💰 HOW YOU BOTH EARN
+            {/* Two Column Layout Desktop / Stacked Mobile */}
+            <Box sx={{ 
+              display: 'flex', 
+              flexDirection: { xs: 'column', md: 'row' }, 
+              gap: 3,
+              mb: 3
+            }}>
+              {/* Left Column - Signup Form */}
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 2, color: '#0f172a' }}>
+                  Create your account
                 </Typography>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Box sx={{ width: 32, height: 32, bgcolor: '#10b981', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Typography variant="body2" fontWeight="700" sx={{ color: 'white' }}>1</Typography>
+                
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Full Name"
+                  margin="dense"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
+                  required
+                  sx={{ mb: 1.5 }}
+                />
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Email Address"
+                  type="email"
+                  margin="dense"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  error={!!(formData.email && !validateEmail(formData.email))}
+                  helperText={formData.email && !validateEmail(formData.email) ? 'Enter a valid email' : ''}
+                  required
+                  sx={{ mb: 1.5 }}
+                />
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Phone Number"
+                  margin="dense"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  error={!!(formData.phone && !validatePhone(formData.phone))}
+                  helperText={formData.phone && !validatePhone(formData.phone) ? 'Enter valid phone number' : ''}
+                  required
+                  sx={{ mb: 1.5 }}
+                />
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Password"
+                  type={showPassword ? 'text' : 'password'}
+                  margin="dense"
+                  value={formData.password}
+                  onChange={handlePasswordChange}
+                  required
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton onClick={() => setShowPassword(!showPassword)} edge="end" size="small">
+                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      )
+                    }
+                  }}
+                  sx={{ mb: 1.5 }}
+                />
+                <TextField
+                  fullWidth
+                  size="small"
+                  label="Confirm Password"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  margin="dense"
+                  value={formData.confirm_password}
+                  onChange={(e) => setFormData({ ...formData, confirm_password: e.target.value })}
+                  error={!!(formData.confirm_password && formData.password !== formData.confirm_password)}
+                  helperText={formData.confirm_password && formData.password !== formData.confirm_password ? 'Passwords do not match' : ''}
+                  required
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position="end">
+                          <IconButton onClick={() => setShowConfirmPassword(!showConfirmPassword)} edge="end" size="small">
+                            {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+                          </IconButton>
+                        </InputAdornment>
+                      )
+                    }
+                  }}
+                  sx={{ mb: 1.5 }}
+                />
+
+                {/* Password Strength Indicator */}
+                {formData.password && (
+                  <Box sx={{ mb: 2 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                      <Typography variant="caption" color="text.secondary">Password Strength:</Typography>
+                      <Chip 
+                        label={getPasswordStrengthText()} 
+                        size="small" 
+                        sx={{ 
+                          bgcolor: `${getPasswordStrengthColor()}15`, 
+                          color: getPasswordStrengthColor(),
+                          height: 20,
+                          fontSize: '0.65rem'
+                        }} 
+                      />
                     </Box>
-                    <Typography variant="body2">
-                      <strong>KOFI EARNS 20%</strong> when you complete your first service
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Box sx={{ width: 32, height: 32, bgcolor: '#f59e0b', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Typography variant="body2" fontWeight="700" sx={{ color: 'white' }}>2</Typography>
+                    <Box sx={{ display: 'flex', gap: 0.5, mb: 1 }}>
+                      {Object.entries(passwordStrength).map(([key, valid]) => (
+                        <Box key={key} sx={{ flex: 1, height: 3, bgcolor: valid ? '#10b981' : '#e2e8f0', borderRadius: 3 }} />
+                      ))}
                     </Box>
-                    <Typography variant="body2">
-                      <strong>YOU EARN 5%</strong> on your very first booking (self-bonus!)
-                    </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Box sx={{ width: 32, height: 32, bgcolor: '#8b5cf6', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Typography variant="body2" fontWeight="700" sx={{ color: 'white' }}>3</Typography>
-                    </Box>
-                    <Typography variant="body2">
-                      <strong>YOU EARN 20%</strong> from everyone YOU refer
-                    </Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Box sx={{ width: 32, height: 32, bgcolor: '#ec4898', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Typography variant="body2" fontWeight="700" sx={{ color: 'white' }}>4</Typography>
-                    </Box>
-                    <Typography variant="body2">
-                      <strong>WITHDRAW GHS 20+</strong> to Mobile Money (MTN, Vodafone, AirtelTigo)
-                    </Typography>
-                  </Box>
+                )}
+
+                <Button
+                  type="submit"
+                  fullWidth
+                  variant="contained"
+                  onClick={handleSubmit}
+                  disabled={loading || !isPasswordValid()}
+                  sx={{ py: 1.5, bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' }, mt: 1 }}
+                >
+                  {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : '🚀 SIGN UP & START EARNING'}
+                </Button>
+
+                <Box sx={{ textAlign: 'center', mt: 2 }}>
+                  <Typography variant="body2" color="text.secondary">
+                    Already have an account?{' '}
+                    <Button 
+                      onClick={onSwitchToSignIn}
+                      sx={{ textTransform: 'none', color: '#10b981', p: 0, minWidth: 'auto' }}
+                    >
+                      Sign In
+                    </Button>
+                  </Typography>
                 </Box>
               </Box>
 
-              <Button
-                type="submit"
-                fullWidth
-                variant="contained"
-                disabled={loading || !isPasswordValid()}
-                sx={{ py: 1.5, bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' }, fontWeight: 700 }}
-              >
-                {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : '🚀 SIGN UP & START EARNING'}
-              </Button>
-            </form>
+              {/* Right Column - Referral Info */}
+              <Box sx={{ flex: 1 }}>
+                <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 2, color: '#0f172a' }}>
+                  💰 How you both earn
+                </Typography>
+                
+                <Box sx={{ mb: 2, p: 1.5, bgcolor: '#f8fafc', borderRadius: 2 }}>
+                  <Typography variant="body2" fontWeight="600" sx={{ color: '#10b981' }}>
+                    Your friend (who referred you):
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>
+                    Earns <strong>20% of the referral pool</strong> when you complete your first service
+                  </Typography>
+                </Box>
 
-            <Box sx={{ textAlign: 'center', mt: 2 }}>
-              <Typography variant="body2" color="text.secondary">
-                Already have an account?{' '}
-                <Button onClick={onSwitchToSignIn} sx={{ textTransform: 'none', color: '#10b981', fontWeight: 600, p: 0, minWidth: 'auto' }}>
-                  Sign In
-                </Button>
-              </Typography>
+                <Box sx={{ mb: 2, p: 1.5, bgcolor: '#fef3c7', borderRadius: 2 }}>
+                  <Typography variant="body2" fontWeight="600" sx={{ color: '#f59e0b' }}>
+                    🎁 YOU on your first booking:
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>
+                    Earn a <strong>5% self-bonus</strong> from your own first service!
+                  </Typography>
+                </Box>
+
+                <Box sx={{ mb: 2, p: 1.5, bgcolor: '#f8fafc', borderRadius: 2 }}>
+                  <Typography variant="body2" fontWeight="600" sx={{ color: '#10b981' }}>
+                    💵 YOU when you refer friends:
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>
+                    Get your own referral code. Earn <strong>20% of the referral pool</strong> from everyone YOU refer
+                  </Typography>
+                </Box>
+
+                <Box sx={{ p: 1.5, bgcolor: '#e0f2fe', borderRadius: 2 }}>
+                  <Typography variant="body2" fontWeight="600" sx={{ color: '#0284c7' }}>
+                    💸 Withdraw your earnings:
+                  </Typography>
+                  <Typography variant="body2" sx={{ mt: 0.5 }}>
+                    Send to <strong>Mobile Money (MTN, Vodafone, AirtelTigo)</strong>
+                    <br />
+                    Minimum withdrawal: <strong>GHS 20</strong>
+                  </Typography>
+                </Box>
+
+                <Divider sx={{ my: 2 }} />
+
+                <Box sx={{ p: 1.5, bgcolor: '#f0fdf4', borderRadius: 2, textAlign: 'center' }}>
+                  <Typography variant="body2" color="text.secondary">
+                    <strong>Example:</strong> Friend books GHS 500 service
+                    <br />→ Referral pool = GHS 50
+                    <br />→ Your friend earns GHS 10
+                    <br />→ YOU earn GHS 2.50 (self-bonus)
+                    <br />→ Then YOU refer friends and earn 20% from them!
+                  </Typography>
+                </Box>
+              </Box>
             </Box>
           </DialogContent>
         </Dialog>
@@ -482,7 +510,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     )
   }
 
-  // ========== REGULAR SIGNUP MODAL ==========
+  // Regular Signup Modal (for providers or non-referral customers)
   return (
     <>
       <LoadingOverlay 
