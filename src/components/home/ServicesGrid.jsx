@@ -95,15 +95,21 @@ const ServicesGrid = () => {
                     </div>
                 )}
             </div>
-                        {/* ADD YOUR IMAGE HERE - RIGHT BEFORE WHY CHOOSE SECTION STARTS */}
+            {/* IMAGE BETWEEN SERVICES AND WHY CHOOSE */}
             <div style={{ textAlign: 'center', marginTop: '2rem', marginBottom: '2rem' }}>
                 <img 
-                    src="public/Adi.jpg"   // CHANGE THIS TO YOUR IMAGE FILE NAME
+                    src="/Adi.jpg"
                     alt="Zivre Facility Services"
                     style={{
                         maxWidth: '100%',
                         height: 'auto',
-                        borderRadius: '16px'
+                        borderRadius: '16px',
+                        display: 'block',
+                        margin: '0 auto'
+                    }}
+                    onError={(e) => {
+                        console.log('Image failed to load');
+                        e.target.style.display = 'none';
                     }}
                 />
             </div>
