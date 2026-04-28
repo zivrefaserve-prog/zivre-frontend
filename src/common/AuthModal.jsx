@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import { Dialog, DialogTitle, DialogContent, TextField, Button, Box, Typography, Alert, CircularProgress, IconButton, InputAdornment, Chip, MenuItem, Select, FormControl, InputLabel, Divider } from '@mui/material'
-import { Visibility, VisibilityOff, CheckCircle, Cancel, EmojiEvents, WhatsApp } from '@mui/icons-material'
+import { Visibility, VisibilityOff, CheckCircle, Cancel, EmojiEvents } from '@mui/icons-material'
 import { getServices } from '../api/client'
 import LoadingOverlay from './LoadingOverlay'
 
-const AuthModal = ({ isSignUp, role, isReferralSignup = false, referralCode = '', onClose, onSuccess, onSwitchToSignIn, onSwitchToSignUp }) => {
+const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwitchToSignUp }) => {
   const { login, signup, authLoading } = useAuth()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -13,6 +13,8 @@ const AuthModal = ({ isSignUp, role, isReferralSignup = false, referralCode = ''
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [services, setServices] = useState([])
   const [loadingServices, setLoadingServices] = useState(false)
+  const [isReferralSignup, setIsReferralSignup] = useState(false)
+  const [referralCodeFromStorage, setReferralCodeFromStorage] = useState('')
   
   const [passwordStrength, setPasswordStrength] = useState({
     length: false,
@@ -29,15 +31,19 @@ const AuthModal = ({ isSignUp, role, isReferralSignup = false, referralCode = ''
     password: '',
     confirm_password: '',
     service_specialization: '',
-    referral_code: referralCode || ''
+    referral_code: ''
   })
 
-  // Update referral code when prop changes
+  // Check for referral code in sessionStorage when modal opens
   useEffect(() => {
-    if (referralCode && !formData.referral_code) {
+    const referralCode = sessionStorage.getItem('zivre_referral_code')
+    if (referralCode && isSignUp && role === 'customer') {
+      setReferralCodeFromStorage(referralCode)
       setFormData(prev => ({ ...prev, referral_code: referralCode }))
+      setIsReferralSignup(true)
+      // Don't remove from storage yet - will remove after successful signup
     }
-  }, [referralCode])
+  }, [isSignUp, role])
 
   // Load services for provider signup
   useEffect(() => {
@@ -271,7 +277,7 @@ const AuthModal = ({ isSignUp, role, isReferralSignup = false, referralCode = ''
             <Box sx={{ mb: 3, p: 1.5, bgcolor: '#f0fdf4', borderRadius: 2, border: '1px solid #10b981', textAlign: 'center' }}>
               <Typography variant="body2" color="text.secondary">Referral code applied:</Typography>
               <Typography variant="h6" fontWeight="700" sx={{ color: '#10b981', fontFamily: 'monospace' }}>
-                {formData.referral_code || referralCode}
+                {formData.referral_code || referralCodeFromStorage}
               </Typography>
               <Typography variant="caption" color="text.secondary">
                 Your friend will earn when you complete your first service
