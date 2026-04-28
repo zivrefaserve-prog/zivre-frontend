@@ -27,7 +27,6 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
   const [selectedRole, setSelectedRole] = useState(null)
   const [anchorEl, setAnchorEl] = useState(null)
   const [mobileOpen, setMobileOpen] = useState(false)
-  const [isReferralSignup, setIsReferralSignup] = useState(false)
   const isMobile = useMediaQuery('(max-width:768px)')
 
   const blurActiveElement = () => {
@@ -36,14 +35,12 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     }
   }
 
-  // Helper function to get correct referrals URL based on role
   const getReferralsUrl = () => {
     if (!user) return '/'
     if (user.role === 'admin') return '/admin/referrals'
     return '/referrals'
   }
 
-  // Helper function to get correct button text based on role
   const getReferralsButtonText = () => {
     if (!user) return 'Referrals'
     if (user.role === 'admin') return 'Referral Admin'
@@ -57,13 +54,11 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
 
   const handleGetStarted = () => {
     blurActiveElement()
-    setIsReferralSignup(false) // Regular signup
     setShowRoleModal(true)
   }
 
   const handleBookService = () => {
     blurActiveElement()
-    setIsReferralSignup(false)
     setShowRoleModal(true)
   }
 
@@ -92,19 +87,10 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     setShowSignUpModal(true)
   }
 
-  // ========== NEW: Open referral signup modal directly (no role selection) ==========
-  const openReferralSignupModal = () => {
-    blurActiveElement()
-    setIsReferralSignup(true)
-    setSelectedRole('customer')
-    setShowSignUpModal(true)
-  }
-
   const handleAuthSuccess = (loggedInUser) => {
     blurActiveElement()
     setShowSignUpModal(false)
     setShowSignInModal(false)
-    setIsReferralSignup(false)
     if (loggedInUser.role === 'customer') {
       window.location.href = '/customer/dashboard'
     } else if (loggedInUser.role === 'provider') {
@@ -119,7 +105,6 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
   const handleSwitchToSignIn = () => {
     blurActiveElement()
     setShowSignUpModal(false)
-    setIsReferralSignup(false)
     setShowSignInModal(true)
   }
 
@@ -127,7 +112,6 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     blurActiveElement()
     setShowSignInModal(false)
     setSelectedRole(role)
-    setIsReferralSignup(false)
     setShowSignUpModal(true)
   }
 
@@ -145,51 +129,21 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
     { label: 'Get Quote', icon: <QuoteIcon />, action: onGetQuote },
   ]
 
-  // Listen for custom event from Hero button (Get Started)
   useEffect(() => {
     const handleOpenGetStarted = () => {
-      setTimeout(() => {
-        handleBookService()
-      }, 50)
+      setTimeout(() => handleBookService(), 50)
     }
-    
     window.addEventListener('open_get_started_modal', handleOpenGetStarted)
-    
-    return () => {
-      window.removeEventListener('open_get_started_modal', handleOpenGetStarted)
-    }
+    return () => window.removeEventListener('open_get_started_modal', handleOpenGetStarted)
   }, [])
 
-  // Listen for custom event from Hero button (Sign In)
   useEffect(() => {
     const handleOpenSignIn = () => {
-      setTimeout(() => {
-        handleSignIn()
-      }, 50)
+      setTimeout(() => handleSignIn(), 50)
     }
-    
     window.addEventListener('open_signin_modal', handleOpenSignIn)
-    
-    return () => {
-      window.removeEventListener('open_signin_modal', handleOpenSignIn)
-    }
+    return () => window.removeEventListener('open_signin_modal', handleOpenSignIn)
   }, [])
-
-  // ========== NEW: Listen for referral signup modal event from App.jsx ==========
-  useEffect(() => {
-    const handleOpenReferralSignup = () => {
-      console.log('🎉 Opening referral signup modal');
-      setTimeout(() => {
-        openReferralSignupModal();
-      }, 100);
-    };
-    
-    window.addEventListener('open_referral_signup_modal', handleOpenReferralSignup);
-    
-    return () => {
-      window.removeEventListener('open_referral_signup_modal', handleOpenReferralSignup);
-    };
-  }, []);
 
   const drawer = (
     <Box sx={{ width: 250, p: 2 }} role="presentation">
@@ -211,92 +165,38 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
         ))}
         {user ? (
           <>
-            <ListItem 
-              onClick={() => { 
-                blurActiveElement()
-                window.location.href = '/'; 
-                setMobileOpen(false); 
-              }}
-              sx={{ cursor: 'pointer' }}
-            >
+            <ListItem onClick={() => { blurActiveElement(); window.location.href = '/'; setMobileOpen(false); }} sx={{ cursor: 'pointer' }}>
               <ListItemIcon><HomeIcon /></ListItemIcon>
               <ListItemText primary="Homepage" />
             </ListItem>
-            <ListItem 
-              onClick={() => { 
-                blurActiveElement()
-                window.location.href = getDashboardUrl(); 
-                setMobileOpen(false); 
-              }}
-              sx={{ cursor: 'pointer' }}
-            >
+            <ListItem onClick={() => { blurActiveElement(); window.location.href = getDashboardUrl(); setMobileOpen(false); }} sx={{ cursor: 'pointer' }}>
               <ListItemIcon><DashboardIcon /></ListItemIcon>
               <ListItemText primary="Dashboard" />
             </ListItem>
-            <ListItem 
-              onClick={() => { 
-                blurActiveElement()
-                window.location.href = getReferralsUrl(); 
-                setMobileOpen(false); 
-              }}
-              sx={{ cursor: 'pointer' }}
-            >
+            <ListItem onClick={() => { blurActiveElement(); window.location.href = getReferralsUrl(); setMobileOpen(false); }} sx={{ cursor: 'pointer' }}>
               <ListItemIcon><ShareIcon /></ListItemIcon>
               <ListItemText primary={getReferralsButtonText()} />
             </ListItem>
-            <ListItem 
-              onClick={() => { 
-                blurActiveElement()
-                window.location.href = '/messages'; 
-                setMobileOpen(false); 
-              }}
-              sx={{ cursor: 'pointer' }}
-            >
+            <ListItem onClick={() => { blurActiveElement(); window.location.href = '/messages'; setMobileOpen(false); }} sx={{ cursor: 'pointer' }}>
               <ListItemIcon><MessageIcon /></ListItemIcon>
               <ListItemText primary="Messages" />
             </ListItem>
-            <ListItem 
-              onClick={() => { 
-                blurActiveElement()
-                window.location.href = '/profile'; 
-                setMobileOpen(false); 
-              }}
-              sx={{ cursor: 'pointer' }}
-            >
+            <ListItem onClick={() => { blurActiveElement(); window.location.href = '/profile'; setMobileOpen(false); }} sx={{ cursor: 'pointer' }}>
               <ListItemIcon><SettingsIcon /></ListItemIcon>
               <ListItemText primary="Profile Settings" />
             </ListItem>
-            <ListItem 
-              onClick={() => { 
-                blurActiveElement()
-                logout(); 
-                setMobileOpen(false); 
-              }}
-              sx={{ cursor: 'pointer' }}
-            >
+            <ListItem onClick={() => { blurActiveElement(); logout(); setMobileOpen(false); }} sx={{ cursor: 'pointer' }}>
               <ListItemIcon><LogoutIcon /></ListItemIcon>
               <ListItemText primary="Logout" />
             </ListItem>
           </>
         ) : (
           <>
-            <ListItem 
-              onClick={() => { 
-                handleSignIn(); 
-                setMobileOpen(false); 
-              }}
-              sx={{ cursor: 'pointer' }}
-            >
+            <ListItem onClick={() => { handleSignIn(); setMobileOpen(false); }} sx={{ cursor: 'pointer' }}>
               <ListItemIcon><PersonIcon /></ListItemIcon>
               <ListItemText primary="Sign In" />
             </ListItem>
-            <ListItem 
-              onClick={() => { 
-                handleGetStarted(); 
-                setMobileOpen(false); 
-              }}
-              sx={{ cursor: 'pointer' }}
-            >
+            <ListItem onClick={() => { handleGetStarted(); setMobileOpen(false); }} sx={{ cursor: 'pointer' }}>
               <ListItemIcon><DashboardIcon /></ListItemIcon>
               <ListItemText primary="Get Started" />
             </ListItem>
@@ -311,20 +211,9 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
       <AppBar position="sticky" color="default" elevation={0} sx={{ bgcolor: 'white', borderBottom: '1px solid #e2e8f0' }}>
         <Toolbar sx={{ justifyContent: 'space-between', maxWidth: 1400, width: '100%', mx: 'auto', px: { xs: 2, md: 4 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {isMobile && (
-              <IconButton onClick={handleDrawerToggle}>
-                <MenuIcon />
-              </IconButton>
-            )}
-            <Box 
-              sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }} 
-              onClick={() => window.location.href = '/'}
-            >
-              <img 
-                src="/logo.jpg" 
-                alt="Zivre Logo" 
-                style={{ height: '40px', width: 'auto', objectFit: 'contain' }}
-              />
+            {isMobile && <IconButton onClick={handleDrawerToggle}><MenuIcon /></IconButton>}
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, cursor: 'pointer' }} onClick={() => window.location.href = '/'}>
+              <img src="/logo.jpg" alt="Zivre Logo" style={{ height: '40px', width: 'auto', objectFit: 'contain' }} />
               <Typography variant="h6" sx={{ fontWeight: 800, color: '#10b981' }}>
                 ZIVRE <span style={{ fontWeight: 400, color: '#64748b' }}>Facility Services</span>
               </Typography>
@@ -332,141 +221,63 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            {/* ✅ NOTIFICATION BELL - ALWAYS VISIBLE (Mobile + Desktop) */}
             {user && <NotificationDropdown />}
             
-            {/* DESKTOP ONLY - Full navigation and user menu */}
             {!isMobile && (
               <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                 {!hideNavLinks && navItems.map((item) => (
-                  <Button key={item.label} color="inherit" onClick={() => {
-                    blurActiveElement()
-                    item.action()
-                  }} sx={{ color: '#475569' }}>
+                  <Button key={item.label} color="inherit" onClick={() => { blurActiveElement(); item.action() }} sx={{ color: '#475569' }}>
                     {item.label}
                   </Button>
                 ))}
                 {user ? (
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Button 
-                      onClick={handleReferralsClick}
-                      sx={{ color: '#10b981', fontWeight: 500 }}
-                      startIcon={<ShareIcon />}
-                    >
+                    <Button onClick={handleReferralsClick} sx={{ color: '#10b981', fontWeight: 500 }} startIcon={<ShareIcon />}>
                       {getReferralsButtonText()}
                     </Button>
-                    {/* NotificationDropdown REMOVED from here - now outside */}
                     <Tooltip title="Account">
-                      <Avatar 
-                        sx={{ bgcolor: '#10b981', cursor: 'pointer', width: 40, height: 40 }} 
-                        onClick={handleMenuOpen}
-                      >
+                      <Avatar sx={{ bgcolor: '#10b981', cursor: 'pointer', width: 40, height: 40 }} onClick={handleMenuOpen}>
                         {user.full_name?.charAt(0).toUpperCase()}
                       </Avatar>
                     </Tooltip>
-                    <Menu
-                      anchorEl={anchorEl}
-                      open={Boolean(anchorEl)}
-                      onClose={handleMenuClose}
-                      transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                      anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-                    >
+                    <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleMenuClose} transformOrigin={{ horizontal: 'right', vertical: 'top' }} anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}>
                       <Box sx={{ px: 2, py: 1.5, minWidth: 200 }}>
                         <Typography variant="subtitle2" fontWeight="bold">{user.full_name}</Typography>
                         <Typography variant="caption" color="text.secondary">{user.email}</Typography>
                       </Box>
                       <Divider />
-                      <MenuItem onClick={() => { 
-                        blurActiveElement()
-                        handleMenuClose(); 
-                        window.location.href = '/'; 
-                      }}>
-                        <HomeIcon sx={{ mr: 1.5, fontSize: 20 }} /> Homepage
-                      </MenuItem>
-                      <MenuItem onClick={() => { 
-                        blurActiveElement()
-                        handleMenuClose(); 
-                        window.location.href = getDashboardUrl(); 
-                      }}>
-                        <DashboardIcon sx={{ mr: 1.5, fontSize: 20 }} /> Dashboard
-                      </MenuItem>
-                      <MenuItem onClick={() => { 
-                        blurActiveElement()
-                        handleMenuClose(); 
-                        window.location.href = getReferralsUrl(); 
-                      }}>
-                        <ShareIcon sx={{ mr: 1.5, fontSize: 20 }} /> {getReferralsButtonText()}
-                      </MenuItem>
-                      <MenuItem onClick={() => { 
-                        blurActiveElement()
-                        handleMenuClose(); 
-                        window.location.href = '/messages'; 
-                      }}>
-                        <MessageIcon sx={{ mr: 1.5, fontSize: 20 }} /> Messages
-                      </MenuItem>
-                      <MenuItem onClick={() => { 
-                        blurActiveElement()
-                        handleMenuClose(); 
-                        window.location.href = '/profile'; 
-                      }}>
-                        <SettingsIcon sx={{ mr: 1.5, fontSize: 20 }} /> Profile Settings
-                      </MenuItem>
+                      <MenuItem onClick={() => { blurActiveElement(); handleMenuClose(); window.location.href = '/'; }}><HomeIcon sx={{ mr: 1.5, fontSize: 20 }} /> Homepage</MenuItem>
+                      <MenuItem onClick={() => { blurActiveElement(); handleMenuClose(); window.location.href = getDashboardUrl(); }}><DashboardIcon sx={{ mr: 1.5, fontSize: 20 }} /> Dashboard</MenuItem>
+                      <MenuItem onClick={() => { blurActiveElement(); handleMenuClose(); window.location.href = getReferralsUrl(); }}><ShareIcon sx={{ mr: 1.5, fontSize: 20 }} /> {getReferralsButtonText()}</MenuItem>
+                      <MenuItem onClick={() => { blurActiveElement(); handleMenuClose(); window.location.href = '/messages'; }}><MessageIcon sx={{ mr: 1.5, fontSize: 20 }} /> Messages</MenuItem>
+                      <MenuItem onClick={() => { blurActiveElement(); handleMenuClose(); window.location.href = '/profile'; }}><SettingsIcon sx={{ mr: 1.5, fontSize: 20 }} /> Profile Settings</MenuItem>
                       <Divider />
-                      <MenuItem onClick={() => { 
-                        blurActiveElement()
-                        handleMenuClose(); 
-                        logout(); 
-                      }} sx={{ color: '#ef4444' }}>
-                        <LogoutIcon sx={{ mr: 1.5, fontSize: 20 }} /> Logout
-                      </MenuItem>
+                      <MenuItem onClick={() => { blurActiveElement(); handleMenuClose(); logout(); }} sx={{ color: '#ef4444' }}><LogoutIcon sx={{ mr: 1.5, fontSize: 20 }} /> Logout</MenuItem>
                     </Menu>
                   </Box>
                 ) : (
                   <Box sx={{ display: 'flex', gap: 1 }}>
-                    <Button variant="outlined" onClick={handleSignIn} sx={{ borderColor: '#10b981', color: '#10b981' }}>
-                      Sign In
-                    </Button>
-                    <Button variant="contained" onClick={handleBookService} sx={{ bgcolor: '#10b981' }}>
-                      Get Started
-                    </Button>
+                    <Button variant="outlined" onClick={handleSignIn} sx={{ borderColor: '#10b981', color: '#10b981' }}>Sign In</Button>
+                    <Button variant="contained" onClick={handleBookService} sx={{ bgcolor: '#10b981' }}>Get Started</Button>
                   </Box>
                 )}
               </Box>
             )}
             
-            {/* MOBILE ONLY - Hamburger menu button */}
-            {isMobile && (
-              <IconButton onClick={handleDrawerToggle} sx={{ color: '#10b981' }}>
-                <MenuIcon />
-              </IconButton>
-            )}
+            {isMobile && <IconButton onClick={handleDrawerToggle} sx={{ color: '#10b981' }}><MenuIcon /></IconButton>}
           </Box>
         </Toolbar>
       </AppBar>
       
-      <Drawer
-        anchor="left"
-        open={mobileOpen}
-        onClose={handleDrawerToggle}
-        ModalProps={{ keepMounted: true }}
-      >
-        {drawer}
-      </Drawer>
+      <Drawer anchor="left" open={mobileOpen} onClose={handleDrawerToggle} ModalProps={{ keepMounted: true }}>{drawer}</Drawer>
 
-      {showRoleModal && <RoleModal onSelect={handleRoleSelect} onClose={() => {
-        blurActiveElement()
-        setShowRoleModal(false)
-      }} />}
+      {showRoleModal && <RoleModal onSelect={handleRoleSelect} onClose={() => { blurActiveElement(); setShowRoleModal(false) }} />}
       {showSignUpModal && (
         <AuthModal 
           isSignUp={true} 
           role={selectedRole} 
-          isReferralSignup={isReferralSignup}
-          onClose={() => {
-            blurActiveElement()
-            setShowSignUpModal(false)
-            setIsReferralSignup(false)
-          }} 
+          isReferralSignup={false}
+          onClose={() => { blurActiveElement(); setShowSignUpModal(false) }} 
           onSuccess={handleAuthSuccess}
           onSwitchToSignIn={handleSwitchToSignIn}
         />
@@ -474,10 +285,7 @@ const Header = ({ onGetQuote, hideNavLinks = false }) => {
       {showSignInModal && (
         <AuthModal 
           isSignUp={false} 
-          onClose={() => {
-            blurActiveElement()
-            setShowSignInModal(false)
-          }} 
+          onClose={() => { blurActiveElement(); setShowSignInModal(false) }} 
           onSuccess={handleAuthSuccess}
           onSwitchToSignUp={handleSwitchToSignUp}
         />
