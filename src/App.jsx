@@ -95,7 +95,6 @@ const theme = createTheme({
 const AppRoutes = () => {
   const { user, authLoading, hideAuthLoading } = useAuth()
   const location = useLocation()
-  const navigate = useNavigate()
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showHomepageTour, setShowHomepageTour] = useState(false)
   const [openReferralModal, setOpenReferralModal] = useState(false)
@@ -162,7 +161,7 @@ const AppRoutes = () => {
     }
   }, [])
 
-  // Handle referral link detection - NEW & IMPROVED
+  // Handle referral link detection - HIGHEST PRIORITY (NO REDIRECT)
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const refCode = urlParams.get('ref');
@@ -176,10 +175,13 @@ const AppRoutes = () => {
       const newUrl = window.location.pathname;
       window.history.replaceState({}, '', newUrl);
       
-      // Open referral signup modal after a short delay (ensures page is loaded)
+      // Open referral signup modal after a short delay
       setTimeout(() => {
         setOpenReferralModal(true);
       }, 500);
+      
+      // Prevent any other auto-open modals/tours
+      return;
     }
   }, []);
   
@@ -209,15 +211,23 @@ const AppRoutes = () => {
     return () => clearInterval(interval)
   }, [user])
 
-  // Homepage tour auto-show on first visit
+  // Homepage tour - ONLY show if NO referral code and modal not open
   useEffect(() => {
     const tourCompleted = localStorage.getItem('zivre_tour_homepage_completed')
     const isHomepage = location.pathname === '/'
-    if (!tourCompleted && isHomepage && !user) {
+    const hasReferralCode = sessionStorage.getItem('zivre_referral_code');
+    
+    // ONLY show tour if:
+    // 1. Tour not completed
+    // 2. On homepage
+    // 3. No user logged in
+    // 4. NO referral code present
+    // 5. Referral modal NOT open
+    if (!tourCompleted && isHomepage && !user && !hasReferralCode && !openReferralModal) {
       const timer = setTimeout(() => setShowHomepageTour(true), 1500)
       return () => clearTimeout(timer)
     }
-  }, [location, user])
+  }, [location, user, openReferralModal])
 
   const handleHomepageTourComplete = () => {
     localStorage.setItem('zivre_tour_homepage_completed', 'true')
@@ -251,6 +261,7 @@ const AppRoutes = () => {
   // Handle successful signup
   const handleSignupSuccess = (loggedInUser) => {
     setOpenReferralModal(false);
+    sessionStorage.removeItem('zivre_referral_code');
     if (loggedInUser.role === 'customer') {
       window.location.href = '/customer/dashboard'
     } else if (loggedInUser.role === 'provider') {
@@ -314,8 +325,8 @@ const AppRoutes = () => {
             </main>
             <Footer />
             
-            {/* Homepage Tour - Auto shows for visitors */}
-            {!user && (
+            {/* Homepage Tour - Only shows when NO referral */}
+            {!user && !openReferralModal && !sessionStorage.getItem('zivre_referral_code') && (
               <DemoTour 
                 open={showHomepageTour}
                 onClose={() => setShowHomepageTour(false)}
@@ -325,8 +336,8 @@ const AppRoutes = () => {
               />
             )}
             
-            {/* Manual Start Tour button for homepage */}
-            {!user && <TourButton tourSteps={homepageTourSteps} title="Welcome to Zivre!" />}
+            {/* Tour button - Only shows when NO referral */}
+            {!user && !sessionStorage.getItem('zivre_referral_code') && <TourButton tourSteps={homepageTourSteps} title="Welcome to Zivre!" />}
           </>
         } />
       </Routes>
