@@ -8,47 +8,43 @@ const ServicesGrid = () => {
     const [showServices, setShowServices] = useState(false)
     const [currentImageIndex, setCurrentImageIndex] = useState(0)
 
-    // ===== ADD YOUR IMAGES HERE =====
-    // Replace these with your actual image names
+    // ===== ADD YOUR IMAGES HERE - ADD AS MANY AS YOU WANT =====
     const carouselImages = [
         { src: "/Adi.jpg", alt: "Zivre Facility Service 1" },
-        { src: "/Adi2.jpg", alt: "Zivre Facility Service 2" },
+        { src: "/image2.jpg", alt: "Zivre Facility Service 2" },
+        // { src: "/image3.jpg", alt: "Zivre Facility Service 3" },
+        // { src: "/image4.jpg", alt: "Zivre Facility Service 4" },
+        // Just keep adding more here...
     ]
 
-    // Auto-slide every 3 seconds
-    useEffect(() => {
-        if (carouselImages.length <= 1) return
-        const interval = setInterval(() => {
-            setCurrentImageIndex((prevIndex) => 
-                prevIndex === carouselImages.length - 1 ? 0 : prevIndex + 1
-            )
-        }, 3000)
-        return () => clearInterval(interval)
-    }, [carouselImages.length])
+    const imageCount = carouselImages.length
 
-    // Manual navigation functions
+    // Auto-slide every 4 seconds - only if more than 1 image
+    useEffect(() => {
+        if (imageCount <= 1) return
+        
+        const interval = setInterval(() => {
+            setCurrentImageIndex((prev) => (prev + 1) % imageCount)
+        }, 4000)
+        
+        return () => clearInterval(interval)
+    }, [imageCount])
+
     const goToPrevious = () => {
-        setCurrentImageIndex((prevIndex) => 
-            prevIndex === 0 ? carouselImages.length - 1 : prevIndex - 1
-        )
+        setCurrentImageIndex((prev) => (prev - 1 + imageCount) % imageCount)
     }
 
     const goToNext = () => {
-        setCurrentImageIndex((prevIndex) => 
-            prevIndex === carouselImages.length - 1 ? 0 : prevIndex + 1
-        )
+        setCurrentImageIndex((prev) => (prev + 1) % imageCount)
     }
 
     const goToSlide = (index) => {
         setCurrentImageIndex(index)
     }
 
-    // FIX: Service cards now open signup for non-logged-in users
     const handleServiceClick = () => {
-        // Check if user is logged in
         const userData = sessionStorage.getItem('zivre_user')
         if (!userData) {
-            // Find and click the Get Started button
             const buttons = document.querySelectorAll('button')
             for (let btn of buttons) {
                 if (btn.textContent === 'Get Started') {
@@ -92,7 +88,6 @@ const ServicesGrid = () => {
                 <h2 className="section-title">Tailored Facility Solutions</h2>
                 <p className="section-subtitle">From HVAC to Security, Plumbing to Healthcare — a complete solution for every need.</p>
                 
-                {/* View All Services Button */}
                 <div style={{ textAlign: 'center', marginBottom: showServices ? '2rem' : '0' }}>
                     <button 
                         className="btn-primary"
@@ -107,7 +102,6 @@ const ServicesGrid = () => {
                     </button>
                 </div>
 
-                {/* Services only show when button is clicked */}
                 {showServices && (
                     <div className="services-grid">
                         {services.map((service) => (
@@ -132,111 +126,102 @@ const ServicesGrid = () => {
                 )}
             </div>
 
-            {/* ===== MOVING IMAGE CAROUSEL ===== */}
-            <div style={{ textAlign: 'center', marginTop: '2rem', marginBottom: '2rem' }}>
-                <div style={{ 
-                    position: 'relative',
-                    maxWidth: '450px',
-                    margin: '0 auto',
-                    display: 'inline-block'
-                }}>
-                    {/* Main Image */}
-                    <img 
-                        src={carouselImages[currentImageIndex].src}
-                        alt={carouselImages[currentImageIndex].alt}
-                        style={{
-                            maxWidth: '400px',
-                            width: '100%',
-                            height: 'auto',
-                            borderRadius: '16px',
-                            display: 'block',
-                            margin: '0 auto',
-                            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                            transition: 'opacity 0.3s ease'
-                        }}
-                        onError={(e) => {
-                            console.log(`Image failed to load: ${carouselImages[currentImageIndex].src}`);
-                            e.target.style.display = 'none';
-                        }}
-                    />
-
-                    {/* Left Arrow - Only show if more than 1 image */}
-                    {carouselImages.length > 1 && (
-                        <button
-                            onClick={goToPrevious}
+            {/* IMAGE CAROUSEL - WORKS FOR 1, 2, 3, OR ANY NUMBER OF IMAGES */}
+            {imageCount > 0 && (
+                <div style={{ textAlign: 'center', marginTop: '2rem', marginBottom: '2rem' }}>
+                    <div style={{ 
+                        position: 'relative',
+                        maxWidth: '450px',
+                        margin: '0 auto',
+                        display: 'inline-block'
+                    }}>
+                        <img 
+                            src={carouselImages[currentImageIndex].src}
+                            alt={carouselImages[currentImageIndex].alt}
                             style={{
-                                position: 'absolute',
-                                left: '-30px',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                backgroundColor: '#10b981',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '50%',
-                                width: '36px',
-                                height: '36px',
-                                cursor: 'pointer',
-                                fontSize: '18px',
-                                zIndex: 1,
-                                transition: 'all 0.2s'
+                                maxWidth: '400px',
+                                width: '100%',
+                                height: 'auto',
+                                borderRadius: '16px',
+                                display: 'block',
+                                margin: '0 auto',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                                transition: 'opacity 0.3s ease'
                             }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#059669'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
-                        >
-                            ❮
-                        </button>
-                    )}
+                            onError={(e) => {
+                                e.target.style.display = 'none';
+                            }}
+                        />
 
-                    {/* Right Arrow - Only show if more than 1 image */}
-                    {carouselImages.length > 1 && (
-                        <button
-                            onClick={goToNext}
-                            style={{
-                                position: 'absolute',
-                                right: '-30px',
-                                top: '50%',
-                                transform: 'translateY(-50%)',
-                                backgroundColor: '#10b981',
-                                color: 'white',
-                                border: 'none',
-                                borderRadius: '50%',
-                                width: '36px',
-                                height: '36px',
-                                cursor: 'pointer',
-                                fontSize: '18px',
-                                zIndex: 1,
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#059669'}
-                            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#10b981'}
-                        >
-                            ❯
-                        </button>
+                        {/* Only show arrows if more than 1 image */}
+                        {imageCount > 1 && (
+                            <>
+                                <button
+                                    onClick={goToPrevious}
+                                    style={{
+                                        position: 'absolute',
+                                        left: '-30px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        backgroundColor: '#10b981',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '50%',
+                                        width: '36px',
+                                        height: '36px',
+                                        cursor: 'pointer',
+                                        fontSize: '18px',
+                                        zIndex: 1
+                                    }}
+                                >
+                                    ❮
+                                </button>
+                                <button
+                                    onClick={goToNext}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '-30px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        backgroundColor: '#10b981',
+                                        color: 'white',
+                                        border: 'none',
+                                        borderRadius: '50%',
+                                        width: '36px',
+                                        height: '36px',
+                                        cursor: 'pointer',
+                                        fontSize: '18px',
+                                        zIndex: 1
+                                    }}
+                                >
+                                    ❯
+                                </button>
+                            </>
+                        )}
+                    </div>
+
+                    {/* Only show dots if more than 1 image */}
+                    {imageCount > 1 && (
+                        <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '8px' }}>
+                            {carouselImages.map((_, index) => (
+                                <button
+                                    key={index}
+                                    onClick={() => goToSlide(index)}
+                                    style={{
+                                        width: '10px',
+                                        height: '10px',
+                                        borderRadius: '50%',
+                                        border: 'none',
+                                        backgroundColor: currentImageIndex === index ? '#10b981' : '#cbd5e1',
+                                        cursor: 'pointer',
+                                        padding: 0
+                                    }}
+                                />
+                            ))}
+                        </div>
                     )}
                 </div>
-
-                {/* Dots Indicator - Shows which image is active */}
-                {carouselImages.length > 1 && (
-                    <div style={{ marginTop: '1rem', display: 'flex', justifyContent: 'center', gap: '8px' }}>
-                        {carouselImages.map((_, index) => (
-                            <button
-                                key={index}
-                                onClick={() => goToSlide(index)}
-                                style={{
-                                    width: '10px',
-                                    height: '10px',
-                                    borderRadius: '50%',
-                                    border: 'none',
-                                    backgroundColor: currentImageIndex === index ? '#10b981' : '#cbd5e1',
-                                    cursor: 'pointer',
-                                    padding: 0,
-                                    transition: 'all 0.2s'
-                                }}
-                            />
-                        ))}
-                    </div>
-                )}
-            </div>
+            )}
         </section>
     )
 }
