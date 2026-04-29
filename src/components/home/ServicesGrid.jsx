@@ -145,7 +145,7 @@ const ServicesGrid = () => {
                         src={carouselImages[currentImageIndex].src}
                         alt={carouselImages[currentImageIndex].alt}
                         style={{
-                            maxWidth: '400px',
+                            maxWidth: '500px',
                             width: '100%',
                             height: 'auto',
                             borderRadius: '16px',
