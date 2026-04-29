@@ -11,7 +11,7 @@ const ServicesGrid = () => {
     // ===== ADD YOUR IMAGES HERE =====
     const carouselImages = [
         { src: "/Adi.jpg", alt: "Zivre Facility Service 1" },
-        { src: "/image2.jpg", alt: "Zivre Facility Service 2" },
+        { src: "/Adi2.jpg", alt: "Zivre Facility Service 2" },
         // Add more images here when you have them
     ]
 
