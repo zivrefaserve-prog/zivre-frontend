@@ -11,8 +11,7 @@ const ServicesGrid = () => {
     // ===== ADD YOUR IMAGES HERE =====
     const carouselImages = [
         { src: "/Adi.jpg", alt: "Zivre Facility Service 1" },
-        { src: "/Adi2.jpg", alt: "Zivre Facility Service 2" },
-        // Add more images here when you have them
+        { src: "/image2.jpg", alt: "Zivre Facility Service 2" },
     ]
 
     // Auto-slide every 5 seconds
@@ -22,7 +21,7 @@ const ServicesGrid = () => {
             setCurrentImageIndex((prev) => (prev + 1) % carouselImages.length)
         }, 5000)
         return () => clearInterval(interval)
-    }, [carouselImages.length])
+    }, [])
 
     const goToPrevious = () => {
         setCurrentImageIndex((prev) => (prev - 1 + carouselImages.length) % carouselImages.length)
@@ -114,84 +113,72 @@ const ServicesGrid = () => {
                         ))}
                     </div>
                 )}
-            </div>
 
-            {/* IMAGE SLIDER - NETFLIX STYLE (NO DOTS, JUST ARROWS) */}
-            {carouselImages.length > 0 && (
-                <div style={{ textAlign: 'center', marginTop: '2rem', marginBottom: '2rem' }}>
-                    <div style={{ position: 'relative', maxWidth: '450px', margin: '0 auto', display: 'inline-block' }}>
-                        <img 
-                            src={carouselImages[currentImageIndex].src}
-                            alt={carouselImages[currentImageIndex].alt}
-                            style={{ 
-                                maxWidth: '400px', 
-                                width: '100%', 
-                                height: 'auto', 
-                                borderRadius: '16px', 
-                                display: 'block', 
-                                margin: '0 auto', 
-                                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                                transition: 'all 0.5s ease-in-out'
-                            }}
-                            onError={(e) => { e.target.style.display = 'none'; }}
-                        />
-                        
-                        {/* Left Arrow */}
-                        {carouselImages.length > 1 && (
-                            <button 
-                                onClick={goToPrevious}
-                                style={{
-                                    position: 'absolute',
-                                    left: '10px',
-                                    top: '50%',
-                                    transform: 'translateY(-50%)',
-                                    backgroundColor: 'rgba(0,0,0,0.5)',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '50%',
-                                    width: '40px',
-                                    height: '40px',
-                                    cursor: 'pointer',
-                                    fontSize: '20px',
-                                    zIndex: 1,
-                                    transition: 'all 0.2s'
+                {/* IMAGE SLIDER - INSIDE THE CONTAINER SO IT SHOWS */}
+                {carouselImages.length > 0 && (
+                    <div style={{ textAlign: 'center', marginTop: '2rem', marginBottom: '0' }}>
+                        <div style={{ position: 'relative', maxWidth: '450px', margin: '0 auto', display: 'inline-block' }}>
+                            <img 
+                                src={carouselImages[currentImageIndex].src}
+                                alt={carouselImages[currentImageIndex].alt}
+                                style={{ 
+                                    maxWidth: '400px', 
+                                    width: '100%', 
+                                    height: 'auto', 
+                                    borderRadius: '16px', 
+                                    display: 'block', 
+                                    margin: '0 auto', 
+                                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
                                 }}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.8)'}
-                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.5)'}
-                            >
-                                ❮
-                            </button>
-                        )}
-                        
-                        {/* Right Arrow */}
-                        {carouselImages.length > 1 && (
-                            <button 
-                                onClick={goToNext}
-                                style={{
-                                    position: 'absolute',
-                                    right: '10px',
-                                    top: '50%',
-                                    transform: 'translateY(-50%)',
-                                    backgroundColor: 'rgba(0,0,0,0.5)',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '50%',
-                                    width: '40px',
-                                    height: '40px',
-                                    cursor: 'pointer',
-                                    fontSize: '20px',
-                                    zIndex: 1,
-                                    transition: 'all 0.2s'
-                                }}
-                                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.8)'}
-                                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0,0,0,0.5)'}
-                            >
-                                ❯
-                            </button>
-                        )}
+                                onError={(e) => { e.target.style.display = 'none'; }}
+                            />
+                            
+                            {carouselImages.length > 1 && (
+                                <>
+                                    <button 
+                                        onClick={goToPrevious}
+                                        style={{
+                                            position: 'absolute',
+                                            left: '10px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            backgroundColor: 'rgba(0,0,0,0.5)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '50%',
+                                            width: '40px',
+                                            height: '40px',
+                                            cursor: 'pointer',
+                                            fontSize: '20px'
+                                        }}
+                                    >
+                                        ❮
+                                    </button>
+                                    <button 
+                                        onClick={goToNext}
+                                        style={{
+                                            position: 'absolute',
+                                            right: '10px',
+                                            top: '50%',
+                                            transform: 'translateY(-50%)',
+                                            backgroundColor: 'rgba(0,0,0,0.5)',
+                                            color: 'white',
+                                            border: 'none',
+                                            borderRadius: '50%',
+                                            width: '40px',
+                                            height: '40px',
+                                            cursor: 'pointer',
+                                            fontSize: '20px'
+                                        }}
+                                    >
+                                        ❯
+                                    </button>
+                                </>
+                            )}
+                        </div>
                     </div>
-                </div>
-            )}
+                )}
+            </div>
         </section>
     )
 }
