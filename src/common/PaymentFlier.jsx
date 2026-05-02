@@ -120,10 +120,10 @@ const PaymentFlier = () => {
               💳 <strong>Tap here for payment info →</strong>
             </Typography>
             <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-               <strong>Send money to:</strong> {settings.payment_number}
+               <strong>Send money to this Momopay No::</strong> {settings.payment_number}
             </Typography>
             <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-               <strong>MoMoPay:</strong> {settings.momopay_number}
+               <strong>Again MoMoPay:</strong> {settings.momopay_number}
             </Typography>
             <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                <strong>Works with:</strong> MTN | Vodafone | AirtelTigo
