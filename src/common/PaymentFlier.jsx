@@ -184,39 +184,55 @@ const PaymentFlier = () => {
               <Typography variant="body2" sx={{ mb: 0.5 }}>• <strong>AirtelTigo Money</strong> - Dial *110#</Typography>
               <Typography variant="body2">• <strong>Cash</strong> - Pay directly to the provider</Typography>
             </Box>
-
-            {/* Step by Step Guide - MoMoPay Only */}
+            {/* Step by Step Guide - MoMoPay Using USSD Codes */}
             <Box sx={{ p: 2, bgcolor: '#f0fdf4', borderRadius: 2 }}>
               <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2, color: '#0f172a' }}>
-                💳 How to Pay with MoMoPay:
+                💳 How to Pay with MoMoPay (USSD Method):
               </Typography>
               
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                 <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                  <strong style={{ minWidth: '24px' }}>Step 1:</strong> Open your Mobile Money app (MTN MoMo, Vodafone Cash, or AirtelTigo Money)
+                  <strong style={{ minWidth: '24px' }}>Step 1:</strong> Dial your network's short code:
+                </Typography>
+                <Box sx={{ ml: 4, mb: 1 }}>
+                  <Typography variant="body2">• <strong>MTN:</strong> Dial <strong>*170#</strong> → Select "Send Money"</Typography>
+                  <Typography variant="body2">• <strong>Vodafone:</strong> Dial <strong>*110#</strong> → Select "Send Money"</Typography>
+                  <Typography variant="body2">• <strong>AirtelTigo:</strong> Dial <strong>*110#</strong> → Select "Send Money"</Typography>
+                </Box>
+                
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                  <strong style={{ minWidth: '24px' }}>Step 2:</strong> Select <strong>"MoMoPay"</strong> option
                 </Typography>
                 
                 <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                  <strong style={{ minWidth: '24px' }}>Step 2:</strong> Select <strong>"Send Money"</strong> or <strong>"MoMoPay"</strong>
+                  <strong style={{ minWidth: '24px' }}>Step 3:</strong> Enter MoMoPay number: <strong style={{ color: '#10b981', fontSize: '1rem' }}>{settings.momopay_number}</strong>
                 </Typography>
                 
                 <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                  <strong style={{ minWidth: '24px' }}>Step 3:</strong> Enter MoMoPay number: <strong style={{ color: '#10b981' }}>{settings.momopay_number}</strong>
+                  <strong style={{ minWidth: '24px' }}>Step 4:</strong> Enter the <strong>exact amount</strong> shown for your service
                 </Typography>
                 
                 <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                  <strong style={{ minWidth: '24px' }}>Step 4:</strong> Enter the exact amount shown on the service
+                  <strong style={{ minWidth: '24px' }}>Step 5:</strong> Enter your <strong>Reference</strong> (optional)
                 </Typography>
                 
                 <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                  <strong style={{ minWidth: '24px' }}>Step 5:</strong> Enter your Mobile Money PIN to confirm
+                  <strong style={{ minWidth: '24px' }}>Step 6:</strong> Enter your <strong>Mobile Money PIN</strong> to confirm
                 </Typography>
                 
                 <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
-                  <strong style={{ minWidth: '24px' }}>Step 6:</strong> Take a screenshot of the payment confirmation
+                  <strong style={{ minWidth: '24px' }}>Step 7:</strong> Take a <strong>screenshot</strong> of the payment confirmation
                 </Typography>
               </Box>
+              
+              <Alert severity="warning" sx={{ mt: 2, borderRadius: 1 }}>
+                <Typography variant="caption" fontWeight="bold">⚠️ IMPORTANT:</Typography>
+                <Typography variant="caption" display="block">
+                  Pay <strong>AFTER</strong> service is completed. Never pay before.
+                </Typography>
+              </Alert>
             </Box>
+  
 
             {/* WhatsApp Support */}
             <Box sx={{ p: 1.5, bgcolor: '#25D366', borderRadius: 2, display: 'flex', alignItems: 'center', gap: 1, color: 'white', flexWrap: 'wrap' }}>
