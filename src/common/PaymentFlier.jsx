@@ -185,32 +185,37 @@ const PaymentFlier = () => {
               <Typography variant="body2">• <strong>Cash</strong> - Pay directly to the provider</Typography>
             </Box>
 
-            {/* Step by Step Guide */}
-            <Box sx={{ p: 1.5, bgcolor: '#fef3c7', borderRadius: 2 }}>
-              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1 }}>How to Pay (Mobile Money):</Typography>
+            {/* Step by Step Guide - MoMoPay Only */}
+            <Box sx={{ p: 2, bgcolor: '#f0fdf4', borderRadius: 2 }}>
+              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2, color: '#0f172a' }}>
+                💳 How to Pay with MoMoPay:
+              </Typography>
               
-              <Typography variant="body2" sx={{ mb: 0.5 }}>
-                <strong>Step 1:</strong> Dial your network's short code:
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 0.5, ml: 2 }}>• MTN: <strong>*170#</strong> → Select "Send Money and follow due process."</Typography>
-              <Typography variant="body2" sx={{ mb: 0.5, ml: 2 }}>• Vodafone: <strong>*110#</strong> → Select "Send Money and follow due process."</Typography>
-              <Typography variant="body2" sx={{ mb: 1, ml: 2 }}>• AirtelTigo: <strong>*110#</strong> → Select "Send Money and follow due process."</Typography>
-              
-              <Typography variant="body2" sx={{ mb: 0.5 }}>
-                <strong>Step 2:</strong> Enter recipient number: <strong>{settings.payment_number}</strong>
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 0.5 }}>
-                <strong>Step 3:</strong> Enter the exact amount shown on the service
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 0.5 }}>
-                <strong>Step 4:</strong> Enter your <strong>Reference</strong>
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 0.5 }}>
-                <strong>Step 5:</strong> Enter your Mobile Money PIN to confirm
-              </Typography>
-              <Typography variant="body2" sx={{ mb: 0.5 }}>
-                <strong>Step 6:</strong> Take a screenshot of the payment confirmation
-              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                  <strong style={{ minWidth: '24px' }}>Step 1:</strong> Open your Mobile Money app (MTN MoMo, Vodafone Cash, or AirtelTigo Money)
+                </Typography>
+                
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                  <strong style={{ minWidth: '24px' }}>Step 2:</strong> Select <strong>"Send Money"</strong> or <strong>"MoMoPay"</strong>
+                </Typography>
+                
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                  <strong style={{ minWidth: '24px' }}>Step 3:</strong> Enter MoMoPay number: <strong style={{ color: '#10b981' }}>{settings.momopay_number}</strong>
+                </Typography>
+                
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                  <strong style={{ minWidth: '24px' }}>Step 4:</strong> Enter the exact amount shown on the service
+                </Typography>
+                
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                  <strong style={{ minWidth: '24px' }}>Step 5:</strong> Enter your Mobile Money PIN to confirm
+                </Typography>
+                
+                <Typography variant="body2" sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+                  <strong style={{ minWidth: '24px' }}>Step 6:</strong> Take a screenshot of the payment confirmation
+                </Typography>
+              </Box>
             </Box>
 
             {/* WhatsApp Support */}
