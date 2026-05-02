@@ -584,7 +584,7 @@ const ProviderDashboard = () => {
               </Typography>
             )}
             <Alert severity="info" sx={{ mt: 2, bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}>
-              💳 Customers will pay you only via MoMoPay number: <strong>{paymentSettings?.momopay_number || '024 000 0000'}</strong>
+               Customers will pay you only through our designated via MoMoPay number.
               <br />
               <small>You earn {percentages.provider_percent}% of each job amount. Customer pays using the momopay number after service completion.</small>
             </Alert>
