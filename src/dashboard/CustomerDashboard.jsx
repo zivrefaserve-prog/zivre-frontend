@@ -595,7 +595,7 @@ const CustomerDashboard = () => {
             <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
               💳 <strong>Pay after service completion via MoMoPay:</strong> {paymentSettings?.momopay_number || '024 000 0000'}
               <br />
-              <small>Pay the provider directly using this number. No online payment required.</small>
+              <small>Pay the provider only using using this momopay number.</small>
             </Alert>
           </Card>
 
