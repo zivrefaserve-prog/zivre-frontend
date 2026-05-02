@@ -154,7 +154,7 @@ const PaymentFlier = () => {
 
             {/* Payment Number Box */}
             <Box sx={{ p: 2, bgcolor: '#f0fdf4', borderRadius: 2, textAlign: 'center' }}>
-              <Typography variant="body2" color="text.secondary"> Send payment to this number</Typography>
+              <Typography variant="body2" color="text.secondary"> 💳 Pay with MoMoPay to this number</Typography>
               <Typography variant="h4" fontWeight="800" sx={{ color: '#10b981', fontFamily: 'monospace', letterSpacing: 1 }}>
                 {settings.payment_number}
               </Typography>
