@@ -592,8 +592,10 @@ const CustomerDashboard = () => {
           <Card sx={{ p: 3, mb: 4, bgcolor: '#10b981', color: 'white', borderRadius: 3 }}>
             <Typography variant="h5" fontWeight="700">👋 Welcome back, {user?.full_name}!</Typography>
             <Typography variant="body2" sx={{ opacity: 0.9, mt: 0.5 }}>Track your services and manage your account</Typography>
-            <Alert severity="info" sx={{ mt: 2, bgcolor: 'rgba(255,255,255,0.2)', color: 'white' }}>
-               You will pay the provider directly after service completion. No online payment required.
+            <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
+              💳 <strong>Pay after service completion via MoMoPay:</strong> {paymentSettings?.momopay_number || '024 000 0000'}
+              <br />
+              <small>Pay the provider directly using this number. No online payment required.</small>
             </Alert>
           </Card>
 
