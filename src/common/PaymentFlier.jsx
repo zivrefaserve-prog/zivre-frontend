@@ -149,7 +149,7 @@ const PaymentFlier = () => {
             {/* IMPORTANT NOTICE - PAY AFTER SERVICE */}
             <Alert severity="warning" icon={<Warning />} sx={{ borderRadius: 2 }}>
               <Typography variant="body2" fontWeight="bold"> IMPORTANT</Typography>
-              <Typography variant="body2">You pay the provider <strong>AFTER they complete the service</strong>. Never pay before service is done.</Typography>
+              <Typography variant="body2">You will pay the provider <strong>AFTER they complete the service</strong>. Only pay using our Momopay Number Below.</Typography>
             </Alert>
 
             {/* Payment Number Box */}
