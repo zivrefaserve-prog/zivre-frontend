@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import BottomNav from '../common/BottomNav'
 import { getPaymentSettings } from '../api/client'
 import { useAuth } from '../contexts/AuthContext'
 import RoleBasedTour from '../common/RoleBasedTour'
@@ -21,9 +22,11 @@ import {
   History as HistoryIcon, Settings as SettingsIcon,
   Refresh as RefreshIcon, Star as StarIcon, StarBorder as StarBorderIcon,
   LocationOn as LocationIcon, Message as MessageIcon, Search as SearchIcon,
-  Phone as PhoneIcon, Close as CloseIcon
+  Phone as PhoneIcon, Close as CloseIcon,
+  Home as HomeIcon, Build as BuildIcon, Person as PersonIcon
 } from '@mui/icons-material'
 import PaymentFlier from '../common/PaymentFlier'
+import CustomServiceModal from '../common/CustomServiceModal'
 import Header from '../layout/Header'
 import { DashboardSkeleton, ServicesGridSkeleton } from '../common/LoadingSkeleton'
 
@@ -90,7 +93,15 @@ const CustomerDashboard = () => {
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0)
   const [totalSpent, setTotalSpent] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
-  
+  const [customModalOpen, setCustomModalOpen] = useState(false)
+
+
+  const bottomTabs = [
+  { label: 'Home', icon: <HomeIcon />, tabIndex: 0 },
+  { label: 'Services', icon: <BuildIcon />, tabIndex: 1 },
+  { label: 'Messages', icon: <MessageIcon />, tabIndex: 3 },
+  { label: 'Profile', icon: <PersonIcon />, tabIndex: 4 }
+]
   // Handle window resize for mobile detection
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth <= 768)
@@ -456,7 +467,6 @@ const CustomerDashboard = () => {
   const menuItems = [
     { label: ' Overview', icon: <DashboardIcon />, tab: 0, badge: 0 },
     { label: ' Available Services', icon: <ServicesIcon />, tab: 1, badge: 0 },
-    { label: ' My Requests', icon: <HistoryIcon />, tab: 2, badge: pendingConfirmationCount },
     { label: ' Messages', icon: <MessageIcon />, tab: 3, badge: unreadMessagesCount, action: () => window.location.href = '/messages' },
     { label: ' Profile Settings', icon: <SettingsIcon />, tab: 4, badge: 0 },
   ]
@@ -542,7 +552,7 @@ const CustomerDashboard = () => {
           </Drawer>
         </Box>
 
-        <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, width: { md: `calc(100% - ${drawerWidth}px)` } }}>
+          <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, pb: { xs: 8, md: 3 }, width: { md: `calc(100% - ${drawerWidth}px)` } }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               {isMobile && (
@@ -670,6 +680,11 @@ const CustomerDashboard = () => {
                 {filteredServices.length === 0 && searchTerm && (
                   <Alert severity="info" sx={{ mb: 2 }}>No services matching "{searchTerm}"</Alert>
                 )}
+                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2, mb: 3 }}>
+                  <Button variant="contained" onClick={() => setCustomModalOpen(true)} sx={{ bgcolor: '#10b981', px: 4, py: 1.5 }}>
+                    ✨ Request Customized Service
+                  </Button>
+                </Box>
                 <Grid container spacing={3}>
                   {filteredServices.map(service => (
                     <Grid size={{ xs: 12, sm: 6, md: 4 }} key={service.id}>
@@ -703,105 +718,7 @@ const CustomerDashboard = () => {
             )
           )}
 
-          {activeTab === 2 && (
-            <Card sx={{ p: 3 }}>
-              <Typography variant="h6" fontWeight="600" sx={{ mb: 3, color: '#0f172a' }}> My Service Requests</Typography>
-              {filteredRequests.length === 0 && searchTerm && (
-                <Alert severity="info" sx={{ mb: 2 }}>No requests matching "{searchTerm}"</Alert>
-              )}
-              <TableContainer component={Paper} sx={{ overflowX: 'auto', borderRadius: 2, boxShadow: 'none', border: '1px solid #e2e8f0' }}>
-                <Table sx={{ minWidth: 600 }}>
-                  <TableHead sx={{ bgcolor: '#f8fafc' }}>
-                    <TableRow>
-                      <TableCell>Service</TableCell>
-                      <TableCell>Amount</TableCell>
-                      <TableCell>Location</TableCell>
-                      <TableCell>Status</TableCell>
-                      <TableCell>Provider</TableCell>
-                      <TableCell>Action</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {filteredRequests.map((req) => (
-                      <TableRow key={req.id} sx={{ '&:hover': { bgcolor: '#f8fafc' } }}>
-                        <TableCell><Typography fontWeight="500">{req.service_name}</Typography></TableCell>
-                        <TableCell>
-                          <Typography fontWeight="600" sx={{ color: '#10b981' }}>GH₵{req.amount}</Typography>
-                          <Typography variant="caption" color="text.secondary" display="block">
-                            (Provider: GH₵{req.provider_payout?.toFixed(2)})
-                          </Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2">{req.location_address}</Typography>
-                          <Typography variant="caption" color="text.secondary">{req.location_city}, {req.location_region}</Typography>
-                        </TableCell>
-                        <TableCell>{getStatusChip(req.status)}</TableCell>
-                        <TableCell>
-                          {req.provider_name ? (
-                            <Box>
-                              <Typography variant="body2">{req.provider_name}</Typography>
-                              <Typography variant="caption" color="text.secondary">{req.provider_phone}</Typography>
-                            </Box>
-                          ) : '-'}
-                        </TableCell>
-                        <TableCell>
-                          {req.status === 'completed' && !req.customer_confirmed && (
-                            <Button
-                              size="small"
-                              variant="contained"
-                              onClick={() => handleConfirmCompletion(req.id)}
-                              disabled={actionLoading === true}
-                              sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
-                            >
-                              {actionLoading === true ? <CircularProgress size={20} sx={{ color: 'white' }} /> : ' Confirm Completion & Pay Provider'}
-                            </Button>
-                          )}
-                          {req.status === 'confirmed' && (
-                            <Typography variant="caption" color="success.main">✓ Service complete. Please pay provider directly.</Typography>
-                          )}
-                          {req.status === 'assigned' && (
-                            <>
-                              <Typography variant="caption" color="success.main" sx={{ display: 'block' }}> Provider will contact you</Typography>
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                color="error"
-                                onClick={() => handleCancelRequest(req.id)}
-                                disabled={actionLoading === req.id}
-                                sx={{ mt: 1 }}
-                              >
-                                {actionLoading === req.id ? <CircularProgress size={20} /> : 'Cancel Request'}
-                              </Button>
-                            </>
-                          )}
-                          {req.status === 'pending_approval' && (
-                            <>
-                              <Typography variant="caption" color="warning.main" sx={{ display: 'block' }}> Awaiting admin approval</Typography>
-                              <Button
-                                size="small"
-                                variant="outlined"
-                                color="error"
-                                onClick={() => handleCancelRequest(req.id)}
-                                disabled={actionLoading === req.id}
-                                sx={{ mt: 1 }}
-                              >
-                                {actionLoading === req.id ? <CircularProgress size={20} /> : 'Cancel Request'}
-                              </Button>
-                            </>
-                          )}
-                        </TableCell>
-
-                        
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-              {filteredRequests.length === 0 && !searchTerm && (
-                <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 4 }}>No service requests yet.</Typography>
-              )}
-            </Card>
-          )}
+          
 
           {activeTab === 3 && (
             <Card sx={{ p: 3 }}>
@@ -917,10 +834,18 @@ const CustomerDashboard = () => {
               </Button>
             </DialogActions>
           </Dialog>
+          {isMobile && (
+            <BottomNav 
+              tabs={bottomTabs} 
+              activeTab={activeTab} 
+              onChange={handleTabChange} 
+            />
+          )}
         </Box>
       </Box>
       <RoleBasedTour />
       <TourButton tourSteps={customerTourSteps} title="Customer Dashboard Tour" />
+      <CustomServiceModal open={customModalOpen} onClose={() => setCustomModalOpen(false)} onSubmitSuccess={() => { loadData(); setCustomModalOpen(false); }} />
     </>
   )
 }
