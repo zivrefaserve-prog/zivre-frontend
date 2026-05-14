@@ -226,12 +226,10 @@ const AdminReferralDashboard = () => {
           <Typography variant="body2" fontWeight="600">
             {node.full_name} (ID: {node.id})
           </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {node.is_referral_active ? 'Active' : 'Inactive'} • Balance: GHS{node.commission_balance}
-          </Typography>
-          {node.position && (
-            <Chip label={node.position.toUpperCase()} size="small" sx={{ ml: 1, height: 20 }} />
-          )}
+        <Typography variant="caption" color="text.secondary">
+          {node.is_referral_active ? 'Active' : 'Inactive'} • Balance: GHS{node.commission_balance}
+        </Typography>
+        {/* Position chip removed */}
         </Paper>
         {node.children && node.children.length > 0 && (
           <Box sx={{ mt: 1 }}>
@@ -333,15 +331,14 @@ const AdminReferralDashboard = () => {
               <TableContainer component={Paper}>
                 <Table>
                   <TableHead sx={{ bgcolor: '#f8fafc' }}>
-                      <TableRow>
-                          <TableCell>Service</TableCell>
-                          <TableCell align="center">Admin Share (%)</TableCell>
-                          <TableCell align="center">Website Share (%)</TableCell>
-                          <TableCell align="center">Provider Share (%)</TableCell>
-                          <TableCell align="center">Referral Pool (%)</TableCell>
-                          <TableCell align="center">Total</TableCell>
-                          <TableCell>Actions</TableCell>
-                      </TableRow>
+                    <TableRow>
+                      <TableCell>User</TableCell>
+                      <TableCell>Amount</TableCell>
+                      <TableCell>Payment Method</TableCell>
+                      <TableCell>Account Details</TableCell>
+                      <TableCell>Requested Date</TableCell>
+                      <TableCell>Actions</TableCell>
+                    </TableRow>
                   </TableHead>
                   <TableBody>
                     {pendingWithdrawals.length === 0 ? (
