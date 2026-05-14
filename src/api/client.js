@@ -197,6 +197,17 @@ export const getUserTreeForAdmin = (userId) => api.get(`/admin/referrals/user-tr
 export const verifyEmail = (data) => api.post('/auth/verify-email', data)
 export const resendVerification = (data) => api.post('/auth/resend-verification', data)
 
+// ========== SERVICE COMPONENTS ==========
+export const getServiceComponents = (serviceId) => api.get(`/services/${serviceId}/components`)
+
+export const addServiceComponent = (serviceId, data) => api.post(`/admin/services/${serviceId}/components`, data)
+export const updateComponent = (componentId, data) => api.put(`/admin/components/${componentId}`, data)
+export const deleteComponent = (componentId) => api.delete(`/admin/components/${componentId}`)
+
+// ========== WITHDRAWAL THRESHOLD ==========
+export const getWithdrawalThreshold = () => api.get('/settings/withdrawal-threshold')
+export const updateWithdrawalThreshold = (threshold) => api.put('/admin/settings/withdrawal-threshold', { threshold })
+
 // ========== BOOKING DETAILS WITH OWNER NET ==========
 export const getBookingDetails = (requestId) => api.get(`/admin/requests/${requestId}`)
 export default api
