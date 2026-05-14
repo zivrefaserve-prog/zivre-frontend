@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useNavigate, useLocation, Navigate } from
 import { ThemeProvider, createTheme } from '@mui/material/styles'
 import { AuthProvider, useAuth } from './contexts/AuthContext'
 import { WebSocketProvider } from './contexts/WebSocketContext'
+import CartDrawer from './common/CartDrawer'
 import { TourButton, homepageTourSteps } from './common/DemoTour'
 import VerificationSent from './pages/VerificationSent'
 import DemoTour from './common/DemoTour'
@@ -95,6 +96,7 @@ const theme = createTheme({
 // Component that uses routing hooks
 const AppRoutes = () => {
   const { user, authLoading, hideAuthLoading } = useAuth()
+  const [cartOpen, setCartOpen] = useState(false)
   const location = useLocation()
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false)
   const [showHomepageTour, setShowHomepageTour] = useState(false)
@@ -109,6 +111,12 @@ const AppRoutes = () => {
     }
   }, [authLoading, hideAuthLoading])
 
+  useEffect(() => {
+    const handleOpenCart = () => setCartOpen(true)
+    window.addEventListener('open_cart_drawer', handleOpenCart)
+    return () => window.removeEventListener('open_cart_drawer', handleOpenCart)
+  }, [])
+  
   // FORCE MOBILE LAYOUT
   useEffect(() => {
     const setViewport = () => {
@@ -204,11 +212,11 @@ const AppRoutes = () => {
 
   // KEEP BACKEND AWAKE
   useEffect(() => {
-    fetch('https://zivre-backend.onrender.com/api/services')
+    fetch('https://zivre-frontend.vercel.app/api/services')
       .catch(() => console.log('Backend waking up...'))
     
     const keepAliveInterval = setInterval(() => {
-      fetch('https://zivre-backend.onrender.com/api/services')
+      fetch('https://zivre-frontend.vercel.app/api/services')
         .catch(() => {})
     }, 2 * 60 * 1000)
     
@@ -288,6 +296,8 @@ const AppRoutes = () => {
       {showForgotPasswordModal && (
         <ForgotPasswordModal onClose={() => setShowForgotPasswordModal(false)} />
       )}
+
+       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
     </>
   )
 }
