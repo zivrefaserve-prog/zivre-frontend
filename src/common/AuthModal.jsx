@@ -46,7 +46,7 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
     }
   }, [isSignUp, role])
 
-  // Check for referral code from sessionStorage when modal opens
+  // Check for referral code from sessionStorage (URL) when modal opens
   useEffect(() => {
     const referralCode = sessionStorage.getItem('zivre_referral_code');
     if (referralCode && !formData.referral_code) {
@@ -54,6 +54,16 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
       sessionStorage.removeItem('zivre_referral_code');
     }
   }, []);
+
+  // NEW: Load saved referral code from localStorage (persists across page reloads)
+  useEffect(() => {
+    if (isSignUp && role !== 'provider') {
+      const savedCode = localStorage.getItem('zivre_saved_referral_code');
+      if (savedCode && !formData.referral_code) {
+        setFormData(prev => ({ ...prev, referral_code: savedCode }));
+      }
+    }
+  }, [isSignUp, role]);
   
   const validateEmail = (email) => {
     const pattern = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -150,12 +160,16 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         const res = await signup(userData)
         
         if (res.data && res.data.requires_verification) {
+          // Clear saved referral code if signup initiated but needs verification
+          localStorage.removeItem('zivre_saved_referral_code');
           onClose()
           window.location.href = `/verification-sent?email=${encodeURIComponent(res.data.email)}`
           return
         }
         
         if (res.data && res.data.user) {
+          // Clear saved referral code after successful signup
+          localStorage.removeItem('zivre_saved_referral_code');
           onSuccess(res.data.user)
           onClose()
         }
@@ -190,7 +204,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
         console.error('Login error:', err)
         
         // ✅ ERROR - Modal STAYS OPEN
-        // Extract error message from response
         let errorMessage = 'Login failed. Please try again.'
         
         if (err.response?.data?.error) {
@@ -201,7 +214,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
           errorMessage = err.message
         }
         
-        // Customize message for specific errors
         if (errorMessage.includes('verify')) {
           errorMessage = 'Please verify your email address before logging in. Check your inbox for the verification link.'
         } else if (errorMessage.includes('Invalid email or password')) {
@@ -274,7 +286,6 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
 
         <DialogContent sx={{ pb: 4 }}>
           
-          {/* ✅ Error message - Modal stays open */}
           {error && (
             <Alert 
               severity="error" 
@@ -339,7 +350,13 @@ const AuthModal = ({ isSignUp, role, onClose, onSuccess, onSwitchToSignIn, onSwi
                           input = match[1];
                         }
                       }
-                      setFormData({ ...formData, referral_code: input });
+                      setFormData(prev => ({ ...prev, referral_code: input }));
+                      // Save to localStorage whenever user types
+                      if (input.trim()) {
+                        localStorage.setItem('zivre_saved_referral_code', input);
+                      } else {
+                        localStorage.removeItem('zivre_saved_referral_code');
+                      }
                     }}
                     margin="dense"
                     helperText="Enter a referral code if you have one"
