@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react'
 import { useAuth } from '../contexts/AuthContext'
 import RoleBasedTour from '../common/RoleBasedTour'
 import ConfirmModal from '../common/ConfirmModal'
+import ComponentsManager from '../common/ComponentsManager'
 import { TourButton, adminTourSteps } from '../common/DemoTour'
 import {
   getAdminStats, getServices, toggleServiceActive, updateService, createService,
@@ -11,7 +12,9 @@ import {
   getAdminComments, toggleCommentApproval, adminDeleteComment,
   getPaymentSettings, updatePaymentSettings,
   getPercentages, updatePercentages,
-  getUserFullDetails, rejectRequest, deleteRequestPermanently
+  getUserFullDetails, rejectRequest, deleteRequestPermanently,
+  getWithdrawalThreshold,
+  updateWithdrawalThreshold
 } from '../api/client'
 import {
   Box, Drawer, Typography, IconButton, Grid, Card, CardContent,
@@ -103,7 +106,9 @@ const AdminDashboard = () => {
   const [assigningRequest, setAssigningRequest] = useState(null)
   const [loadingProviders, setLoadingProviders] = useState(false)
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768)
-  
+
+  const [withdrawalThreshold, setWithdrawalThreshold] = useState(20)
+  const [withdrawalThresholdLoading, setWithdrawalThresholdLoading] = useState(false)
   // NEW: Separate state for each request's provider selection
   const [selectedProviderForRequest, setSelectedProviderForRequest] = useState({})
   const [providersForRequest, setProvidersForRequest] = useState({})
@@ -169,6 +174,15 @@ const AdminDashboard = () => {
     }
   }
 
+  // 👇 ADD THIS NEW FUNCTION RIGHT HERE 👇
+  const loadWithdrawalThreshold = async () => {
+    try {
+      const res = await getWithdrawalThreshold()
+      setWithdrawalThreshold(res.data.threshold)
+    } catch (err) {
+      console.error('Error loading withdrawal threshold:', err)
+    }
+  }
   // NEW: Load providers for a specific request
   const loadProvidersForRequest = async (requestId, serviceId) => {
     // ✅ Check cache first - providers don't change often
@@ -647,6 +661,7 @@ const handleDeleteRequestPermanently = async (requestId) => {
     loadUnreadCounts()
     loadPaymentSettings()
     loadPercentages()
+    loadWithdrawalThreshold()
   }, [user, loadData, loadPercentages, loadUnreadCounts])
 
   const handleViewUserDetails = async (userObj) => {
@@ -669,7 +684,29 @@ const handleDeleteRequestPermanently = async (requestId) => {
     }
   }
 
-  // ✅ FIXED: handleUpdatePercentages - uses targeted refresh
+
+  const handleUpdateWithdrawalThreshold = async () => {
+    const newThreshold = parseFloat(withdrawalThreshold)
+    if (isNaN(newThreshold) || newThreshold < 5) {
+      showToast('Threshold must be at least 5 GHS', 'error')
+      return
+    }
+    if (newThreshold > 1000) {
+      showToast('Threshold cannot exceed 1000 GHS', 'error')
+      return
+    }
+    setWithdrawalThresholdLoading(true)
+    try {
+      await updateWithdrawalThreshold(newThreshold)
+      showToast('Withdrawal threshold updated successfully', 'success')
+    } catch (err) {
+      showToast(err.response?.data?.error || 'Error updating threshold', 'error')
+    } finally {
+      setWithdrawalThresholdLoading(false)
+    }
+  }
+  
+  //  FIXED: handleUpdatePercentages - uses targeted refresh
   const handleUpdatePercentages = async () => {
       const total = percentages.provider_percent + percentages.admin_percent + percentages.site_fee_percent + (percentages.referral_pool_percent || 0)
       if (Math.abs(total - 100) > 0.01) {
@@ -931,6 +968,7 @@ const handleDeleteRequestPermanently = async (requestId) => {
     { label: 'Assigned Jobs', icon: <WorkIcon />, tab: 5, badge: assignedRequests.length },
     { label: 'Comments', icon: <CommentIcon />, tab: 6, badge: comments.filter(c => !c.is_approved).length },
     { label: 'Percentage Settings', icon: <PercentIcon />, tab: 7, badge: 0 },
+    { label: 'Service Components', icon: <BuildIcon />, tab: 11, badge: 0 },  // ← ADD THIS LINE
     { label: 'Payment Settings', icon: <SettingsIcon />, tab: 8, badge: 0 },
     { label: 'All Requests History', icon: <HistoryIcon />, tab: 9, badge: 0 },
     { label: 'Messages', icon: <MessageIcon />, tab: 10, badge: unreadMessagesCount, action: () => window.location.href = '/messages' },
@@ -1477,7 +1515,7 @@ const handleDeleteRequestPermanently = async (requestId) => {
               )}
             </Card>
           )}
-
+          
           {/* Assign Providers Tab - FIXED */}
           {activeTab === 4 && (
             <Card sx={{ p: 3 }}>
@@ -1502,6 +1540,21 @@ const handleDeleteRequestPermanently = async (requestId) => {
                         <Typography variant="body2">Amount: <strong style={{ color: '#10b981' }}>GH₵{r.amount}</strong></Typography>
                         <Typography variant="body2">Provider payout: <strong style={{ color: '#10b981' }}>GH₵{r.provider_payout?.toFixed(2)} ({percentages.provider_percent}%)</strong></Typography>
                         <Typography variant="body2">📍 {r.location_address}, {r.location_city}, {r.location_region}</Typography>
+                        
+                        {/* Display components for custom requests */}
+                        {r.components_data && r.components_data.length > 0 && (
+                          <Box sx={{ mt: 1, pl: 2, bgcolor: '#fff7ed', borderRadius: 1, p: 1 }}>
+                            <Typography variant="caption" fontWeight="bold" sx={{ color: '#f59e0b' }}>
+                              📋 Components Requested:
+                            </Typography>
+                            {r.components_data.map((comp, idx) => (
+                              <Box key={idx} component="div" sx={{ display: 'block', fontSize: '0.7rem', mt: 0.5 }}>
+                                {comp.quantity} × {comp.name} @ GHS{comp.unit_price} = GHS{comp.subtotal}
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
+                        
                         <Chip 
                           label={`Service: ${r.service_name}`} 
                           size="small" 
@@ -1550,6 +1603,7 @@ const handleDeleteRequestPermanently = async (requestId) => {
             </Card>
           )}
 
+
           {/* Assigned Jobs Tab */}
           {activeTab === 5 && (
             <Card sx={{ p: 3 }}>
@@ -1579,6 +1633,21 @@ const handleDeleteRequestPermanently = async (requestId) => {
                           <Chip label={r.status} size="small" sx={{ bgcolor: '#8b5cf615', color: '#8b5cf6' }} />
                         </Box>
                         <Typography variant="body2">📍 {r.location_address}, {r.location_city}, {r.location_region}</Typography>
+                        
+                        {/* 👇👇👇 ADD THIS CODE HERE 👇👇👇 */}
+                        {/* Display components for custom requests */}
+                        {r.components_data && r.components_data.length > 0 && (
+                          <Box sx={{ mt: 1, pl: 2, bgcolor: '#f3e8ff', borderRadius: 1, p: 1 }}>
+                            <Typography variant="caption" fontWeight="bold" sx={{ color: '#8b5cf6' }}>
+                              📋 Components Requested:
+                            </Typography>
+                            {r.components_data.map((comp, idx) => (
+                              <Box key={idx} component="div" sx={{ display: 'block', fontSize: '0.7rem', mt: 0.5 }}>
+                                {comp.quantity} × {comp.name} @ GHS{comp.unit_price} = GHS{comp.subtotal}
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
                       </Box>
                       <Box>
                         <Button
@@ -1884,6 +1953,32 @@ const handleDeleteRequestPermanently = async (requestId) => {
               >
                 {paymentSettingsLoading ? <CircularProgress size={20} /> : 'Save Payment Settings'}
               </Button>
+              <Divider sx={{ my: 3 }} />
+              <Typography variant="subtitle1" fontWeight="600" sx={{ mb: 1, color: '#0f172a' }}>
+                Referral Withdrawal Minimum
+              </Typography>
+              <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+                <TextField
+                  type="number"
+                  label="Minimum Withdrawal (GHS)"
+                  value={withdrawalThreshold}
+                  onChange={(e) => setWithdrawalThreshold(e.target.value)}
+                  size="small"
+                  sx={{ width: 200 }}
+                  inputProps={{ min: 5, step: 1 }}
+                />
+                <Button
+                  variant="contained"
+                  onClick={handleUpdateWithdrawalThreshold}
+                  disabled={withdrawalThresholdLoading}
+                  sx={{ bgcolor: '#10b981' }}
+                >
+                  {withdrawalThresholdLoading ? <CircularProgress size={24} /> : 'Save Threshold'}
+                </Button>
+              </Box>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                Customers cannot withdraw less than this amount.
+              </Typography> 
             </Card>
           )}
 
@@ -1956,7 +2051,9 @@ const handleDeleteRequestPermanently = async (requestId) => {
             </Card>
           )}
 
-
+          {/* 👇👇👇 ADD THIS LINE HERE 👇👇👇 */}
+          {/* Service Components Tab */}
+          {activeTab === 11 && <ComponentsManager />}
 
           
           {/* Service Modal */}
