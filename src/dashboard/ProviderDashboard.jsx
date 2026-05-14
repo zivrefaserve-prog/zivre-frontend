@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import BottomNav from '../common/BottomNav'
 import { useAuth } from '../contexts/AuthContext'
 import RoleBasedTour from '../common/RoleBasedTour'
 import { TourButton, providerTourSteps } from '../common/DemoTour'
@@ -12,7 +13,8 @@ import {
   Box, Drawer, Typography, IconButton, Grid, Card, CardContent,
   Button, Chip, Alert, Snackbar, CircularProgress, Avatar,
   Tooltip, Badge, Dialog, DialogTitle, DialogContent,
-  DialogActions, LinearProgress, Divider, TextField
+  DialogActions, LinearProgress, Divider, TextField,
+  FormControl, InputLabel, Select, MenuItem
 } from '@mui/material'
 import {
   Menu as MenuIcon, Dashboard as DashboardIcon, Work as WorkIcon,
@@ -20,7 +22,8 @@ import {
   Refresh as RefreshIcon, LocationOn as LocationIcon,
   Star as StarIcon, Pending as PendingIcon, Message as MessageIcon,
   Paid as PaidIcon, TrendingUp as TrendingUpIcon, Build as BuildIcon,
-  Search as SearchIcon, Phone as PhoneIcon, Close as CloseIcon
+  Search as SearchIcon, Phone as PhoneIcon, Close as CloseIcon,
+  Home as HomeIcon, Person as PersonIcon
 } from '@mui/icons-material'
 import PaymentFlier from '../common/PaymentFlier'
 import Header from '../layout/Header'
@@ -64,10 +67,12 @@ const ProviderDashboard = () => {
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [toast, setToast] = useState(null)
-  const [actionLoading, setActionLoading] = useState(null)
+  const [actionLoading, setActionLoading] = useState({ jobId: null, action: null })
+  const [claimLoading, setClaimLoading] = useState(null)
   const [unreadMessagesCount, setUnreadMessagesCount] = useState(0)
   const [unreadNotificationsCount, setUnreadNotificationsCount] = useState(0)
   const [searchTerm, setSearchTerm] = useState('')
+  const [jobStatusFilter, setJobStatusFilter] = useState('all')
 
   // Handle window resize for mobile detection
   useEffect(() => {
@@ -97,22 +102,33 @@ const ProviderDashboard = () => {
   }, [availableJobs, searchTerm])
 
   const filteredMyJobs = useMemo(() => {
-    if (!searchTerm.trim()) return myJobs
-    const term = searchTerm.toLowerCase().trim()
-    return myJobs.filter(job => 
-      job.service_name?.toLowerCase().includes(term) ||
-      job.customer_name?.toLowerCase().includes(term) ||
-      job.location_city?.toLowerCase().includes(term) ||
-      job.location_region?.toLowerCase().includes(term)
-    )
-  }, [myJobs, searchTerm])
+    let filtered = myJobs
+    // Apply status filter
+    if (jobStatusFilter !== 'all') {
+      filtered = filtered.filter(job => job.status === jobStatusFilter)
+    }
+    // Apply search term filter
+    if (searchTerm.trim()) {
+      const term = searchTerm.toLowerCase().trim()
+      filtered = filtered.filter(job => 
+        job.service_name?.toLowerCase().includes(term) ||
+        job.customer_name?.toLowerCase().includes(term) ||
+        job.location_city?.toLowerCase().includes(term) ||
+        job.location_region?.toLowerCase().includes(term)
+      )
+    }
+    return filtered
+  }, [myJobs, jobStatusFilter, searchTerm])
+  
 
   // Save active tab when changed
   const handleTabChange = (tab) => {
     setActiveTab(tab)
     saveProviderState('activeTab', tab)
     setSearchTerm('')
-    // Close drawer on mobile when tab is selected
+    if (tab !== 1) {
+      setJobStatusFilter('all')   // reset filter when leaving My Jobs tab
+    }
     if (isMobile) {
       setMobileOpen(false)
     }
@@ -325,96 +341,71 @@ const ProviderDashboard = () => {
     loadPercentages()
   }, [user?.id, loadData, loadUnreadCounts, loadPercentages])
 
-
   const handleDeclineJob = async (jobId) => {
     const reason = prompt('Enter reason for declining this job:')
     if (!reason) return
-    
-    setActionLoading(jobId)
+  
+    setActionLoading({ jobId, action: 'decline' })
     try {
       await declineJob(jobId, reason)
       showToast('Job declined successfully', 'success')
-      
-      // ✅ Remove from myJobs instantly
       setMyJobs(prev => prev.filter(job => job.id !== jobId))
-      
-      // ✅ Background refresh
       loadData(false)
-      
     } catch (err) {
       showToast(err.response?.data?.error || 'Error declining job', 'error')
     } finally {
-      setActionLoading(null)
+      setActionLoading({ jobId: null, action: null })
     }
   }
 
-  
-  const handleClaim = async (requestId) => {
-    setActionLoading(requestId)
+    const handleClaim = async (requestId) => {
+    setClaimLoading(requestId)
     try {
       await claimJob({ request_id: requestId, provider_id: user.id })
       showToast('✅ Job claimed successfully!')
-      
-      // ✅ Move job from available to myJobs instantly
       const claimedJob = availableJobs.find(job => job.id === requestId)
       setAvailableJobs(prev => prev.filter(job => job.id !== requestId))
       if (claimedJob) {
         setMyJobs(prev => [{ ...claimedJob, status: 'assigned' }, ...prev])
       }
-      
-      // ✅ Background refresh
       loadData(false)
-      
     } catch (err) {
       showToast(err.response?.data?.error || 'Error claiming job', 'error')
     } finally {
-      setActionLoading(null)
+      setClaimLoading(null)
     }
   }
 
+
   const handleMarkComplete = async (jobId) => {
-    setActionLoading(jobId)
+    setActionLoading({ jobId, action: 'complete' })
     try {
       await providerCompleteRequest(jobId)
       showToast('✅ Job marked as completed! Awaiting customer confirmation.', 'success')
-      
-      // ✅ Update local state instantly
       setMyJobs(prev => prev.map(job =>
-        job.id === jobId
-          ? { ...job, status: 'completed', provider_completed: true }
-          : job
+        job.id === jobId ? { ...job, status: 'completed', provider_completed: true } : job
       ))
-      
-      // ✅ Background refresh
       loadData(false)
-      
     } catch (err) {
       showToast(err.response?.data?.error || 'Error marking complete', 'error')
     } finally {
-      setActionLoading(null)
+      setActionLoading({ jobId: null, action: null })
     }
   }
 
   const handleUpdateStatus = async (jobId, newStatus) => {
-    setActionLoading(jobId)
+    setActionLoading({ jobId, action: 'start' })
     try {
       await updateJobStatus(jobId, newStatus)
       showToast(`✅ Job marked as ${newStatus}!`)
-      
-      // ✅ Update local state instantly
       setMyJobs(prev => prev.map(job =>
-        job.id === jobId
-          ? { ...job, status: newStatus }
-          : job
+        job.id === jobId ? { ...job, status: newStatus } : job
       ))
-      
-      // ✅ Background refresh
       loadData(false)
-      
     } catch (err) {
       showToast('Error updating job status', 'error')
     } finally {
-      setActionLoading(null)
+      setActionLoading({ jobId: null, action: null })
     }
   }
 
@@ -437,6 +428,13 @@ const ProviderDashboard = () => {
     { label: ' Profile Settings', icon: <SettingsIcon />, tab: 4, badge: 0 },
   ]
 
+  const bottomTabs = [
+    { label: 'Available', icon: <WorkIcon />, tabIndex: 0 },
+    { label: 'My Jobs', icon: <HistoryIcon />, tabIndex: 1 },
+    { label: 'Earnings', icon: <TrendingUpIcon />, tabIndex: 2 },
+    { label: 'Messages', icon: <MessageIcon />, tabIndex: 3 },
+    { label: 'Profile', icon: <PersonIcon />, tabIndex: 4 }
+  ]
   const drawer = (
     <Box sx={{ height: '100%', bgcolor: 'white' }}>
       <Box sx={{ p: 3, display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1px solid #e2e8f0' }}>
@@ -528,7 +526,7 @@ const ProviderDashboard = () => {
           </Drawer>
         </Box>
 
-        <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, width: { md: `calc(100% - ${drawerWidth}px)` } }}>
+        <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, pb: { xs: 8, md: 3 }, width: { md: `calc(100% - ${drawerWidth}px)` } }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               {isMobile && (
@@ -560,14 +558,43 @@ const ProviderDashboard = () => {
             </Box>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
               {(activeTab === 0 || activeTab === 1) && (
-                <TextField
-                  size="small"
-                  placeholder={activeTab === 0 ? "Search available jobs..." : "Search my jobs by service or customer..."}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  slotProps={{ input: { startAdornment: <SearchIcon sx={{ color: '#94a3b8' }} /> } }}
-                  sx={{ width: isMobile ? 200 : 280, bgcolor: 'white', borderRadius: 2 }}
-                />
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                  {activeTab === 0 ? (
+                    <TextField
+                      size="small"
+                      placeholder="Search available jobs..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      slotProps={{ input: { startAdornment: <SearchIcon sx={{ color: '#94a3b8' }} /> } }}
+                      sx={{ width: isMobile ? 200 : 280, bgcolor: 'white', borderRadius: 2 }}
+                    />
+                  ) : (
+                    <>
+                      <TextField
+                        size="small"
+                        placeholder="Search my jobs..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        slotProps={{ input: { startAdornment: <SearchIcon sx={{ color: '#94a3b8' }} /> } }}
+                        sx={{ width: isMobile ? 180 : 220, bgcolor: 'white', borderRadius: 2 }}
+                      />
+                      <FormControl size="small" sx={{ minWidth: 130 }}>
+                        <InputLabel>Status</InputLabel>
+                        <Select
+                          value={jobStatusFilter}
+                          label="Status"
+                          onChange={(e) => setJobStatusFilter(e.target.value)}
+                        >
+                          <MenuItem value="all">All</MenuItem>
+                          <MenuItem value="assigned">Assigned</MenuItem>
+                          <MenuItem value="in_progress">In Progress</MenuItem>
+                          <MenuItem value="completed">Completed (Awaiting)</MenuItem>
+                          <MenuItem value="confirmed">Confirmed (Paid)</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </>
+                  )}
+                </Box>
               )}
               <IconButton onClick={() => loadData(true)} disabled={refreshing} sx={{ bgcolor: 'white' }}>
                 {refreshing ? <CircularProgress size={24} sx={{ color: '#10b981' }} /> : <RefreshIcon />}
@@ -634,6 +661,20 @@ const ProviderDashboard = () => {
                               📌 Landmark: {job.location_landmark}
                             </Typography>
                           )}
+                          {/* Display components if custom request */}
+                          {job.components_data && job.components_data.length > 0 && (
+                            <Box sx={{ mt: 1, pl: 2, bgcolor: '#f0fdf4', borderRadius: 1, p: 1 }}>
+                              <Typography variant="caption" fontWeight="bold" sx={{ color: '#10b981' }}>
+                                📋 Components to install:
+                              </Typography>
+                              {job.components_data.map((comp, idx) => (
+                                <Box key={idx} component="div" sx={{ display: 'block', fontSize: '0.7rem', mt: 0.5 }}>
+                                  {comp.quantity} × {comp.name} (GHS{comp.unit_price}) = GHS{comp.subtotal}
+                                </Box>
+                              ))}
+                            </Box>
+                          )}
+                          
                           <Typography variant="h5" fontWeight="700" sx={{ color: '#10b981', mt: 2 }}>GH₵{job.amount}</Typography>
                           <Typography variant="caption" color="success.main">
                             💵 You earn: GH₵{(job.amount * percentages.provider_percent / 100).toFixed(2)} ({percentages.provider_percent}%)
@@ -649,10 +690,10 @@ const ProviderDashboard = () => {
                             fullWidth
                             variant="contained"
                             onClick={() => handleClaim(job.id)}
-                            disabled={!user?.is_verified || actionLoading === job.id}
+                            disabled={!user?.is_verified || claimLoading === job.id}
                             sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
                           >
-                            {actionLoading === job.id ? <CircularProgress size={24} sx={{ color: 'white' }} /> : ' Claim Job'}
+                            {claimLoading === job.id ? <CircularProgress size={24} sx={{ color: 'white' }} /> : ' Claim Job'}
                           </Button>
                         </Box>
                       </Card>
@@ -694,65 +735,99 @@ const ProviderDashboard = () => {
                             📌 Landmark: {job.location_landmark}
                           </Typography>
                         )}
-                        <Typography variant="h5" fontWeight="700" sx={{ color: '#10b981', mt: 2 }}>GH₵{job.amount}</Typography>
-                        <Typography variant="caption" color="success.main">
-                          💵 Your earnings: GH₵{(job.amount * percentages.provider_percent / 100).toFixed(2)} ({percentages.provider_percent}%)
-                        </Typography>
-                        
-                        <Box sx={{ display: 'flex', gap: 1, mt: 2, flexWrap: 'wrap' }}>
-                          {job.status === 'assigned' && (
-                            <>
-                              <Button
-                                variant="contained"
-                                onClick={() => handleUpdateStatus(job.id, 'in_progress')}
-                                disabled={actionLoading === job.id}
-                                sx={{ bgcolor: '#8b5cf6', '&:hover': { bgcolor: '#7c3aed' } }}
-                              >
-                                {actionLoading === job.id ? <CircularProgress size={20} sx={{ color: 'white' }} /> : ' Start Job'}
-                              </Button>
-                              <Button
-                                variant="outlined"
-                                color="warning"
-                                onClick={() => handleDeclineJob(job.id)}
-                                disabled={actionLoading === job.id}
-                              >
-                                {actionLoading === job.id ? <CircularProgress size={20} /> : ' Decline Job'}
-                              </Button>
-                            </>
-                          )}
-                          {job.status === 'in_progress' && (
-                            <>
-                              <Button
-                                variant="contained"
-                                onClick={() => handleMarkComplete(job.id)}
-                                disabled={actionLoading === job.id}
-                                sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
-                              >
-                                {actionLoading === job.id ? <CircularProgress size={20} sx={{ color: 'white' }} /> : ' Mark Complete'}
-                              </Button>
-                              <Button
-                                variant="outlined"
-                                color="warning"
-                                onClick={() => handleDeclineJob(job.id)}
-                                disabled={actionLoading === job.id}
-                              >
-                                {actionLoading === job.id ? <CircularProgress size={20} /> : ' Decline Job'}
-                              </Button>
-                            </>
-                          )}
-                          {job.status === 'completed' && !job.customer_confirmed && (
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <PendingIcon sx={{ color: '#f59e0b' }} />
-                              <Typography variant="caption" color="text.secondary">⏳ Awaiting customer confirmation</Typography>
-                            </Box>
-                          )}
-                          {job.status === 'confirmed' && (
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <PaidIcon sx={{ color: '#10b981' }} />
-                              <Typography variant="caption" color="success.main">✓ Customer confirmed - Payment received!</Typography>
-                            </Box>
-                          )}
-                        </Box>
+                        {/* Display components if custom request */}
+                        {job.components_data && job.components_data.length > 0 && (
+                          <Box sx={{ mt: 1, pl: 2, bgcolor: '#f8fafc', borderRadius: 1, p: 1, border: '1px solid #e2e8f0' }}>
+                            <Typography variant="caption" fontWeight="bold">
+                              📋 Components Requested by Customer:
+                            </Typography>
+                            {job.components_data.map((comp, idx) => (
+                              <Box key={idx} component="div" sx={{ display: 'block', fontSize: '0.7rem', mt: 0.5 }}>
+                                {comp.quantity} × {comp.name} @ GHS{comp.unit_price} = GHS{comp.subtotal}
+                              </Box>
+                            ))}
+                          </Box>
+                        )}
+                          
+                          <Typography variant="h5" fontWeight="700" sx={{ color: '#10b981', mt: 2 }}>GH₵{job.amount}</Typography>
+                          <Typography variant="caption" color="success.main">
+                            💵 Your earnings: GH₵{(job.amount * percentages.provider_percent / 100).toFixed(2)} ({percentages.provider_percent}%)
+                          </Typography>
+                          
+                          <Box sx={{ display: 'flex', gap: 1, mt: 2, flexWrap: 'wrap' }}>
+                            {job.status === 'assigned' && (
+                              <>
+                                <Button
+                                  variant="contained"
+                                  onClick={() => handleUpdateStatus(job.id, 'in_progress')}
+                                  disabled={actionLoading.jobId === job.id}
+                                  sx={{ bgcolor: '#8b5cf6', '&:hover': { bgcolor: '#7c3aed' } }}
+                                >
+                                  {actionLoading.jobId === job.id && actionLoading.action === 'start' ? (
+                                    <CircularProgress size={20} sx={{ color: 'white' }} />
+                                  ) : (
+                                    ' Start Job'
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="outlined"
+                                  color="warning"
+                                  onClick={() => handleDeclineJob(job.id)}
+                                  disabled={actionLoading.jobId === job.id}
+                                >
+                                  {actionLoading.jobId === job.id && actionLoading.action === 'decline' ? (
+                                    <CircularProgress size={20} />
+                                  ) : (
+                                    ' Decline Job'
+                                  )}
+                                </Button>
+                              </>
+                            )}
+                            {job.status === 'in_progress' && (
+                              <>
+                                <Button
+                                  variant="contained"
+                                  onClick={() => handleMarkComplete(job.id)}
+                                  disabled={actionLoading.jobId === job.id}
+                                  sx={{ bgcolor: '#10b981', '&:hover': { bgcolor: '#059669' } }}
+                                >
+                                  {actionLoading.jobId === job.id && actionLoading.action === 'complete' ? (
+                                    <CircularProgress size={20} sx={{ color: 'white' }} />
+                                  ) : (
+                                    ' Mark Complete'
+                                  )}
+                                </Button>
+                                <Button
+                                  variant="outlined"
+                                  color="warning"
+                                  onClick={() => handleDeclineJob(job.id)}
+                                  disabled={actionLoading.jobId === job.id}
+                                >
+                                  {actionLoading.jobId === job.id && actionLoading.action === 'decline' ? (
+                                    <CircularProgress size={20} />
+                                  ) : (
+                                    ' Decline Job'
+                                  )}
+                                </Button>
+                              </>
+                            )}
+                            {job.status === 'completed' && !job.customer_confirmed && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <PendingIcon sx={{ color: '#f59e0b' }} />
+                                <Typography variant="caption" color="text.secondary">
+                                  ⏳ Awaiting customer confirmation
+                                </Typography>
+                              </Box>
+                            )}
+                            {job.status === 'confirmed' && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                <PaidIcon sx={{ color: '#10b981' }} />
+                                <Typography variant="caption" color="success.main">
+                                  ✓ Customer confirmed - Payment received!
+                                </Typography>
+                              </Box>
+                            )}
+                          </Box>
 
                         
                       </Card>
@@ -867,6 +942,13 @@ const ProviderDashboard = () => {
                 Go to Profile Settings
               </Button>
             </Card>
+          )}
+          {isMobile && (
+            <BottomNav 
+              tabs={bottomTabs} 
+              activeTab={activeTab} 
+              onChange={handleTabChange} 
+            />
           )}
         </Box>
       </Box>
