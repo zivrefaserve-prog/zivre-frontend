@@ -552,7 +552,7 @@ const CustomerDashboard = () => {
           </Drawer>
         </Box>
 
-          <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, pb: { xs: 8, md: 3 }, width: { md: `calc(100% - ${drawerWidth}px)` } }}>
+          <Box component="main" sx={{ flexGrow: 1, p: { xs: 2, md: 3 }, pb: { xs: 10, md: 3 }, pb: { xs: 8, md: 3 }, width: { md: `calc(100% - ${drawerWidth}px)` } }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3, flexWrap: 'wrap', gap: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
               {isMobile && (
