@@ -944,11 +944,14 @@ const ProviderDashboard = () => {
             </Card>
           )}
           {isMobile && (
-            <BottomNav 
-              tabs={bottomTabs} 
-              activeTab={activeTab} 
-              onChange={handleTabChange} 
-            />
+            <>
+              <Box sx={{ height: '70px' }} />   {/* spacer */}
+              <BottomNav 
+                tabs={bottomTabs} 
+                activeTab={activeTab} 
+                onChange={handleTabChange} 
+              />
+            </>
           )}
         </Box>
       </Box>
